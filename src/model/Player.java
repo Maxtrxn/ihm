@@ -71,6 +71,14 @@ public class Player {
                getY() + getHeight() > enemy.getY();
     }
 
+    public boolean landsOn(Enemy enemy) {
+        return getX() < enemy.getX() + enemy.getWidth() &&
+               getX() + getWidth() > enemy.getX() &&
+               getY() + getHeight() >= enemy.getY() &&
+               getY() + getHeight() <= enemy.getY() + enemy.getHeight() / 2 &&
+               velocityY > 0;
+    }
+
     public int getJumps() {
         return jumps;
     }

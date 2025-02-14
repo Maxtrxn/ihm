@@ -11,6 +11,7 @@ import src.view.GameView;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Iterator;
 
 public class GameController {
     private static final double GRAVITY = 0.5;
@@ -103,8 +104,13 @@ public class GameController {
             }
         }
 
-        for (Enemy enemy : enemies) {
-            if (player.intersects(enemy)) {
+        Iterator<Enemy> enemyIterator = enemies.iterator();
+        while (enemyIterator.hasNext()) {
+            Enemy enemy = enemyIterator.next();
+            if (player.landsOn(enemy)) {
+                enemyIterator.remove();
+                player.velocityY = -10; // Rebondir après avoir atterri sur l'ennemi
+            } else if (player.intersects(enemy)) {
                 resetPlayerPosition();
             }
             enemy.update();
