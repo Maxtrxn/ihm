@@ -1,4 +1,4 @@
-package ihm;
+package ihm.src;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -19,6 +19,8 @@ public class Game extends Application {
     private boolean left, right, jumping;
     private Player player;
     private List<Platform> platforms;
+    private Enemy enemy;
+    private double cameraX = 0;
     
     @Override
     public void start(Stage primaryStage) {
@@ -30,7 +32,11 @@ public class Game extends Application {
         player = new Player(100, 500);
         platforms = new ArrayList<>();
         platforms.add(new Platform(200, 400, 200, 20));
-        platforms.add(new Platform(0, HEIGHT - 20, WIDTH, 20)); // Sol
+        platforms.add(new Platform(600, 350, 200, 20));
+        platforms.add(new Platform(1000, 400, 200, 20));
+        platforms.add(new Platform(0, HEIGHT - 20, WIDTH * 2, 20)); // Sol étendu
+        
+        enemy = new Enemy(650, 330, 50, 50, 2, 600, 800);
         
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         scene.setOnKeyPressed(event -> {
@@ -52,7 +58,7 @@ public class Game extends Application {
             }
         }.start();
         
-        primaryStage.setTitle("Simple JavaFX Platformer");
+        primaryStage.setTitle("Scrolling JavaFX Platformer");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -75,65 +81,27 @@ public class Game extends Application {
                 player.onGround = true;
             }
         }
+        
+        enemy.update();
+        
+        cameraX = player.getX() - WIDTH / 2;
     }
     
     private void draw(GraphicsContext gc) {
         gc.clearRect(0, 0, WIDTH, HEIGHT);
         gc.setFill(Color.RED);
-        gc.fillRect(player.getX(), player.getY(), player.getWidth(), player.getHeight());
+        gc.fillRect(player.getX() - cameraX, player.getY(), player.getWidth(), player.getHeight());
         
         gc.setFill(Color.BLUE);
         for (Platform platform : platforms) {
-            gc.fillRect(platform.getX(), platform.getY(), platform.getWidth(), platform.getHeight());
+            gc.fillRect(platform.getX() - cameraX, platform.getY(), platform.getWidth(), platform.getHeight());
         }
+        
+        gc.setFill(Color.GREEN);
+        gc.fillRect(enemy.getX() - cameraX, enemy.getY(), enemy.getWidth(), enemy.getHeight());
     }
     
     public static void main(String[] args) {
         launch(args);
     }
-}
-
-class Player {
-    private double x, y, width = 30, height = 30;
-    public double velocityY = 0;
-    public boolean onGround = false;
-    
-    public Player(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
-    
-    public void move(double dx, double dy) {
-        x += dx;
-        y += dy;
-    }
-    
-    public boolean intersects(Platform platform) {
-        return x < platform.getX() + platform.getWidth() &&
-               x + width > platform.getX() &&
-               y + height > platform.getY() &&
-               y + height < platform.getY() + platform.getHeight();
-    }
-    
-    public double getX() { return x; }
-    public double getY() { return y; }
-    public void setY(double y) { this.y = y; }
-    public double getWidth() { return width; }
-    public double getHeight() { return height; }
-}
-
-class Platform {
-    private double x, y, width, height;
-    
-    public Platform(double x, double y, double width, double height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-    
-    public double getX() { return x; }
-    public double getY() { return y; }
-    public double getWidth() { return width; }
-    public double getHeight() { return height; }
 }
