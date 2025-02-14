@@ -7,58 +7,51 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import src.model.Player;
-import src.model.Platform;
-import src.model.Enemy;
 import src.view.GameView;
 import src.controller.GameController;
-
-import java.util.ArrayList;
-import java.util.List;
+import src.levels.Level;
+import src.levels.Level1;
+import src.levels.Level2;
 
 public class Game extends Application {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
+    private Stage primaryStage;
+    private Player player;
+    private GameController controller;
+    private GameView view;
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        this.player = new Player(100, 500);
+        this.view = new GameView(new Canvas(WIDTH, HEIGHT).getGraphicsContext2D());
+
+        loadLevel(new Level1(player));
+
+        primaryStage.setTitle("Steampunk Adventure");
+        primaryStage.show();
+    }
+
+    public void loadLevel(Level level) {
         Pane root = new Pane();
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         root.getChildren().add(canvas);
         GraphicsContext gc = canvas.getGraphicsContext2D();
+        view = new GameView(gc);
 
-        Player player = new Player(100, 500);
-        List<Platform> platforms = new ArrayList<>();
-        platforms.add(new Platform(200, 400, 200, 20));
-        platforms.add(new Platform(600, 350, 200, 20));
-        platforms.add(new Platform(1000, 400, 200, 20));
-        platforms.add(new Platform(0, HEIGHT - 20, WIDTH * 2, 20)); // Sol étendu
-        platforms.add(new Platform(150, 450, 100, 20)); // Plateforme à la hauteur du joueur
-
-        List<Enemy> enemies = new ArrayList<>();
-        enemies.add(new Enemy(650, 330, 50, 50, 2, 600, 800));
-        enemies.add(new Enemy(1200, 330, 50, 50, 2, 1100, 1300));
-
-        GameView view = new GameView(gc);
-        GameController controller = new GameController(player, platforms, enemies, view);
+        controller = new GameController(player, level.getPlatforms(), level.getEnemies(), view, this);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         controller.handleInput(scene);
 
-        primaryStage.setTitle("Steampunk Adventure");
         primaryStage.setScene(scene);
-        primaryStage.show();
 
         controller.startGameLoop();
+    }
 
-        // Exemple de mise à jour rapide de la vitesse du joueur
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000); // Attendre 5 secondes
-                player.setSpeed(7.0); // Mettre à jour la vitesse du joueur
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
+    public void nextLevel() {
+        loadLevel(new Level2(player));
     }
 
     public static void main(String[] args) {

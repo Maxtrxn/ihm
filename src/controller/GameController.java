@@ -7,6 +7,7 @@ import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
 import src.view.GameView;
+import src.Game;
 
 import java.util.List;
 import java.util.Timer;
@@ -23,12 +24,14 @@ public class GameController {
     private double initialPlayerX;
     private double initialPlayerY;
     private Timer jetpackTimer;
+    private Game game;
 
-    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view) {
+    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view, Game game) {
         this.player = player;
         this.platforms = platforms;
         this.enemies = enemies;
         this.view = view;
+        this.game = game;
         this.initialPlayerX = player.getX();
         this.initialPlayerY = player.getY();
         view.cameraXProperty().bind(player.xProperty().subtract(400));
@@ -118,6 +121,11 @@ public class GameController {
 
         if (player.getY() > GameView.HEIGHT) {
             resetPlayerPosition();
+        }
+
+        // Détecter la fin du niveau
+        if (player.getX() > 1600) { // Par exemple, si le joueur atteint la fin du niveau
+            game.nextLevel();
         }
     }
 
