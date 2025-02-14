@@ -9,33 +9,61 @@ import src.model.Enemy;
 import src.view.GameView;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class GameController {
     private static final double GRAVITY = 0.5;
-    private boolean left, right, jumping;
+    private boolean left, right, jumping, jetpack;
     private Player player;
     private List<Platform> platforms;
     private List<Enemy> enemies;
     private GameView view;
+    private double initialPlayerX;
+    private double initialPlayerY;
+    private Timer jetpackTimer;
 
     public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view) {
         this.player = player;
         this.platforms = platforms;
         this.enemies = enemies;
         this.view = view;
+        this.initialPlayerX = player.getX();
+        this.initialPlayerY = player.getY();
         view.cameraXProperty().bind(player.xProperty().subtract(400));
+        view.cameraYProperty().bind(player.yProperty().subtract(300));
     }
 
     public void handleInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.LEFT) left = true;
             if (event.getCode() == KeyCode.RIGHT) right = true;
-            if (event.getCode() == KeyCode.SPACE) jumping = true;
+            if (event.getCode() == KeyCode.SPACE) {
+                jumping = true;
+                if (jetpackTimer == null) {
+                    jetpackTimer = new Timer();
+                    jetpackTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            jetpack = true;
+                            player.setJetpackActive(true);
+                        }
+                    }, 500); // Activer le jetpack après 0,5 seconde
+                }
+            }
         });
         scene.setOnKeyReleased(event -> {
             if (event.getCode() == KeyCode.LEFT) left = false;
             if (event.getCode() == KeyCode.RIGHT) right = false;
-            if (event.getCode() == KeyCode.SPACE) jumping = false;
+            if (event.getCode() == KeyCode.SPACE) {
+                jumping = false;
+                jetpack = false;
+                player.setJetpackActive(false);
+                if (jetpackTimer != null) {
+                    jetpackTimer.cancel();
+                    jetpackTimer = null;
+                }
+            }
         });
     }
 
@@ -50,14 +78,20 @@ public class GameController {
     }
 
     private void update() {
-        if (left) player.move(-3, 0);
-        if (right) player.move(3, 0);
-        if (jumping && player.onGround) {
+        if (left) player.move(-player.getSpeed(), 0);
+        if (right) player.move(player.getSpeed(), 0);
+        if (jumping && player.canJump() && !jetpack) {
             player.velocityY = -10;
-            player.onGround = false;
+            player.incrementJumps();
+            jumping = false;
         }
 
-        player.velocityY += GRAVITY;
+        if (jetpack && player.isJetpackActive()) {
+            player.velocityY = -5; // Vitesse de montée avec le jetpack
+        } else {
+            player.velocityY += GRAVITY;
+        }
+
         player.move(0, player.velocityY);
 
         for (Platform platform : platforms) {
@@ -65,11 +99,32 @@ public class GameController {
                 player.setY(platform.getY() - player.getHeight());
                 player.velocityY = 0;
                 player.onGround = true;
+                player.resetJumps();
             }
         }
 
         for (Enemy enemy : enemies) {
+            if (player.intersects(enemy)) {
+                resetPlayerPosition();
+            }
             enemy.update();
+        }
+
+        if (player.getY() > GameView.HEIGHT) {
+            resetPlayerPosition();
+        }
+    }
+
+    private void resetPlayerPosition() {
+        player.setX(initialPlayerX);
+        player.setY(initialPlayerY);
+        player.velocityY = 0;
+        player.onGround = true;
+        player.resetJumps();
+        player.setJetpackActive(false);
+        if (jetpackTimer != null) {
+            jetpackTimer.cancel();
+            jetpackTimer = null;
         }
     }
 }

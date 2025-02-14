@@ -10,6 +10,10 @@ public class Player {
     private double height = 50;
     public double velocityY = 0;
     public boolean onGround = false;
+    private int jumps = 0;
+    private static final int MAX_JUMPS = 2;
+    private double speed = 3.0; // Vitesse du joueur
+    private boolean jetpackActive = false;
 
     public Player(double x, double y) {
         this.x.set(x);
@@ -58,5 +62,44 @@ public class Player {
                getX() + getWidth() > platform.getX() &&
                getY() < platform.getY() + platform.getHeight() &&
                getY() + getHeight() > platform.getY();
+    }
+
+    public boolean intersects(Enemy enemy) {
+        return getX() < enemy.getX() + enemy.getWidth() &&
+               getX() + getWidth() > enemy.getX() &&
+               getY() < enemy.getY() + enemy.getHeight() &&
+               getY() + getHeight() > enemy.getY();
+    }
+
+    public int getJumps() {
+        return jumps;
+    }
+
+    public void incrementJumps() {
+        jumps++;
+    }
+
+    public void resetJumps() {
+        jumps = 0;
+    }
+
+    public boolean canJump() {
+        return jumps < MAX_JUMPS;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+
+    public boolean isJetpackActive() {
+        return jetpackActive;
+    }
+
+    public void setJetpackActive(boolean jetpackActive) {
+        this.jetpackActive = jetpackActive;
     }
 }

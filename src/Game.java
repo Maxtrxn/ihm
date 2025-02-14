@@ -32,6 +32,7 @@ public class Game extends Application {
         platforms.add(new Platform(600, 350, 200, 20));
         platforms.add(new Platform(1000, 400, 200, 20));
         platforms.add(new Platform(0, HEIGHT - 20, WIDTH * 2, 20)); // Sol étendu
+        platforms.add(new Platform(150, 450, 100, 20)); // Plateforme à la hauteur du joueur
 
         List<Enemy> enemies = new ArrayList<>();
         enemies.add(new Enemy(650, 330, 50, 50, 2, 600, 800));
@@ -43,11 +44,21 @@ public class Game extends Application {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         controller.handleInput(scene);
 
-        primaryStage.setTitle("2D Platformer Game");
+        primaryStage.setTitle("Steampunk Adventure");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         controller.startGameLoop();
+
+        // Exemple de mise à jour rapide de la vitesse du joueur
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000); // Attendre 5 secondes
+                player.setSpeed(7.0); // Mettre à jour la vitesse du joueur
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) {
