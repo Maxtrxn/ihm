@@ -110,4 +110,12 @@ public class Player {
     public void setJetpackActive(boolean jetpackActive) {
         this.jetpackActive = jetpackActive;
     }
+
+    public void setVelocityY(double velocityY) {
+        this.velocityY = velocityY;
+    }
+
+    public void setOnGround(boolean onGround) {
+        this.onGround = onGround;
+    }
 }

@@ -148,6 +148,9 @@ public class GameController {
         jumping = false;
         jetpack = false;
         player.setJetpackActive(false);
+        player.resetJumps();
+        player.setVelocityY(0);
+        player.setOnGround(true);
         if (jetpackTimer != null) {
             jetpackTimer.cancel();
             jetpackTimer = null;
