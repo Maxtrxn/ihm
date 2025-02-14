@@ -141,4 +141,16 @@ public class GameController {
             jetpackTimer = null;
         }
     }
+
+    public void resetPlayerState() {
+        left = false;
+        right = false;
+        jumping = false;
+        jetpack = false;
+        player.setJetpackActive(false);
+        if (jetpackTimer != null) {
+            jetpackTimer.cancel();
+            jetpackTimer = null;
+        }
+    }
 }

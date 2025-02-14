@@ -51,6 +51,7 @@ public class Game extends Application {
     }
 
     public void nextLevel() {
+        controller.resetPlayerState();
         loadLevel(new Level2(player));
     }
 
