@@ -52,7 +52,7 @@ public class GameController {
                             jetpack = true;
                             player.setJetpackActive(true);
                         }
-                    }, 500); // Activer le jetpack après 0,5 seconde
+                    }, 500); //Activer le jetpack après 0,5 seconde
                 }
             }
         });
@@ -91,7 +91,7 @@ public class GameController {
         }
 
         if (jetpack && player.isJetpackActive()) {
-            player.velocityY = -5; // Vitesse de montée avec le jetpack
+            player.velocityY = -5; //Vitesse de montée avec le jetpack
         } else {
             player.velocityY += GRAVITY;
         }
@@ -112,7 +112,7 @@ public class GameController {
             Enemy enemy = enemyIterator.next();
             if (player.landsOn(enemy)) {
                 enemyIterator.remove();
-                player.velocityY = -10; // Rebondir après avoir atterri sur l'ennemi
+                player.velocityY = -10; //Rebondir après avoir atterri sur l'ennemi
             } else if (player.intersects(enemy)) {
                 resetPlayerPosition();
             }
@@ -123,8 +123,7 @@ public class GameController {
             resetPlayerPosition();
         }
 
-        // Détecter la fin du niveau
-        if (player.getX() > 1600) { // Par exemple, si le joueur atteint la fin du niveau
+        if (player.getX() > 1600) {//Pour l'instant c'est la fin du niveau
             game.nextLevel();
         }
     }
