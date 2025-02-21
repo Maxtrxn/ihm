@@ -12,7 +12,7 @@ public class Player {
     public boolean onGround = false;
     private int jumps = 0;
     private static final int MAX_JUMPS = 2;
-    private double speed = 3.0; // Vitesse du joueur
+    private double speed = 3.0;
     private boolean jetpackActive = false;
 
     public Player(double x, double y) {
