@@ -25,6 +25,7 @@ public class GameView {
     private int frameHeight;
     private long lastFrameTime = 0;
     private long frameDuration = 50_000_000; // Durée de chaque frame en nanosecondes (100ms)
+    private Image platformImage = new Image("file:../textures/plateforme_acier_1.png");
 
     public GameView(GraphicsContext gc) {
         this.gc = gc;
@@ -80,7 +81,6 @@ public class GameView {
 
         gc.setFill(Color.RED);
         gc.fillRect(player.getX() - cameraX.get(), player.getY() - cameraY.get(), player.getWidth(), player.getHeight());
-
         for (Platform platform : platforms) {
             if (platform.getTexture() != null) {
                 gc.drawImage(platform.getTexture(), platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());

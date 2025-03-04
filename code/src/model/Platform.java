@@ -2,16 +2,16 @@ package src.model;
 
 import javafx.scene.image.Image;
 
-public class Platform {
-    private double x, y, width, height;
-    private Image texture;
+public abstract class Platform {
+    protected double x, y, width, height;
+    protected Image texture;
 
-    public Platform(double x, double y, double width, double height, Image texture) {
+    public Platform(double x, double y, Image texture) {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
         this.texture = texture;
+        this.width = texture.getWidth();
+        this.height = texture.getHeight();
     }
 
     public double getX() {
