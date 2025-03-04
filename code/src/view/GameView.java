@@ -30,8 +30,8 @@ public class GameView {
         this.gc = gc;
         try {
             // Utilisez un chemin absolu pour charger la feuille de sprites
-            this.spriteSheet = new Image("file:/home/matthieu/Documents/projet_steampunk/ihm/src/resources/engrenage animation-Sheet.png");
-            this.backgroundImage = new Image("file:/resources/test.png");
+            this.spriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
+            //this.backgroundImage = new Image("file:src/resources/test.png");
             if (spriteSheet.isError()) {
                 System.out.println("Error loading sprite sheet.");
             } else {
@@ -81,9 +81,14 @@ public class GameView {
         gc.setFill(Color.RED);
         gc.fillRect(player.getX() - cameraX.get(), player.getY() - cameraY.get(), player.getWidth(), player.getHeight());
 
-        gc.setFill(Color.BLUE);
         for (Platform platform : platforms) {
-            gc.fillRect(platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());
+            if (platform.getTexture() != null) {
+                gc.drawImage(platform.getTexture(), platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());
+            } else {
+                System.err.println("Platform texture is null.");
+                gc.setFill(Color.BLUE);
+                gc.fillRect(platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());
+            }
         }
 
         gc.setFill(Color.GREEN);
