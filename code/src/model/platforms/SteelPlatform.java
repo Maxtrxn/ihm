@@ -1,6 +1,7 @@
-package src.model;
+package src.model.platforms;
 
 import javafx.scene.image.Image;
+import src.model.Platform;
 
 public class SteelPlatform extends Platform {
 

@@ -1,7 +1,7 @@
 package src.levels;
 
 import src.model.Player;
-import src.model.SteelPlatform;
+import src.model.platforms.SteelPlatform;
 import src.model.Enemy;
 
 public class Level1 extends Level {
@@ -17,8 +17,5 @@ public class Level1 extends Level {
         platforms.add(new SteelPlatform(1000, 400));
         platforms.add(new SteelPlatform(0, 580));
         platforms.add(new SteelPlatform(150, 450));
-
-        enemies.add(new Enemy(650, 330, 50, 50, 2, 600, 800));
-        enemies.add(new Enemy(1200, 330, 50, 50, 2, 1100, 1300));
     }
 }
