@@ -99,6 +99,13 @@ public class GameController {
 
         player.move(0, player.velocityY);
 
+        // Réinitialisation de playerWasOn sur les plateformes
+        for (Platform platform : platforms) {
+            if (platform instanceof FragilePlatform) {
+                ((FragilePlatform) platform).resetStep(player);
+            }
+        }
+
         Iterator<Platform> platformIterator = platforms.iterator();
         while (platformIterator.hasNext()) {
             Platform platform = platformIterator.next();
@@ -110,7 +117,9 @@ public class GameController {
 
                 if (platform instanceof FragilePlatform) {
                     FragilePlatform fragilePlatform = (FragilePlatform) platform;
-                    fragilePlatform.step();
+                    if (!fragilePlatform.isBroken() && player.velocityY == 0) {  // Vérifie qu'on vient juste d'atterrir
+                        fragilePlatform.step(player);
+                    }
                     if (fragilePlatform.isBroken()) {
                         platformIterator.remove();
                     }
@@ -134,7 +143,7 @@ public class GameController {
             resetPlayerPosition();
         }
 
-        if (player.getX() > 1600) {//Pour l'instant c'est la fin du niveau
+        if (player.getX() > 1600) { // Pour l'instant c'est la fin du niveau
             game.nextLevel();
         }
     }
