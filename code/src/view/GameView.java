@@ -19,6 +19,7 @@ public class GameView {
     private GraphicsContext gc;
     private Image spriteSheet;
     private Image backgroundImage;
+    private Image playerImage;
     private int frameIndex = 0;
     private int frameCount;
     private int frameWidth;
@@ -32,7 +33,8 @@ public class GameView {
         try {
             // Utilisez un chemin absolu pour charger la feuille de sprites
             this.spriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
-            //this.backgroundImage = new Image("file:src/resources/test.png");
+            this.backgroundImage = new Image("file:../textures/background temporaire1.png");
+            this.playerImage = new Image("file:../textures/wrench.png");
             if (spriteSheet.isError()) {
                 System.out.println("Error loading sprite sheet.");
             } else {
@@ -49,6 +51,9 @@ public class GameView {
             }
             if (backgroundImage.isError()) {
                 System.out.println("Error loading background image.");
+            }
+            if (playerImage.isError()) {
+                System.out.println("Error loading player image.");
             }
         } catch (Exception e) {
             System.out.println("Exception loading images: " + e.getMessage());
@@ -79,8 +84,14 @@ public class GameView {
             System.out.println("frameWidth: " + frameWidth + ", frameHeight: " + frameHeight);
         }
 
-        gc.setFill(Color.RED);
-        gc.fillRect(player.getX() - cameraX.get(), player.getY() - cameraY.get(), player.getWidth(), player.getHeight());
+        // Dessiner le joueur avec l'image wrench.png agrandie
+        if (playerImage != null) {
+            double scaleFactor = 2; // Facteur d'agrandissement
+            gc.drawImage(playerImage, player.getX() - cameraX.get(), player.getY() - cameraY.get(), player.getWidth() * scaleFactor, player.getHeight() * scaleFactor);
+        } else {
+            System.out.println("Player image is null.");
+        }
+
         for (Platform platform : platforms) {
             if (platform.getTexture() != null) {
                 gc.drawImage(platform.getTexture(), platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());
