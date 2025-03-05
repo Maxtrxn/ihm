@@ -2,6 +2,7 @@ package src.levels;
 
 import src.model.Player;
 import src.model.platforms.CopperPlatform;
+import src.model.platforms.FragilePlatform;
 import src.model.Enemy;
 
 public class Level2 extends Level {
@@ -12,7 +13,7 @@ public class Level2 extends Level {
 
     @Override
     protected void initialize() {
-        platforms.add(new CopperPlatform(100, 300));
+        platforms.add(new FragilePlatform(100, 300)); // Première plateforme cassée
         platforms.add(new CopperPlatform(400, 250));
         platforms.add(new CopperPlatform(700, 300));
         platforms.add(new CopperPlatform(0, 580));

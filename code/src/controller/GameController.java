@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.platforms.FragilePlatform;
 import src.view.GameView;
 import src.Game;
 
@@ -98,12 +99,22 @@ public class GameController {
 
         player.move(0, player.velocityY);
 
-        for (Platform platform : platforms) {
+        Iterator<Platform> platformIterator = platforms.iterator();
+        while (platformIterator.hasNext()) {
+            Platform platform = platformIterator.next();
             if (player.intersects(platform) && player.velocityY > 0) {
                 player.setY(platform.getY() - player.getHeight());
                 player.velocityY = 0;
                 player.onGround = true;
                 player.resetJumps();
+
+                if (platform instanceof FragilePlatform) {
+                    FragilePlatform fragilePlatform = (FragilePlatform) platform;
+                    fragilePlatform.step();
+                    if (fragilePlatform.isBroken()) {
+                        platformIterator.remove();
+                    }
+                }
             }
         }
 
