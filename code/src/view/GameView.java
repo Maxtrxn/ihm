@@ -14,6 +14,7 @@ import java.util.List;
 public class GameView {
     public static final int WIDTH = 800;
     public static final int HEIGHT = 600;
+    private static final String RESSOURCES_PATH = "file:../textures/";
     private DoubleProperty cameraX = new SimpleDoubleProperty(0);
     private DoubleProperty cameraY = new SimpleDoubleProperty(0);
     private GraphicsContext gc;
@@ -30,7 +31,8 @@ public class GameView {
         this.gc = gc;
         try {
             // Utilisez un chemin absolu pour charger la feuille de sprites
-            this.spriteSheet = new Image("file:/home/matthieu/Documents/projet_steampunk/ihm/src/resources/engrenage animation-Sheet.png");
+
+            this.spriteSheet = new Image(RESSOURCES_PATH + "engrenage animation-Sheet.png");
             this.backgroundImage = new Image("file:/resources/test.png");
             if (spriteSheet.isError()) {
                 System.out.println("Error loading sprite sheet.");
