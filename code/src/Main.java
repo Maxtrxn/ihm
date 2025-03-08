@@ -1,14 +1,10 @@
 package src;
 
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.BorderPane;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import src.view.GameEditorView;
-import src.model.GameEditor;
 import src.controller.GameEditorController;
-import javafx.scene.input.MouseEvent;
+
 
 public class Main extends Application {
     private static final int ROWS = 10;
@@ -25,7 +21,7 @@ public class Main extends Application {
 
 
         primaryStage.setMaximized(true);
-        primaryStage.setScene(new Scene(controller.getView().getBorderPane(), 100, 100));
+        primaryStage.setScene(new Scene(controller.getView().getRoot(), 800, 600));
         primaryStage.setTitle("Editor");
         primaryStage.show();
     }

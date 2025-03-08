@@ -3,8 +3,6 @@ package src.controller;
 
 import src.view.GameEditorView;
 import src.model.GameEditor;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
 
 public class GameEditorController{
     public int rows;
