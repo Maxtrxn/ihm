@@ -5,10 +5,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import src.model.Player;
-import src.model.Platform;
-import src.model.Enemy;
-
 import java.util.List;
 
 public class GameView {
@@ -18,7 +14,7 @@ public class GameView {
     private DoubleProperty cameraY = new SimpleDoubleProperty(0);
     private GraphicsContext gc;
     private Image spriteSheet;
-    private Image backgroundImage;
+    private Image playerImage;
     private int frameIndex = 0;
     private int frameCount;
     private int frameWidth;
@@ -30,8 +26,8 @@ public class GameView {
         this.gc = gc;
         try {
             // Utilisez un chemin absolu pour charger la feuille de sprites
-            this.spriteSheet = new Image("file:/home/matthieu/Documents/projet_steampunk/ihm/src/resources/engrenage animation-Sheet.png");
-            this.backgroundImage = new Image("file:/resources/test.png");
+            this.spriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
+            this.playerImage = new Image("file:../textures/wrench.png");
             if (spriteSheet.isError()) {
                 System.out.println("Error loading sprite sheet.");
             } else {
@@ -46,15 +42,15 @@ public class GameView {
                     System.out.println("Error: frameWidth is zero.");
                 }
             }
-            if (backgroundImage.isError()) {
-                System.out.println("Error loading background image.");
+            if (playerImage.isError()) {
+                System.out.println("Error loading player image.");
             }
         } catch (Exception e) {
             System.out.println("Exception loading images: " + e.getMessage());
         }
     }
 
-    public void draw(Player player, List<Platform> platforms, List<Enemy> enemies) {
+    public void draw(Image backgroundImage, double playerX, double playerY, double playerWidth, double playerHeight, List<Image> platformImages, List<Double[]> platformPositions, List<Double[]> enemyPositions) {
         gc.clearRect(0, 0, WIDTH, HEIGHT);
         
         // Dessiner l'image d'arrière-plan
@@ -78,17 +74,29 @@ public class GameView {
             System.out.println("frameWidth: " + frameWidth + ", frameHeight: " + frameHeight);
         }
 
-        gc.setFill(Color.RED);
-        gc.fillRect(player.getX() - cameraX.get(), player.getY() - cameraY.get(), player.getWidth(), player.getHeight());
+        // Dessiner le joueur avec l'image wrench.png agrandie
+        if (playerImage != null) {
+            double scaleFactor = 2; // Facteur d'agrandissement
+            gc.drawImage(playerImage, playerX - cameraX.get(), playerY - cameraY.get(), playerWidth * scaleFactor, playerHeight * scaleFactor);
+        } else {
+            System.out.println("Player image is null.");
+        }
 
-        gc.setFill(Color.BLUE);
-        for (Platform platform : platforms) {
-            gc.fillRect(platform.getX() - cameraX.get(), platform.getY() - cameraY.get(), platform.getWidth(), platform.getHeight());
+        for (int i = 0; i < platformImages.size(); i++) {
+            Image platformImage = platformImages.get(i);
+            Double[] position = platformPositions.get(i);
+            if (platformImage != null) {
+                gc.drawImage(platformImage, position[0] - cameraX.get(), position[1] - cameraY.get(), position[2], position[3]);
+            } else {
+                System.err.println("Platform texture is null.");
+                gc.setFill(Color.BLUE);
+                gc.fillRect(position[0] - cameraX.get(), position[1] - cameraY.get(), position[2], position[3]);
+            }
         }
 
         gc.setFill(Color.GREEN);
-        for (Enemy enemy : enemies) {
-            gc.fillRect(enemy.getX() - cameraX.get(), enemy.getY() - cameraY.get(), enemy.getWidth(), enemy.getHeight());
+        for (Double[] position : enemyPositions) {
+            gc.fillRect(position[0] - cameraX.get(), position[1] - cameraY.get(), position[2], position[3]);
         }
     }
 
