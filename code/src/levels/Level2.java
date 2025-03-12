@@ -20,6 +20,7 @@ public class Level2 extends Level {
         platforms.add(new CopperPlatform(700, 300));
         platforms.add(new CopperPlatform(0, 580));
         platforms.add(new CopperPlatform(200, 350));
+        platforms.add(new CopperPlatform(400, 350));
 
         enemies.add(new Enemy(450, 230, 50, 50, 2, 400, 600));
         enemies.add(new Enemy(800, 230, 50, 50, 2, 700, 900));
