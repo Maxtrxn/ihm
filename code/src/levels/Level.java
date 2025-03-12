@@ -3,21 +3,15 @@ package src.levels;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
-import java.util.List;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.image.Image;
-
-
+import java.util.List;
 import java.util.ArrayList;
 
 public abstract class Level {
     protected List<Platform> platforms;
     protected List<Enemy> enemies;
     protected Player player;
-    protected BackgroundImage backgroundImage;
+    protected Image backgroundImage;
 
     public Level(Player player) {
         this.player = player;
@@ -36,12 +30,11 @@ public abstract class Level {
         return enemies;
     }
 
-    public BackgroundImage getBackgroundImage() {
+    public Image getBackgroundImage() {
         return backgroundImage;
     }
 
-    //Premier repeat : horizontal, Deuxième : Vertical
-    protected void setBackgroundImage(Image background) {
-        this.backgroundImage = new BackgroundImage(background, BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+    protected void setBackgroundImage(String imagePath) {
+        this.backgroundImage = new Image(imagePath);
     }
 }

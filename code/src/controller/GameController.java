@@ -3,17 +3,20 @@ package src.controller;
 import javafx.animation.AnimationTimer;
 import javafx.scene.input.KeyCode;
 import javafx.scene.Scene;
+import javafx.scene.image.Image; // Ajoutez cette ligne
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
 import src.model.platforms.FragilePlatform;
 import src.view.GameView;
 import src.Game;
+import src.levels.Level;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 public class GameController {
     private static final double GRAVITY = 0.5;
@@ -26,13 +29,15 @@ public class GameController {
     private double initialPlayerY;
     private Timer jetpackTimer;
     private Game game;
+    private Level level;
 
-    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view, Game game) {
+    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view, Game game, Level level) {
         this.player = player;
         this.platforms = platforms;
         this.enemies = enemies;
         this.view = view;
         this.game = game;
+        this.level = level;
         this.initialPlayerX = player.getX();
         this.initialPlayerY = player.getY();
         view.cameraXProperty().bind(player.xProperty().subtract(400));
@@ -77,7 +82,7 @@ public class GameController {
             @Override
             public void handle(long now) {
                 update();
-                view.draw(player, platforms, enemies);
+                draw();
             }
         }.start();
     }
@@ -146,6 +151,22 @@ public class GameController {
         if (player.getX() > 1600) { // Pour l'instant c'est la fin du niveau
             game.nextLevel();
         }
+    }
+
+    private void draw() {
+        List<Image> platformImages = new ArrayList<>();
+        List<Double[]> platformPositions = new ArrayList<>();
+        for (Platform platform : platforms) {
+            platformImages.add(platform.getTexture());
+            platformPositions.add(new Double[]{platform.getX(), platform.getY(), platform.getWidth(), platform.getHeight()});
+        }
+
+        List<Double[]> enemyPositions = new ArrayList<>();
+        for (Enemy enemy : enemies) {
+            enemyPositions.add(new Double[]{enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight()});
+        }
+
+        view.draw(level.getBackgroundImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), platformImages, platformPositions, enemyPositions);
     }
 
     private void resetPlayerPosition() {

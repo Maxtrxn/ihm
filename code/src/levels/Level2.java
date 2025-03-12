@@ -13,6 +13,8 @@ public class Level2 extends Level {
 
     @Override
     protected void initialize() {
+        setBackgroundImage("file:../textures/background_level2.png");
+
         platforms.add(new FragilePlatform(100, 300)); // Première plateforme cassée
         platforms.add(new CopperPlatform(400, 250));
         platforms.add(new CopperPlatform(700, 300));

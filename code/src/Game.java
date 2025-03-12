@@ -40,7 +40,7 @@ public class Game extends Application {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         view = new GameView(gc);
 
-        controller = new GameController(player, level.getPlatforms(), level.getEnemies(), view, this);
+        controller = new GameController(player, level.getPlatforms(), level.getEnemies(), view, this, level);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         controller.handleInput(scene);
