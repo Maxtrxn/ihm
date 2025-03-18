@@ -15,6 +15,9 @@ public class Player {
     private double speed = 3.0;
     private boolean jetpackActive = false;
 
+    // Animation-related properties
+    private boolean walking = false;
+
     public Player(double x, double y) {
         this.x.set(x);
         this.y.set(y);
@@ -55,6 +58,15 @@ public class Player {
     public void move(double dx, double dy) {
         setX(getX() + dx);
         setY(getY() + dy);
+        walking = dx != 0; // Set walking to true if the player is moving horizontally
+    }
+
+    public boolean isWalking() {
+        return walking;
+    }
+
+    public void stopWalking() {
+        walking = false;
     }
 
     public boolean intersects(Platform platform) {

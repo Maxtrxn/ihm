@@ -160,13 +160,13 @@ public class GameController {
             platformImages.add(platform.getTexture());
             platformPositions.add(new Double[]{platform.getX(), platform.getY(), platform.getWidth(), platform.getHeight()});
         }
-
+    
         List<Double[]> enemyPositions = new ArrayList<>();
         for (Enemy enemy : enemies) {
             enemyPositions.add(new Double[]{enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight()});
         }
-
-        view.draw(level.getBackgroundImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), platformImages, platformPositions, enemyPositions);
+    
+        view.draw(level.getBackgroundImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), player.isWalking(), platformImages, platformPositions, enemyPositions);
     }
 
     private void resetPlayerPosition() {
