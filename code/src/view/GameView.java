@@ -48,6 +48,11 @@ public class GameView {
     private long lastWalkFrameTime = 0;
     private final long walkFrameDuration = 100_000_000; // 100 ms par frame
 
+    // ------------------------------------------------------------
+    // 4) Offset d'affichage du joueur (pour éviter qu'il "rentre" dans le sol)
+    // ------------------------------------------------------------
+    private final double playerOffsetY = 50; // Ajuste cette valeur à ta guise
+
     public GameView(GraphicsContext gc) {
         this.gc = gc;
         try {
@@ -132,12 +137,12 @@ public class GameView {
             gc.drawImage(gearSpriteSheet,
                          frameX, 0,
                          gearFrameWidth, gearFrameHeight,
-                         0, 0, // position à l'écran
+                         0, 0,
                          gearFrameWidth, gearFrameHeight);
         }
 
         // -----------------------------------------------------
-        // 3) Dessiner le joueur
+        // 3) Dessiner le joueur (selon qu'il marche ou non)
         // -----------------------------------------------------
         double scaleFactor = 2.0;
 
@@ -152,8 +157,10 @@ public class GameView {
             gc.drawImage(playerWalkSheet,
                          frameX, 0,
                          walkFrameWidth, walkFrameHeight,
-                         playerX - cameraX.get(), playerY - cameraY.get(),
-                         playerWidth * scaleFactor, playerHeight * scaleFactor);
+                         (playerX - cameraX.get()),
+                         (playerY - cameraY.get()) - playerOffsetY,
+                         playerWidth * scaleFactor,
+                         playerHeight * scaleFactor);
 
         } else if (!isWalking && playerIdleSheet != null && idleFrameWidth != 0 && idleFrameHeight != 0) {
             // Animation Idle
@@ -166,8 +173,10 @@ public class GameView {
             gc.drawImage(playerIdleSheet,
                          frameX, 0,
                          idleFrameWidth, idleFrameHeight,
-                         playerX - cameraX.get(), playerY - cameraY.get(),
-                         playerWidth * scaleFactor, playerHeight * scaleFactor);
+                         (playerX - cameraX.get()),
+                         (playerY - cameraY.get()) - playerOffsetY,
+                         playerWidth * scaleFactor,
+                         playerHeight * scaleFactor);
         }
 
         // -----------------------------------------------------
@@ -203,7 +212,7 @@ public class GameView {
     }
 
     // -----------------------------------------------------
-    // Propriétés de la caméra (pour scroll)
+    // Propriétés de la caméra
     // -----------------------------------------------------
     public DoubleProperty cameraXProperty() {
         return cameraX;
