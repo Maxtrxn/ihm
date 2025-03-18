@@ -31,7 +31,14 @@ public class GameController {
     private Game game;
     private Level level;
 
-    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view, Game game, Level level) {
+    // -----------------------------------------
+    // Nouveau : on stocke la position de la caméra ici
+    // -----------------------------------------
+    private double cameraX = 0;
+    private double cameraY = 0;
+
+    public GameController(Player player, List<Platform> platforms, List<Enemy> enemies,
+                          GameView view, Game game, Level level) {
         this.player = player;
         this.platforms = platforms;
         this.enemies = enemies;
@@ -41,9 +48,12 @@ public class GameController {
         this.initialPlayerX = player.getX();
         this.initialPlayerY = player.getY();
 
-        // Centrer la caméra sur le joueur
-        view.cameraXProperty().bind(player.xProperty().subtract(400));
-        view.cameraYProperty().bind(player.yProperty().subtract(300));
+        // ---------------------------------------------
+        // Supprimé : plus de binding direct sur la caméra
+        // (On va gérer la caméra manuellement dans updateCamera())
+        // ---------------------------------------------
+        // view.cameraXProperty().bind(player.xProperty().subtract(400));
+        // view.cameraYProperty().bind(player.yProperty().subtract(300));
     }
 
     public void handleInput(Scene scene) {
@@ -124,10 +134,10 @@ public class GameController {
         // 3) Calculer dy
         double dy = player.velocityY;
 
-        // 4) Déplacer le joueur UNE SEULE FOIS
+        // 4) Déplacer le joueur (une seule fois)
         player.move(dx, dy);
 
-        // 5) Réinitialiser l'état "playerWasOn" des plateformes (pour gérer un nouveau atterrissage)
+        // 5) Réinitialiser l'état "playerWasOn" des plateformes (fragiles)
         for (Platform p : platforms) {
             if (p instanceof FragilePlatform) {
                 ((FragilePlatform) p).resetStep(player);
@@ -151,8 +161,6 @@ public class GameController {
                 // Si c'est une plateforme fragile
                 if (platform instanceof FragilePlatform) {
                     FragilePlatform fragilePlatform = (FragilePlatform) platform;
-                    // 1er atterrissage => fissure
-                    // 2e atterrissage => steps=2 => isBroken() => remove
                     if (!fragilePlatform.isBroken()) {
                         fragilePlatform.step(player);
                     }
@@ -188,6 +196,11 @@ public class GameController {
         if (player.getX() > 1600) {
             game.nextLevel();
         }
+
+        // ---------------------------------------------
+        // 10) Mettre à jour la caméra
+        // ---------------------------------------------
+        updateCamera();
     }
 
     private void draw() {
@@ -226,6 +239,48 @@ public class GameController {
             platformPositions,
             enemyPositions
         );
+    }
+
+    /**
+     * Met à jour la position de la caméra pour donner un effet "mario-like".
+     */
+    private void updateCamera() {
+        // On veut que le joueur soit ~40% de la largeur de l'écran depuis la gauche
+        // (Au lieu d'être pile au milieu)
+        double desiredCameraX = player.getX() - (GameView.WIDTH * 0.4);
+
+        // Lissage : la caméra se rapproche de la cible (desiredCameraX) petit à petit
+        // 0.1 => vitesse de rattrapage (plus grand => plus rapide)
+        cameraX += 0.1 * (desiredCameraX - cameraX);
+
+        // (Optionnel) Empêcher la caméra d'aller trop à gauche
+        if (cameraX < 0) {
+            cameraX = 0;
+        }
+
+        // (Optionnel) Empêcher la caméra d'aller trop à droite (si on connaît la largeur du niveau)
+        double levelWidth = 3000; // Exemple : si ton niveau fait 3000 px de large
+        double maxCameraX = levelWidth - GameView.WIDTH;
+        if (cameraX > maxCameraX) {
+            cameraX = maxCameraX;
+        }
+
+        // On met à jour la propriété de la vue
+        view.cameraXProperty().set(cameraX);
+
+        // Pour le Y, on peut soit laisser fixe, soit faire un lissage similaire
+        // (Ici, on le laisse centré sur le joueur, par exemple)
+        double desiredCameraY = player.getY() - (GameView.HEIGHT / 2.0);
+        cameraY += 0.1 * (desiredCameraY - cameraY);
+
+        // Empêcher la caméra de monter trop haut (ou descendre trop bas) si besoin
+        // (on ne connaît pas la hauteur du niveau, à toi d'adapter)
+        if (cameraY < 0) {
+            cameraY = 0;
+        }
+
+        // On met à jour la propriété de la vue
+        view.cameraYProperty().set(cameraY);
     }
 
     private void resetPlayerPosition() {
