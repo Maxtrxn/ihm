@@ -4,7 +4,7 @@ import javafx.scene.image.Image;
 import src.model.Player;
 import src.model.Platform;
 import src.model.platforms.SteelPlatform;
-import src.model.platforms.GroundPlatform; // <-- On importe la nouvelle classe
+import src.model.platforms.GroundPlatform;
 import src.model.Enemy;
 
 public class Level1 extends Level {
