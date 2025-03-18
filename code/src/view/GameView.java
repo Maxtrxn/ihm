@@ -49,7 +49,7 @@ public class GameView {
     private final long walkFrameDuration = 100_000_000; // 100 ms par frame
 
     // ------------------------------------------------------------
-    // 4) Offset d'affichage du joueur (pour éviter qu'il "rentre" dans le sol)
+    // 4) Offset d'affichage du joueur
     // ------------------------------------------------------------
     private final double playerOffsetY = 50; // Ajuste cette valeur à ta guise
 
@@ -57,22 +57,20 @@ public class GameView {
         this.gc = gc;
         try {
             // ----------------------------------------------------------------
-            // Charger la feuille de sprites de l'engrenage
+            // Engrenage
             // ----------------------------------------------------------------
             gearSpriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
             if (!gearSpriteSheet.isError()) {
                 gearFrameHeight = (int) gearSpriteSheet.getHeight();
-                gearFrameWidth  = gearFrameHeight; // On suppose frames carrées
+                gearFrameWidth  = gearFrameHeight;
                 if (gearFrameWidth != 0) {
                     gearFrameCount = (int) (gearSpriteSheet.getWidth() / gearFrameWidth);
                 }
                 System.out.println("Engrenage chargé : " + gearFrameCount + " frames");
-            } else {
-                System.err.println("Erreur chargement engrenage_animation-Sheet.png.");
             }
 
             // ----------------------------------------------------------------
-            // Charger la feuille de sprites IDLE du joueur
+            // Joueur Idle
             // ----------------------------------------------------------------
             playerIdleSheet = new Image("file:../textures/static wrench-Sheet.png");
             if (!playerIdleSheet.isError()) {
@@ -82,23 +80,19 @@ public class GameView {
                     idleFrameCount = (int) (playerIdleSheet.getWidth() / idleFrameWidth);
                 }
                 System.out.println("Feuille Idle chargée : " + idleFrameCount + " frames");
-            } else {
-                System.err.println("Erreur chargement static wrench-Sheet.png.");
             }
 
             // ----------------------------------------------------------------
-            // Charger la feuille de sprites WALK du joueur
+            // Joueur Walk
             // ----------------------------------------------------------------
             playerWalkSheet = new Image("file:../textures/sprite sheet wrench walking.png");
             if (!playerWalkSheet.isError()) {
                 walkFrameHeight = (int) playerWalkSheet.getHeight();
-                walkFrameWidth  = walkFrameHeight; // On suppose frames carrées
+                walkFrameWidth  = walkFrameHeight;
                 if (walkFrameWidth != 0) {
                     walkFrameCount = (int) (playerWalkSheet.getWidth() / walkFrameWidth);
                 }
                 System.out.println("Feuille Walk chargée : " + walkFrameCount + " frames");
-            } else {
-                System.err.println("Erreur chargement sprite sheet wrench walking.png.");
             }
 
         } catch (Exception e) {
@@ -114,19 +108,15 @@ public class GameView {
                      List<Double[]> platformPositions,
                      List<Double[]> enemyPositions) {
 
-        // Effacer la zone de dessin
+        // Nettoyage
         gc.clearRect(0, 0, WIDTH, HEIGHT);
 
-        // -----------------------------------------------------
-        // 1) Dessiner l'image d'arrière-plan
-        // -----------------------------------------------------
+        // Arrière-plan
         if (backgroundImage != null) {
             gc.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT);
         }
 
-        // -----------------------------------------------------
-        // 2) Dessiner l'animation de l'engrenage
-        // -----------------------------------------------------
+        // Engrenage (animation)
         if (gearSpriteSheet != null && gearFrameWidth != 0 && gearFrameHeight != 0) {
             long currentTime = System.nanoTime();
             if (currentTime - lastGearFrameTime >= gearFrameDuration) {
@@ -134,20 +124,16 @@ public class GameView {
                 lastGearFrameTime = currentTime;
             }
             int frameX = gearFrameIndex * gearFrameWidth;
-            gc.drawImage(gearSpriteSheet,
-                         frameX, 0,
+            gc.drawImage(gearSpriteSheet, frameX, 0,
                          gearFrameWidth, gearFrameHeight,
                          0, 0,
                          gearFrameWidth, gearFrameHeight);
         }
 
-        // -----------------------------------------------------
-        // 3) Dessiner le joueur (selon qu'il marche ou non)
-        // -----------------------------------------------------
+        // Joueur
         double scaleFactor = 2.0;
 
         if (isWalking && playerWalkSheet != null && walkFrameWidth != 0 && walkFrameHeight != 0) {
-            // Animation de marche
             long currentTime = System.nanoTime();
             if (currentTime - lastWalkFrameTime >= walkFrameDuration) {
                 walkFrameIndex = (walkFrameIndex + 1) % walkFrameCount;
@@ -155,15 +141,13 @@ public class GameView {
             }
             int frameX = walkFrameIndex * walkFrameWidth;
             gc.drawImage(playerWalkSheet,
-                         frameX, 0,
-                         walkFrameWidth, walkFrameHeight,
+                         frameX, 0, walkFrameWidth, walkFrameHeight,
                          (playerX - cameraX.get()),
                          (playerY - cameraY.get()) - playerOffsetY,
                          playerWidth * scaleFactor,
                          playerHeight * scaleFactor);
 
         } else if (!isWalking && playerIdleSheet != null && idleFrameWidth != 0 && idleFrameHeight != 0) {
-            // Animation Idle
             long currentTime = System.nanoTime();
             if (currentTime - lastIdleFrameTime >= idleFrameDuration) {
                 idleFrameIndex = (idleFrameIndex + 1) % idleFrameCount;
@@ -171,17 +155,14 @@ public class GameView {
             }
             int frameX = idleFrameIndex * idleFrameWidth;
             gc.drawImage(playerIdleSheet,
-                         frameX, 0,
-                         idleFrameWidth, idleFrameHeight,
+                         frameX, 0, idleFrameWidth, idleFrameHeight,
                          (playerX - cameraX.get()),
                          (playerY - cameraY.get()) - playerOffsetY,
                          playerWidth * scaleFactor,
                          playerHeight * scaleFactor);
         }
 
-        // -----------------------------------------------------
-        // 4) Dessiner les plateformes
-        // -----------------------------------------------------
+        // Plateformes
         for (int i = 0; i < platformImages.size(); i++) {
             Image platformImage = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
@@ -191,6 +172,7 @@ public class GameView {
             double ph = pos[3];
 
             if (platformImage != null) {
+                // On dessine directement pw, ph (déjà réduits si besoin)
                 gc.drawImage(platformImage, px, py, pw, ph);
             } else {
                 gc.setFill(Color.BLUE);
@@ -198,9 +180,7 @@ public class GameView {
             }
         }
 
-        // -----------------------------------------------------
-        // 5) Dessiner les ennemis
-        // -----------------------------------------------------
+        // Ennemis
         gc.setFill(Color.GREEN);
         for (Double[] pos : enemyPositions) {
             double ex = pos[0] - cameraX.get();
@@ -211,9 +191,6 @@ public class GameView {
         }
     }
 
-    // -----------------------------------------------------
-    // Propriétés de la caméra
-    // -----------------------------------------------------
     public DoubleProperty cameraXProperty() {
         return cameraX;
     }

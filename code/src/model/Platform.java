@@ -10,27 +10,15 @@ public abstract class Platform {
         this.x = x;
         this.y = y;
         this.texture = texture;
+
+        // Dimensions initiales basées sur la taille d'origine de la texture
         this.width = texture.getWidth();
         this.height = texture.getHeight();
     }
 
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public double getWidth() {
-        return width;
-    }
-
-    public double getHeight() {
-        return height;
-    }
-
-    public Image getTexture() {
-        return texture;
-    }
+    public double getX()      { return x; }
+    public double getY()      { return y; }
+    public double getWidth()  { return width; }
+    public double getHeight() { return height; }
+    public Image getTexture() { return texture; }
 }
