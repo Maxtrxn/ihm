@@ -32,10 +32,17 @@ public class GameController {
     private Level level;
 
     // -----------------------------------------
-    // Nouveau : on stocke la position de la caméra ici
+    // Position de la caméra
     // -----------------------------------------
     private double cameraX = 0;
     private double cameraY = 0;
+
+    // -----------------------------------------
+    // Offset vertical pour “monter” la caméra 
+    // et voir plus de sol
+    // (valeur positive => la caméra se déplace vers le haut)
+    // -----------------------------------------
+    private final double cameraYOffset = -227; 
 
     public GameController(Player player, List<Platform> platforms, List<Enemy> enemies,
                           GameView view, Game game, Level level) {
@@ -47,13 +54,6 @@ public class GameController {
         this.level = level;
         this.initialPlayerX = player.getX();
         this.initialPlayerY = player.getY();
-
-        // ---------------------------------------------
-        // Supprimé : plus de binding direct sur la caméra
-        // (On va gérer la caméra manuellement dans updateCamera())
-        // ---------------------------------------------
-        // view.cameraXProperty().bind(player.xProperty().subtract(400));
-        // view.cameraYProperty().bind(player.yProperty().subtract(300));
     }
 
     public void handleInput(Scene scene) {
@@ -137,20 +137,18 @@ public class GameController {
         // 4) Déplacer le joueur (une seule fois)
         player.move(dx, dy);
 
-        // 5) Réinitialiser l'état "playerWasOn" des plateformes (fragiles)
+        // 5) Réinitialiser "playerWasOn" (pour les plateformes fragiles)
         for (Platform p : platforms) {
             if (p instanceof FragilePlatform) {
                 ((FragilePlatform) p).resetStep(player);
             }
         }
 
-        // 6) Gérer collisions avec les plateformes
+        // 6) Gérer collisions plateformes
         Iterator<Platform> platformIterator = platforms.iterator();
         while (platformIterator.hasNext()) {
             Platform platform = platformIterator.next();
 
-            // On considère qu'on "atterrit" si le joueur vient d'en haut (velocityY > 0)
-            // et s'il intersecte la plateforme
             if (player.intersects(platform) && player.velocityY > 0) {
                 // On cale le joueur sur la plateforme
                 player.setY(platform.getY() - player.getHeight());
@@ -171,7 +169,7 @@ public class GameController {
             }
         }
 
-        // 7) Gérer collisions avec les ennemis
+        // 7) Gérer collisions ennemis
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
@@ -197,9 +195,7 @@ public class GameController {
             game.nextLevel();
         }
 
-        // ---------------------------------------------
         // 10) Mettre à jour la caméra
-        // ---------------------------------------------
         updateCamera();
     }
 
@@ -241,45 +237,28 @@ public class GameController {
         );
     }
 
-    /**
-     * Met à jour la position de la caméra pour donner un effet "mario-like".
-     */
     private void updateCamera() {
-        // On veut que le joueur soit ~40% de la largeur de l'écran depuis la gauche
-        // (Au lieu d'être pile au milieu)
+        // Calcul de la caméraX (horizontal)
         double desiredCameraX = player.getX() - (GameView.WIDTH * 0.4);
-
-        // Lissage : la caméra se rapproche de la cible (desiredCameraX) petit à petit
-        // 0.1 => vitesse de rattrapage (plus grand => plus rapide)
         cameraX += 0.1 * (desiredCameraX - cameraX);
-
-        // (Optionnel) Empêcher la caméra d'aller trop à gauche
-        if (cameraX < 0) {
-            cameraX = 0;
-        }
-
-        // (Optionnel) Empêcher la caméra d'aller trop à droite (si on connaît la largeur du niveau)
-        double levelWidth = 3000; // Exemple : si ton niveau fait 3000 px de large
+        if (cameraX < 0) cameraX = 0;
+        // (Adapte la borne max si besoin, selon la largeur du niveau)
+        double levelWidth = 3000; 
         double maxCameraX = levelWidth - GameView.WIDTH;
         if (cameraX > maxCameraX) {
             cameraX = maxCameraX;
         }
 
-        // On met à jour la propriété de la vue
-        view.cameraXProperty().set(cameraX);
-
-        // Pour le Y, on peut soit laisser fixe, soit faire un lissage similaire
-        // (Ici, on le laisse centré sur le joueur, par exemple)
-        double desiredCameraY = player.getY() - (GameView.HEIGHT / 2.0);
+        // Calcul de la caméraY (vertical) avec offset
+        double desiredCameraY = player.getY() - (GameView.HEIGHT / 2.0) + cameraYOffset;
         cameraY += 0.1 * (desiredCameraY - cameraY);
 
-        // Empêcher la caméra de monter trop haut (ou descendre trop bas) si besoin
-        // (on ne connaît pas la hauteur du niveau, à toi d'adapter)
-        if (cameraY < 0) {
-            cameraY = 0;
-        }
+        // Empêcher la caméra de trop monter/descendre si besoin
+        if (cameraY < 0) cameraY = 0;
+        // (Si ton niveau a une hauteur plus grande que 600, tu peux borner en bas aussi.)
 
-        // On met à jour la propriété de la vue
+        // On met à jour la vue
+        view.cameraXProperty().set(cameraX);
         view.cameraYProperty().set(cameraY);
     }
 
