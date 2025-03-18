@@ -3,7 +3,7 @@ package src.controller;
 import javafx.animation.AnimationTimer;
 import javafx.scene.input.KeyCode;
 import javafx.scene.Scene;
-import javafx.scene.image.Image; // Ajoutez cette ligne
+import javafx.scene.image.Image;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
@@ -40,14 +40,20 @@ public class GameController {
         this.level = level;
         this.initialPlayerX = player.getX();
         this.initialPlayerY = player.getY();
+
+        // Centrer la caméra sur le joueur
         view.cameraXProperty().bind(player.xProperty().subtract(400));
         view.cameraYProperty().bind(player.yProperty().subtract(300));
     }
 
     public void handleInput(Scene scene) {
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.LEFT) left = true;
-            if (event.getCode() == KeyCode.RIGHT) right = true;
+            if (event.getCode() == KeyCode.LEFT) {
+                left = true;
+            }
+            if (event.getCode() == KeyCode.RIGHT) {
+                right = true;
+            }
             if (event.getCode() == KeyCode.SPACE) {
                 jumping = true;
                 if (jetpackTimer == null) {
@@ -58,13 +64,18 @@ public class GameController {
                             jetpack = true;
                             player.setJetpackActive(true);
                         }
-                    }, 500); //Activer le jetpack après 0,5 seconde
+                    }, 500); // Activer le jetpack après 0,5 seconde
                 }
             }
         });
+
         scene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.LEFT) left = false;
-            if (event.getCode() == KeyCode.RIGHT) right = false;
+            if (event.getCode() == KeyCode.LEFT) {
+                left = false;
+            }
+            if (event.getCode() == KeyCode.RIGHT) {
+                right = false;
+            }
             if (event.getCode() == KeyCode.SPACE) {
                 jumping = false;
                 jetpack = false;
@@ -88,41 +99,56 @@ public class GameController {
     }
 
     private void update() {
-        if (left) player.move(-player.getSpeed(), 0);
-        if (right) player.move(player.getSpeed(), 0);
+        // -------------------------
+        // 1) Calculer le déplacement horizontal
+        // -------------------------
+        double dx = 0;
+        if (left)  dx -= player.getSpeed();
+        if (right) dx += player.getSpeed();
+
+        // -------------------------
+        // 2) Gérer le saut + jetpack
+        // -------------------------
         if (jumping && player.canJump() && !jetpack) {
             player.velocityY = -10;
             player.incrementJumps();
-            jumping = false;
+            jumping = false; 
         }
 
         if (jetpack && player.isJetpackActive()) {
-            player.velocityY = -5; //Vitesse de montée avec le jetpack
+            player.velocityY = -5; // Vitesse de montée avec le jetpack
         } else {
-            player.velocityY += GRAVITY;
+            player.velocityY += GRAVITY; // Gravité
         }
 
-        player.move(0, player.velocityY);
+        // -------------------------
+        // 3) Calculer le déplacement vertical
+        // -------------------------
+        double dy = player.velocityY;
 
-        // Réinitialisation de playerWasOn sur les plateformes
-        for (Platform platform : platforms) {
-            if (platform instanceof FragilePlatform) {
-                ((FragilePlatform) platform).resetStep(player);
-            }
-        }
+        // -------------------------
+        // 4) Appeler move() UNE SEULE FOIS
+        // -------------------------
+        player.move(dx, dy);
 
+        // -------------------------
+        // 5) Gérer collisions plateformes
+        // -------------------------
         Iterator<Platform> platformIterator = platforms.iterator();
         while (platformIterator.hasNext()) {
             Platform platform = platformIterator.next();
+
+            // Collision "par le dessus" (chute sur la plateforme)
             if (player.intersects(platform) && player.velocityY > 0) {
                 player.setY(platform.getY() - player.getHeight());
                 player.velocityY = 0;
                 player.onGround = true;
                 player.resetJumps();
 
+                // Gérer les plateformes fragiles
                 if (platform instanceof FragilePlatform) {
                     FragilePlatform fragilePlatform = (FragilePlatform) platform;
-                    if (!fragilePlatform.isBroken() && player.velocityY == 0) {  // Vérifie qu'on vient juste d'atterrir
+                    if (!fragilePlatform.isBroken() && player.velocityY == 0) {
                         fragilePlatform.step(player);
                     }
                     if (fragilePlatform.isBroken()) {
@@ -132,41 +158,76 @@ public class GameController {
             }
         }
 
+        // -------------------------
+        // 6) Gérer collisions ennemis
+        // -------------------------
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
+
+            // Sauter sur l'ennemi => le détruire
             if (player.landsOn(enemy)) {
                 enemyIterator.remove();
-                player.velocityY = -10; //Rebondir après avoir atterri sur l'ennemi
-            } else if (player.intersects(enemy)) {
+                player.velocityY = -10; // Rebond
+            }
+            // Collision latérale => reset
+            else if (player.intersects(enemy)) {
                 resetPlayerPosition();
             }
             enemy.update();
         }
 
+        // -------------------------
+        // 7) Vérifier si le joueur tombe hors de l'écran
+        // -------------------------
         if (player.getY() > GameView.HEIGHT) {
             resetPlayerPosition();
         }
 
-        if (player.getX() > 1600) { // Pour l'instant c'est la fin du niveau
+        // -------------------------
+        // 8) Fin de niveau (exemple)
+        // -------------------------
+        if (player.getX() > 1600) {
             game.nextLevel();
         }
     }
 
     private void draw() {
+        // Préparer les listes pour la vue
         List<Image> platformImages = new ArrayList<>();
         List<Double[]> platformPositions = new ArrayList<>();
         for (Platform platform : platforms) {
             platformImages.add(platform.getTexture());
-            platformPositions.add(new Double[]{platform.getX(), platform.getY(), platform.getWidth(), platform.getHeight()});
+            platformPositions.add(new Double[]{
+                platform.getX(),
+                platform.getY(),
+                platform.getWidth(),
+                platform.getHeight()
+            });
         }
-    
+
         List<Double[]> enemyPositions = new ArrayList<>();
         for (Enemy enemy : enemies) {
-            enemyPositions.add(new Double[]{enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight()});
+            enemyPositions.add(new Double[]{
+                enemy.getX(),
+                enemy.getY(),
+                enemy.getWidth(),
+                enemy.getHeight()
+            });
         }
-    
-        view.draw(level.getBackgroundImage(), player.getX(), player.getY(), player.getWidth(), player.getHeight(), player.isWalking(), platformImages, platformPositions, enemyPositions);
+
+        // Appeler la méthode draw() de la vue
+        view.draw(
+            level.getBackgroundImage(),
+            player.getX(), 
+            player.getY(),
+            player.getWidth(), 
+            player.getHeight(),
+            player.isWalking(),  // <-- c'est ici qu'on passe l'info d'animation
+            platformImages, 
+            platformPositions, 
+            enemyPositions
+        );
     }
 
     private void resetPlayerPosition() {

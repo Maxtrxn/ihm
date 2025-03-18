@@ -3,6 +3,10 @@ package src.model;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
+/**
+ * Classe Player : gère la position, la vitesse, l'état (walking, jetpack, etc.)
+ * et quelques méthodes de collision basiques.
+ */
 public class Player {
     private DoubleProperty x = new SimpleDoubleProperty();
     private DoubleProperty y = new SimpleDoubleProperty();
@@ -55,10 +59,14 @@ public class Player {
         return height;
     }
 
+    /**
+     * Déplace le joueur de (dx, dy).
+     * Met le booléen walking à true si dx != 0.
+     */
     public void move(double dx, double dy) {
         setX(getX() + dx);
         setY(getY() + dy);
-        walking = dx != 0; // Set walking to true if the player is moving horizontally
+        walking = (dx != 0);
     }
 
     public boolean isWalking() {
@@ -69,26 +77,36 @@ public class Player {
         walking = false;
     }
 
+    /**
+     * Collision rectangulaire avec une plateforme.
+     * (Adapté à la classe Platform de ton projet.)
+     */
     public boolean intersects(Platform platform) {
-        return getX() < platform.getX() + platform.getWidth() &&
-               getX() + getWidth() > platform.getX() &&
-               getY() < platform.getY() + platform.getHeight() &&
-               getY() + getHeight() > platform.getY();
+        return getX() < platform.getX() + platform.getWidth()
+            && getX() + getWidth() > platform.getX()
+            && getY() < platform.getY() + platform.getHeight()
+            && getY() + getHeight() > platform.getY();
     }
 
+    /**
+     * Collision rectangulaire avec un ennemi.
+     */
     public boolean intersects(Enemy enemy) {
-        return getX() < enemy.getX() + enemy.getWidth() &&
-               getX() + getWidth() > enemy.getX() &&
-               getY() < enemy.getY() + enemy.getHeight() &&
-               getY() + getHeight() > enemy.getY();
+        return getX() < enemy.getX() + enemy.getWidth()
+            && getX() + getWidth() > enemy.getX()
+            && getY() < enemy.getY() + enemy.getHeight()
+            && getY() + getHeight() > enemy.getY();
     }
 
+    /**
+     * Vérifie si on atterrit sur un ennemi (ex: pour le détruire).
+     */
     public boolean landsOn(Enemy enemy) {
-        return getX() < enemy.getX() + enemy.getWidth() &&
-               getX() + getWidth() > enemy.getX() &&
-               getY() + getHeight() >= enemy.getY() &&
-               getY() + getHeight() <= enemy.getY() + enemy.getHeight() / 2 &&
-               velocityY > 0;
+        return getX() < enemy.getX() + enemy.getWidth()
+            && getX() + getWidth() > enemy.getX()
+            && getY() + getHeight() >= enemy.getY()
+            && getY() + getHeight() <= enemy.getY() + enemy.getHeight() / 2
+            && velocityY > 0;
     }
 
     public int getJumps() {
