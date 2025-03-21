@@ -20,6 +20,9 @@ import java.util.ArrayList;
 
 public class GameController {
     private static final double GRAVITY = 0.5;
+
+    // Multiplicateur de vitesse du jeu (augmenter pour accélérer la simulation)
+    private static final double GAME_SPEED = 2.0;
     private boolean left, right, jumping, jetpack;
     private Player player;
     private List<Platform> platforms;
@@ -107,24 +110,24 @@ public class GameController {
 
     private void update() {
         double dx = 0;
-        if (left)  dx -= player.getSpeed();
-        if (right) dx += player.getSpeed();
-
+        double characterSpeedFactor = 1.5;
+        if (left)  dx -= player.getSpeed() * characterSpeedFactor;
+        if (right) dx += player.getSpeed() * characterSpeedFactor;
+    
         if (jumping && player.canJump() && !jetpack) {
             player.velocityY = -10;
             player.incrementJumps();
             jumping = false;
         }
-
+    
         if (jetpack && player.isJetpackActive()) {
             player.velocityY = -5;
         } else {
-            player.velocityY += GRAVITY;
+            player.velocityY += GRAVITY * GAME_SPEED;
         }
-
-        double dy = player.velocityY;
+    
+        double dy = player.velocityY * GAME_SPEED;
         player.move(dx, dy);
-
         for (Platform p : platforms) {
             if (p instanceof FragilePlatform) {
                 ((FragilePlatform) p).resetStep(player);
