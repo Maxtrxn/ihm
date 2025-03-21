@@ -10,7 +10,7 @@ import javafx.scene.input.KeyCode;
 import src.Game;
 import src.levels.Level;
 import src.model.Enemy;
-import src.model.Platform; // Votre classe Platform
+import src.model.Platform;
 import src.model.Player;
 import src.model.platforms.FragilePlatform;
 import src.view.GameView;
@@ -32,11 +32,22 @@ public class GameController {
    private Timer jetpackTimer;
    private Game game;
    private Level level;
+
+   // Dimensions "logiques" du niveau (à adapter !)
+   // Par ex. 3000 px de large, 600 px de haut
+   private double levelWidth = 3000.0;
+   private double levelHeight = 600.0;
+
+   // Caméra
    private double cameraX = 0.0;
    private double cameraY = 0.0;
-   private final double cameraYOffset = -227.0;
 
-   public GameController(Player player, List<Platform> platforms, List<Enemy> enemies, GameView view, Game game, Level level) {
+   public GameController(Player player,
+                         List<Platform> platforms,
+                         List<Enemy> enemies,
+                         GameView view,
+                         Game game,
+                         Level level) {
       this.player = player;
       this.platforms = platforms;
       this.enemies = enemies;
@@ -58,7 +69,6 @@ public class GameController {
          if (event.getCode() == KeyCode.SPACE) {
             this.jumping = true;
             if (this.jetpackTimer == null) {
-               // Création d'un Timer en mode daemon
                this.jetpackTimer = new Timer(true);
                this.jetpackTimer.schedule(new JetpackTask(), 500L);
             }
@@ -91,6 +101,8 @@ public class GameController {
    private void update() {
       double dx = 0.0;
       double speedFactor = 1.5;
+
+      // Déplacements latéraux
       if (this.left) {
          dx -= this.player.getSpeed() * speedFactor;
          this.player.setFacingRight(false);
@@ -100,21 +112,25 @@ public class GameController {
          this.player.setFacingRight(true);
       }
 
+      // Saut
       if (this.jumping && this.player.canJump() && !this.jetpack) {
          this.player.velocityY = -10.0;
          this.player.incrementJumps();
          this.jumping = false;
       }
 
+      // Jetpack ou gravité
       if (this.jetpack && this.player.isJetpackActive()) {
          this.player.velocityY = -5.0;
       } else {
-         ++this.player.velocityY;
+         this.player.velocityY += GRAVITY;
       }
 
+      // Application
       double dy = this.player.velocityY * 2.0;
       this.player.move(dx, dy);
 
+      // Plateformes (fragiles, collisions)
       Iterator<Platform> it = this.platforms.iterator();
       while (it.hasNext()) {
          Platform p = it.next();
@@ -122,10 +138,10 @@ public class GameController {
             ((FragilePlatform) p).resetStep(this.player);
          }
       }
-      
       it = this.platforms.iterator();
       while (it.hasNext()) {
          Platform p = it.next();
+         // Collision par le haut
          if (this.player.intersects(p) && this.player.velocityY > 0.0) {
             this.player.setY(p.getY() - this.player.getHeight());
             this.player.velocityY = 0.0;
@@ -143,6 +159,7 @@ public class GameController {
          }
       }
 
+      // Ennemis
       Iterator<Enemy> enemyIt = this.enemies.iterator();
       while (enemyIt.hasNext()) {
          Enemy enemy = enemyIt.next();
@@ -155,18 +172,22 @@ public class GameController {
          }
       }
 
-      if (this.player.getY() > 600.0) {
+      // Tombe hors du niveau ?
+      if (this.player.getY() > levelHeight) {
          this.resetPlayerPosition();
       }
 
+      // Passe au niveau suivant ?
       if (this.player.getX() > 1600.0) {
          javafx.application.Platform.runLater(() -> {
             this.game.nextLevel();
          });
       }
 
+      // Caméra
       this.updateCamera();
 
+      // Prépare les données pour l'affichage
       ArrayList<Image> platformImages = new ArrayList<>();
       ArrayList<Double[]> platformPositions = new ArrayList<>();
       for (Platform p : this.platforms) {
@@ -179,28 +200,51 @@ public class GameController {
          enemyPositions.add(new Double[]{enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight()});
       }
 
-      this.view.draw(this.level.getBackgroundImage(),
-                     this.player.getX(), this.player.getY(),
-                     this.player.getWidth(), this.player.getHeight(),
-                     this.player.isWalking(), this.player.isFacingRight(),
-                     platformImages, platformPositions, enemyPositions);
+      // Dessin
+      this.view.draw(
+         this.level.getBackgroundImage(),
+         this.player.getX(), this.player.getY(),
+         this.player.getWidth(), this.player.getHeight(),
+         this.player.isWalking(), this.player.isFacingRight(),
+         platformImages, platformPositions, enemyPositions
+      );
    }
 
+   /**
+    * Centre la caméra sur le joueur (en X et Y),
+    * borne aux limites du niveau (levelWidth, levelHeight).
+    */
    private void updateCamera() {
-      double targetX = this.player.getX() - 320.0;
+      double canvasWidth = this.view.getCanvasWidth();
+      double canvasHeight = this.view.getCanvasHeight();
+
+      // Centre sur le joueur
+      double targetX = this.player.getX() - canvasWidth / 2.0;
+      double targetY = this.player.getY() - canvasHeight / 2.0;
+
+      // Lissage
       this.cameraX += 0.1 * (targetX - this.cameraX);
-      if (this.cameraX < 0.0) {
-         this.cameraX = 0.0;
-      }
-      double maxX = 3000.0 - 800.0;
-      if (this.cameraX > maxX) {
-         this.cameraX = maxX;
-      }
-      double targetY = this.player.getY() - 300.0 + (-227.0);
       this.cameraY += 0.1 * (targetY - this.cameraY);
-      if (this.cameraY < 0.0) {
-         this.cameraY = 0.0;
+
+      // Borne gauche/haut
+      if (this.cameraX < 0) {
+         this.cameraX = 0;
       }
+      if (this.cameraY < 0) {
+         this.cameraY = 0;
+      }
+
+      // Borne droite/bas
+      double maxCamX = levelWidth - canvasWidth;
+      if (this.cameraX > maxCamX) {
+         this.cameraX = maxCamX;
+      }
+      double maxCamY = levelHeight - canvasHeight;
+      if (this.cameraY > maxCamY) {
+         this.cameraY = maxCamY;
+      }
+
+      // Mise à jour de la GameView
       this.view.cameraXProperty().set(this.cameraX);
       this.view.cameraYProperty().set(this.cameraY);
    }
@@ -233,7 +277,7 @@ public class GameController {
       }
    }
 
-   // Classe interne pour activer le mode jetpack après 500 ms
+   // TimerTask pour le jetpack
    private class JetpackTask extends TimerTask {
       @Override
       public void run() {
@@ -242,16 +286,16 @@ public class GameController {
       }
    }
 
-   // Classe interne pour la boucle de jeu
+   // Thread de boucle de jeu
    private class GameLoopThread extends Thread {
       public GameLoopThread() {
-         setDaemon(true); // Pour fermer le jeu lorsque la fenêtre est fermée
+         setDaemon(true);
       }
       @Override
       public void run() {
          while (true) {
             try {
-               Thread.sleep(16); // Environ 60 FPS
+               Thread.sleep(16);
             } catch (InterruptedException e) {
                break;
             }
