@@ -96,7 +96,7 @@ public class GameController {
             private long lastUpdate = 0;
             @Override
             public void handle(long now) {
-                if (now - lastUpdate >= 8_000_000) { // environ 60 fps
+                if (now - lastUpdate >= 8_000_000) { // environ 130 fps
                     update();
                     draw();
                     lastUpdate = now;
