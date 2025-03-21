@@ -46,6 +46,17 @@ public class GameView {
     private final long walkFrameDuration = 100_000_000; // 100 ms
 
     // ------------------------------------------------------------
+    // Joueur Jump
+    // ------------------------------------------------------------
+    private Image playerJumpSheet;
+    private int jumpFrameIndex = 0;
+    private int jumpFrameCount = 0;
+    private int jumpFrameWidth = 0;
+    private int jumpFrameHeight = 0;
+    private long lastJumpFrameTime = 0;
+    private final long jumpFrameDuration = 100_000_000; // 100 ms
+
+    // ------------------------------------------------------------
     // Offset d'affichage du joueur
     // ------------------------------------------------------------
     private final double playerOffsetY = 50; // Ajuste si besoin
@@ -85,6 +96,17 @@ public class GameView {
                 }
                 System.out.println("Feuille Walk chargée : " + walkFrameCount + " frames");
             }
+            
+            // Joueur Jump
+            playerJumpSheet = new Image("file:../textures/jump wrench-Sheet.png");
+            if (!playerJumpSheet.isError()) {
+                jumpFrameHeight = (int) playerJumpSheet.getHeight();
+                jumpFrameWidth  = jumpFrameHeight;
+                if (jumpFrameWidth != 0) {
+                    jumpFrameCount = (int) (playerJumpSheet.getWidth() / jumpFrameWidth);
+                }
+                System.out.println("Feuille Jump chargée : " + jumpFrameCount + " frames");
+            }
 
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
@@ -100,6 +122,7 @@ public class GameView {
                      double playerWidth, double playerHeight,
                      boolean isWalking,
                      boolean facingRight,
+                     boolean isJumping,
                      List<Image> platformImages,
                      List<Double[]> platformPositions,
                      List<Double[]> enemyPositions) {
@@ -144,8 +167,29 @@ public class GameView {
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
 
-        // Walk / Idle
-        if (isWalking && playerWalkSheet != null && walkFrameWidth != 0 && walkFrameHeight != 0) {
+        if (isJumping && playerJumpSheet != null && jumpFrameWidth != 0 && jumpFrameHeight != 0) {
+            long currentTime = System.nanoTime();
+            if (currentTime - lastJumpFrameTime >= jumpFrameDuration) {
+                jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrameCount;
+                lastJumpFrameTime = currentTime;
+            }
+            int frameX = jumpFrameIndex * jumpFrameWidth;
+            if (facingRight) {
+                gc.drawImage(playerJumpSheet,
+                             frameX, 0, jumpFrameWidth, jumpFrameHeight,
+                             drawX, drawY,
+                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+            } else {
+                gc.save();
+                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.scale(-1, 1);
+                gc.drawImage(playerJumpSheet,
+                             frameX, 0, jumpFrameWidth, jumpFrameHeight,
+                             0, 0,
+                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                gc.restore();
+            }
+        } else if (isWalking && playerWalkSheet != null && walkFrameWidth != 0 && walkFrameHeight != 0) {
             long currentTime = System.nanoTime();
             if (currentTime - lastWalkFrameTime >= walkFrameDuration) {
                 walkFrameIndex = (walkFrameIndex + 1) % walkFrameCount;

@@ -99,6 +99,9 @@ public class GameController {
    }
 
    private void update() {
+      // Réinitialiser l'état "onGround" ; il sera remis à true lors d'une collision
+      this.player.setOnGround(false);
+
       double dx = 0.0;
       double speedFactor = 1.5;
 
@@ -116,6 +119,8 @@ public class GameController {
       if (this.jumping && this.player.canJump() && !this.jetpack) {
          this.player.velocityY = -10.0;
          this.player.incrementJumps();
+         // Le joueur est en l'air dès le saut
+         this.player.setOnGround(false);
          this.jumping = false;
       }
 
@@ -145,7 +150,7 @@ public class GameController {
          if (this.player.intersects(p) && this.player.velocityY > 0.0) {
             this.player.setY(p.getY() - this.player.getHeight());
             this.player.velocityY = 0.0;
-            this.player.onGround = true;
+            this.player.setOnGround(true);
             this.player.resetJumps();
             if (p instanceof FragilePlatform) {
                FragilePlatform fp = (FragilePlatform) p;
@@ -200,12 +205,16 @@ public class GameController {
          enemyPositions.add(new Double[]{enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight()});
       }
 
+      // Détermine si le joueur est en saut (c.-à-d. n'est pas sur le sol)
+      boolean isJumping = !this.player.onGround;
+
       // Dessin
       this.view.draw(
          this.level.getBackgroundImage(),
          this.player.getX(), this.player.getY(),
          this.player.getWidth(), this.player.getHeight(),
          this.player.isWalking(), this.player.isFacingRight(),
+         isJumping,
          platformImages, platformPositions, enemyPositions
       );
    }
@@ -253,7 +262,7 @@ public class GameController {
       this.player.setX(this.initialPlayerX);
       this.player.setY(this.initialPlayerY);
       this.player.velocityY = 0.0;
-      this.player.onGround = true;
+      this.player.setOnGround(true);
       this.player.resetJumps();
       this.player.setJetpackActive(false);
       if (this.jetpackTimer != null) {
