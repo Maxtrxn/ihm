@@ -93,10 +93,14 @@ public class GameController {
 
     public void startGameLoop() {
         new AnimationTimer() {
+            private long lastUpdate = 0;
             @Override
             public void handle(long now) {
-                update();
-                draw();
+                if (now - lastUpdate >= 16_666_667) { // environ 60 fps
+                    update();
+                    draw();
+                    lastUpdate = now;
+                }
             }
         }.start();
     }
