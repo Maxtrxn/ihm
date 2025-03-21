@@ -100,10 +100,25 @@ public class GameView {
         }
     }
 
+    /**
+     * Méthode de dessin modifiée pour gérer l'inversion horizontale du joueur.
+     *
+     * @param backgroundImage Image d'arrière-plan
+     * @param playerX Position X du joueur
+     * @param playerY Position Y du joueur
+     * @param playerWidth Largeur du joueur
+     * @param playerHeight Hauteur du joueur
+     * @param isWalking Indique si le joueur est en mouvement
+     * @param facingRight Indique la direction du joueur (true = face à droite)
+     * @param platformImages Liste des images des plateformes
+     * @param platformPositions Liste des positions et tailles des plateformes
+     * @param enemyPositions Liste des positions et tailles des ennemis
+     */
     public void draw(Image backgroundImage,
                      double playerX, double playerY,
                      double playerWidth, double playerHeight,
                      boolean isWalking,
+                     boolean facingRight,
                      List<Image> platformImages,
                      List<Double[]> platformPositions,
                      List<Double[]> enemyPositions) {
@@ -132,6 +147,8 @@ public class GameView {
 
         // Joueur
         double scaleFactor = 2.0;
+        double drawX = (playerX - cameraX.get());
+        double drawY = (playerY - cameraY.get()) - playerOffsetY;
 
         if (isWalking && playerWalkSheet != null && walkFrameWidth != 0 && walkFrameHeight != 0) {
             long currentTime = System.nanoTime();
@@ -140,13 +157,26 @@ public class GameView {
                 lastWalkFrameTime = currentTime;
             }
             int frameX = walkFrameIndex * walkFrameWidth;
-            gc.drawImage(playerWalkSheet,
-                         frameX, 0, walkFrameWidth, walkFrameHeight,
-                         (playerX - cameraX.get()),
-                         (playerY - cameraY.get()) - playerOffsetY,
-                         playerWidth * scaleFactor,
-                         playerHeight * scaleFactor);
-
+            if (facingRight) {
+                gc.drawImage(playerWalkSheet,
+                             frameX, 0, walkFrameWidth, walkFrameHeight,
+                             drawX,
+                             drawY,
+                             playerWidth * scaleFactor,
+                             playerHeight * scaleFactor);
+            } else {
+                gc.save();
+                // On translate pour dessiner l'image inversée
+                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.scale(-1, 1);
+                gc.drawImage(playerWalkSheet,
+                             frameX, 0, walkFrameWidth, walkFrameHeight,
+                             0,
+                             0,
+                             playerWidth * scaleFactor,
+                             playerHeight * scaleFactor);
+                gc.restore();
+            }
         } else if (!isWalking && playerIdleSheet != null && idleFrameWidth != 0 && idleFrameHeight != 0) {
             long currentTime = System.nanoTime();
             if (currentTime - lastIdleFrameTime >= idleFrameDuration) {
@@ -154,12 +184,25 @@ public class GameView {
                 lastIdleFrameTime = currentTime;
             }
             int frameX = idleFrameIndex * idleFrameWidth;
-            gc.drawImage(playerIdleSheet,
-                         frameX, 0, idleFrameWidth, idleFrameHeight,
-                         (playerX - cameraX.get()),
-                         (playerY - cameraY.get()) - playerOffsetY,
-                         playerWidth * scaleFactor,
-                         playerHeight * scaleFactor);
+            if (facingRight) {
+                gc.drawImage(playerIdleSheet,
+                             frameX, 0, idleFrameWidth, idleFrameHeight,
+                             drawX,
+                             drawY,
+                             playerWidth * scaleFactor,
+                             playerHeight * scaleFactor);
+            } else {
+                gc.save();
+                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.scale(-1, 1);
+                gc.drawImage(playerIdleSheet,
+                             frameX, 0, idleFrameWidth, idleFrameHeight,
+                             0,
+                             0,
+                             playerWidth * scaleFactor,
+                             playerHeight * scaleFactor);
+                gc.restore();
+            }
         }
 
         // Plateformes
@@ -172,7 +215,6 @@ public class GameView {
             double ph = pos[3];
 
             if (platformImage != null) {
-                // On dessine directement pw, ph (déjà réduits si besoin)
                 gc.drawImage(platformImage, px, py, pw, ph);
             } else {
                 gc.setFill(Color.BLUE);

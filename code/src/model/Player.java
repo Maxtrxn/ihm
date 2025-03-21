@@ -19,21 +19,24 @@ public class Player {
     private boolean jetpackActive = false;
     private boolean walking = false;
 
+    // Propriété indiquant la direction : true = face à droite, false = face à gauche
+    private boolean facingRight = true;
+
     public Player(double x, double y) {
         this.x.set(x);
         this.y.set(y);
     }
 
-    public double getX()             { return x.get(); }
-    public void setX(double x)       { this.x.set(x); }
-    public DoubleProperty xProperty(){ return x; }
+    public double getX() { return x.get(); }
+    public void setX(double x) { this.x.set(x); }
+    public DoubleProperty xProperty() { return x; }
 
-    public double getY()             { return y.get(); }
-    public void setY(double y)       { this.y.set(y); }
-    public DoubleProperty yProperty(){ return y; }
+    public double getY() { return y.get(); }
+    public void setY(double y) { this.y.set(y); }
+    public DoubleProperty yProperty() { return y; }
 
-    public double getWidth()         { return width; }
-    public double getHeight()        { return height; }
+    public double getWidth() { return width; }
+    public double getHeight() { return height; }
 
     public void move(double dx, double dy) {
         setX(getX() + dx);
@@ -41,11 +44,10 @@ public class Player {
         walking = (dx != 0);
     }
 
-    public boolean isWalking()       { return walking; }
-    public void stopWalking()        { walking = false; }
+    public boolean isWalking() { return walking; }
+    public void stopWalking() { walking = false; }
 
     public boolean intersects(Platform platform) {
-        // Petit log debug
         System.out.println("[DEBUG] Player intersects() -> "
             + "Player: x=" + getX() + ", y=" + getY()
             + ", w=" + getWidth() + ", h=" + getHeight()
@@ -53,7 +55,6 @@ public class Player {
             + ", y=" + platform.getY()
             + ", w=" + platform.getWidth()
             + ", h=" + platform.getHeight());
-
         return getX() < platform.getX() + platform.getWidth()
             && getX() + getWidth() > platform.getX()
             && getY() < platform.getY() + platform.getHeight()
@@ -75,14 +76,23 @@ public class Player {
             && velocityY > 0;
     }
 
-    public int getJumps()            { return jumps; }
-    public void incrementJumps()     { jumps++; }
-    public void resetJumps()         { jumps = 0; }
-    public boolean canJump()         { return jumps < MAX_JUMPS; }
-    public double getSpeed()         { return speed; }
-    public void setSpeed(double speed){ this.speed = speed; }
+    public int getJumps() { return jumps; }
+    public void incrementJumps() { jumps++; }
+    public void resetJumps() { jumps = 0; }
+    public boolean canJump() { return jumps < MAX_JUMPS; }
+    public double getSpeed() { return speed; }
+    public void setSpeed(double speed) { this.speed = speed; }
     public boolean isJetpackActive() { return jetpackActive; }
-    public void setJetpackActive(boolean jetpackActive){ this.jetpackActive = jetpackActive; }
-    public void setVelocityY(double velocityY){ this.velocityY = velocityY; }
-    public void setOnGround(boolean onGround){ this.onGround = onGround; }
+    public void setJetpackActive(boolean jetpackActive) { this.jetpackActive = jetpackActive; }
+    public void setVelocityY(double velocityY) { this.velocityY = velocityY; }
+    public void setOnGround(boolean onGround) { this.onGround = onGround; }
+
+    // Accesseurs pour la direction du joueur
+    public boolean isFacingRight() {
+        return facingRight;
+    }
+
+    public void setFacingRight(boolean facingRight) {
+        this.facingRight = facingRight;
+    }
 }
