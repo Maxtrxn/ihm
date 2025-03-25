@@ -12,6 +12,7 @@ import src.controller.GameController;
 import src.levels.Level;
 import src.levels.Level1;
 import src.levels.Level2;
+import src.levels.SpaceshipLevel;
 
 public class Game extends Application {
     // Taille de base (800×600), utilisée comme taille initiale.
@@ -88,6 +89,18 @@ public class Game extends Application {
 
         // Charge le niveau 2 (à adapter si tu as plus de niveaux).
         loadLevel(new Level2(player));
+    }
+    
+    /**
+     * Charge le niveau vaisseau, accessible depuis Level1.
+     */
+    public void loadSpaceshipLevel() {
+        // Réinitialise l'état du joueur si besoin
+        controller.resetPlayerState();
+        player.setX(100);
+        player.setY(500);
+        
+        loadLevel(new SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {

@@ -67,6 +67,11 @@ public class GameView {
     private final long jumpFrameDuration = 100_000_000; // 100 ms
 
     // ------------------------------------------------------------
+    // Sprite du vaisseau
+    // ------------------------------------------------------------
+    private Image spaceshipImage = new Image("file:../textures/dirigeable v1.png");
+
+    // ------------------------------------------------------------
     // Offset d'affichage du joueur
     // ------------------------------------------------------------
     private final double playerOffsetY = 50; // Ajuste si besoin
@@ -122,6 +127,12 @@ public class GameView {
                 }
                 System.out.println("Feuille Jump chargée : " + jumpFrameCount + " frames");
             }
+            
+            // Sprite du vaisseau
+            spaceshipImage = new Image("file:../textures/dirigeable v1.png");
+            if (!spaceshipImage.isError()) {
+                System.out.println("Sprite vaisseau chargé.");
+            }
 
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
@@ -170,6 +181,7 @@ public class GameView {
                      boolean isWalking,
                      boolean facingRight,
                      boolean isJumping,
+                     boolean spaceshipMode,
                      List<Image> platformImages,
                      List<Double[]> platformPositions,
                      List<Double[]> enemyPositions) {
@@ -216,7 +228,19 @@ public class GameView {
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
 
-        if (isJumping && playerJumpSheet != null && jumpFrameWidth != 0 && jumpFrameHeight != 0) {
+        if (spaceshipMode && spaceshipImage != null) {
+            if (facingRight) {
+                gc.drawImage(spaceshipImage, drawX, drawY,
+                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+            } else {
+                gc.save();
+                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.scale(-1, 1);
+                gc.drawImage(spaceshipImage, 0, 0,
+                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                gc.restore();
+            }
+        } else if (isJumping && playerJumpSheet != null && jumpFrameWidth != 0 && jumpFrameHeight != 0) {
             long currentTime = System.nanoTime();
             if (currentTime - lastJumpFrameTime >= jumpFrameDuration) {
                 jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrameCount;
