@@ -1,16 +1,26 @@
 package src.view;
 
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.CacheHint;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class GameView {
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
     private final DoubleProperty cameraY = new SimpleDoubleProperty(0);
     private final GraphicsContext gc;
+
+    // Cache pour le background redimensionné
+    private Image cachedBackground = null;
+    private double cachedWidth = 0;
+    private double cachedHeight = 0;
 
     // ------------------------------------------------------------
     // Animation de l'engrenage
@@ -63,6 +73,11 @@ public class GameView {
 
     public GameView(GraphicsContext gc) {
         this.gc = gc;
+        Canvas canvas = gc.getCanvas();
+        // Active le cache sur le canvas et définit un hint pour la vitesse
+        canvas.setCache(true);
+        canvas.setCacheHint(CacheHint.SPEED);
+        
         try {
             // Engrenage
             gearSpriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
@@ -98,7 +113,7 @@ public class GameView {
             }
             
             // Joueur Jump
-            playerJumpSheet = new Image("file:../textures/jump wrench-Sheet.png");
+            playerJumpSheet = new Image("file:../textures/jump2 wrench-Sheet.png");
             if (!playerJumpSheet.isError()) {
                 jumpFrameHeight = (int) playerJumpSheet.getHeight();
                 jumpFrameWidth  = jumpFrameHeight;
@@ -114,8 +129,40 @@ public class GameView {
     }
 
     /**
-     * Dessine le jeu avec un background qui ne bouge pas et remplit la fenêtre.
-     * => Pas de scrolling horizontal/vertical du fond, plus de zones noires.
+     * Retourne une version redimensionnée du background.
+     * Cette méthode s'assure que le snapshot est réalisé sur le FX thread.
+     */
+    private Image getScaledBackground(Image background, double width, double height) {
+        if (Platform.isFxApplicationThread()) {
+            return createScaledBackground(background, width, height);
+        } else {
+            final Image[] result = new Image[1];
+            final CountDownLatch latch = new CountDownLatch(1);
+            Platform.runLater(() -> {
+                result[0] = createScaledBackground(background, width, height);
+                latch.countDown();
+            });
+            try {
+                latch.await();
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+            return result[0];
+        }
+    }
+
+    private Image createScaledBackground(Image background, double width, double height) {
+        Canvas tempCanvas = new Canvas(width, height);
+        GraphicsContext gcTemp = tempCanvas.getGraphicsContext2D();
+        gcTemp.drawImage(background, 0, 0, width, height);
+        WritableImage scaledImage = new WritableImage((int) width, (int) height);
+        tempCanvas.snapshot(null, scaledImage);
+        return scaledImage;
+    }
+
+    /**
+     * Dessine le jeu avec un background statique qui remplit la fenêtre.
+     * Le background est mis à l'échelle et mis en cache afin d'éviter de recalculer l'image à chaque frame.
      */
     public void draw(Image backgroundImgFromLevel,
                      double playerX, double playerY,
@@ -135,11 +182,15 @@ public class GameView {
         gc.fillRect(0, 0, canvasWidth, canvasHeight);
 
         // ------------------------------------------------------------
-        // BACKGROUND (statique, plein écran)
+        // BACKGROUND (statique, plein écran) avec cache
         // ------------------------------------------------------------
         if (backgroundImgFromLevel != null) {
-            // On l'étire à la taille du canvas (pas de scrolling)
-            gc.drawImage(backgroundImgFromLevel, 0, 0, canvasWidth, canvasHeight);
+            if (cachedBackground == null || cachedWidth != canvasWidth || cachedHeight != canvasHeight) {
+                cachedBackground = getScaledBackground(backgroundImgFromLevel, canvasWidth, canvasHeight);
+                cachedWidth = canvasWidth;
+                cachedHeight = canvasHeight;
+            }
+            gc.drawImage(cachedBackground, 0, 0);
         }
 
         // ------------------------------------------------------------
@@ -161,9 +212,7 @@ public class GameView {
         // ------------------------------------------------------------
         // JOUEUR
         // ------------------------------------------------------------
-        // On garde un scaleFactor pour que le joueur soit plus grand en pixels
         double scaleFactor = 2.0;
-
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
 
@@ -196,7 +245,6 @@ public class GameView {
                 lastWalkFrameTime = currentTime;
             }
             int frameX = walkFrameIndex * walkFrameWidth;
-
             if (facingRight) {
                 gc.drawImage(playerWalkSheet,
                              frameX, 0, walkFrameWidth, walkFrameHeight,
@@ -212,7 +260,6 @@ public class GameView {
                              playerWidth * scaleFactor, playerHeight * scaleFactor);
                 gc.restore();
             }
-
         } else if (!isWalking && playerIdleSheet != null && idleFrameWidth != 0 && idleFrameHeight != 0) {
             long currentTime = System.nanoTime();
             if (currentTime - lastIdleFrameTime >= idleFrameDuration) {
@@ -220,7 +267,6 @@ public class GameView {
                 lastIdleFrameTime = currentTime;
             }
             int frameX = idleFrameIndex * idleFrameWidth;
-
             if (facingRight) {
                 gc.drawImage(playerIdleSheet,
                              frameX, 0, idleFrameWidth, idleFrameHeight,
