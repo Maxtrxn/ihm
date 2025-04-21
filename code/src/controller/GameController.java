@@ -1,6 +1,7 @@
 package src.controller;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,6 +18,7 @@ import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Projectile;
 import src.view.GameView;
 
 public class GameController {
@@ -27,7 +29,8 @@ public class GameController {
 
     private final Player player;
     private final List<Platform> platforms;
-    private final List<Enemy> enemies;
+    private final List<Enemy>   enemies;
+    private final List<Projectile> projectiles = new ArrayList<>();
     private final GameView view;
     private final Game game;
     private final Level level;
@@ -42,7 +45,7 @@ public class GameController {
     // Caméra
     private double cameraX = 0.0, cameraY = 0.0;
 
-    // Boucle de jeu JavaFX
+    // Boucle JavaFX
     private AnimationTimer gameLoop;
 
     public GameController(Player player,
@@ -61,42 +64,46 @@ public class GameController {
         this.initialPlayerY  = player.getY();
     }
 
-    /** Lie les événements clavier aux flags de déplacement. */
+    /** Lie les touches aux flags, et gère tirs vs saut. */
     public void handleInput(Scene scene) {
         scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.LEFT)  this.left  = true;
-            if (e.getCode() == KeyCode.RIGHT) this.right = true;
-            if (e.getCode() == KeyCode.UP)    this.up    = true;
-            if (e.getCode() == KeyCode.DOWN)  this.down  = true;
+            if (e.getCode() == KeyCode.LEFT)  left  = true;
+            if (e.getCode() == KeyCode.RIGHT) right = true;
+            if (e.getCode() == KeyCode.UP)    up    = true;
+            if (e.getCode() == KeyCode.DOWN)  down  = true;
 
             if (e.getCode() == KeyCode.SPACE) {
-                this.jumping = true;
-                if (this.jetpackTimer == null) {
-                    this.jetpackTimer = new Timer(true);
-                    this.jetpackTimer.schedule(new JetpackTask(), 500L);
+                if (level instanceof SpaceshipLevel) {
+                    fireProjectile();
+                } else {
+                    jumping = true;
+                    if (jetpackTimer == null) {
+                        jetpackTimer = new Timer(true);
+                        jetpackTimer.schedule(new JetpackTask(), 500L);
+                    }
                 }
             }
         });
 
         scene.setOnKeyReleased(e -> {
-            if (e.getCode() == KeyCode.LEFT)  this.left  = false;
-            if (e.getCode() == KeyCode.RIGHT) this.right = false;
-            if (e.getCode() == KeyCode.UP)    this.up    = false;
-            if (e.getCode() == KeyCode.DOWN)  this.down  = false;
+            if (e.getCode() == KeyCode.LEFT)  left  = false;
+            if (e.getCode() == KeyCode.RIGHT) right = false;
+            if (e.getCode() == KeyCode.UP)    up    = false;
+            if (e.getCode() == KeyCode.DOWN)  down  = false;
 
-            if (e.getCode() == KeyCode.SPACE) {
-                this.jumping = false;
-                this.jetpack = false;
-                this.player.setJetpackActive(false);
-                if (this.jetpackTimer != null) {
-                    this.jetpackTimer.cancel();
-                    this.jetpackTimer = null;
+            if (e.getCode() == KeyCode.SPACE && !(level instanceof SpaceshipLevel)) {
+                jumping = false;
+                jetpack = false;
+                player.setJetpackActive(false);
+                if (jetpackTimer != null) {
+                    jetpackTimer.cancel();
+                    jetpackTimer = null;
                 }
             }
         });
     }
 
-    /** Démarre la boucle de jeu (AnimationTimer). */
+    /** Démarre la boucle via AnimationTimer. */
     public void startGameLoop() {
         gameLoop = new AnimationTimer() {
             @Override
@@ -107,18 +114,18 @@ public class GameController {
         gameLoop.start();
     }
 
-    /** Arrête la boucle de jeu en cours. */
+    /** Stoppe proprement la boucle en cours. */
     public void stopGameLoop() {
         if (gameLoop != null) {
             gameLoop.stop();
         }
     }
 
-    /** Mise à jour (~60 FPS) : route vers le mode plateforme ou vaisseau. */
+    /** Une itération de la boucle (~60FPS). */
     private void update() {
         boolean isSpaceship = (level instanceof SpaceshipLevel);
 
-        // Calcul du dx commun
+        // dx commun
         double dx    = 0.0;
         double speed = player.getSpeed() * 1.5;
         if (left)  { dx -= speed; player.setFacingRight(false); }
@@ -126,11 +133,12 @@ public class GameController {
 
         if (isSpaceship) {
             updateSpaceship(dx, speed);
+            updateProjectiles();
         } else {
             updatePlatform(dx);
         }
 
-        // Passage de niveau si on dépasse X = 1600
+        // Passage de niveau si on dépasse X=1600
         if (player.getX() > 1600.0) {
             javafx.application.Platform.runLater(() -> {
                 if (level instanceof Level1) {
@@ -141,12 +149,12 @@ public class GameController {
             });
         }
 
-        // Caméra et rendu
+        // Caméra + dessin
         updateCamera(isSpaceship);
         render(isSpaceship);
     }
 
-    /** Déplacement en mode vaisseau (shoot'em up). */
+    /** Déplace le joueur en mode vaisseau. */
     private void updateSpaceship(double dx, double speed) {
         double dy = 0.0;
         if (up)   dy -= speed;
@@ -154,9 +162,44 @@ public class GameController {
         player.move(dx, dy);
     }
 
-    /** Déplacement en mode plateforme (gravité + collisions). */
+    /** Met à jour les projectiles (mouvement, collisions, retrait). */
+    private void updateProjectiles() {
+        Iterator<Projectile> pit = projectiles.iterator();
+        while (pit.hasNext()) {
+            Projectile p = pit.next();
+            p.update();
+            // Hors limites ?
+            if (p.isOutOfBounds(levelWidth)) {
+                pit.remove();
+                continue;
+            }
+            // Collision avec un ennemi ?
+            Iterator<Enemy> eit = enemies.iterator();
+            while (eit.hasNext()) {
+                Enemy enemy = eit.next();
+                if (p.intersects(enemy)) {
+                    eit.remove();
+                    pit.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /** Tire un nouveau projectile depuis la position du joueur. */
+    private void fireProjectile() {
+        double offsetX = player.isFacingRight()
+                       ? player.getWidth()
+                       : -Projectile.class.cast(new Projectile(0,0,true)).getWidth();
+        // Mais on connaît la largeur = 10, simplifions :
+        offsetX = player.isFacingRight() ? player.getWidth() : -10;
+        double px = player.getX() + offsetX;
+        double py = player.getY() + player.getHeight() / 2.0;
+        projectiles.add(new Projectile(px, py, player.isFacingRight()));
+    }
+
+    /** Logique du mode plateforme (gravité + collisions). */
     private void updatePlatform(double dx) {
-        // Saut / jetpack
         if (jumping && player.canJump() && !jetpack) {
             player.velocityY = -10.0;
             player.incrementJumps();
@@ -174,13 +217,11 @@ public class GameController {
         handlePlatformCollisions();
         handleEnemies();
 
-        // Reset si on tombe sous le niveau
         if (player.getY() > levelHeight) {
             resetPlayerPosition();
         }
     }
 
-    /** Collisions plateformes (mode plateforme). */
     private void handlePlatformCollisions() {
         for (Platform p : platforms) {
             if (p instanceof src.model.platforms.FragilePlatform) {
@@ -194,7 +235,8 @@ public class GameController {
                 player.setOnGround(true);
                 player.resetJumps();
                 if (p instanceof src.model.platforms.FragilePlatform) {
-                    src.model.platforms.FragilePlatform fp = (src.model.platforms.FragilePlatform) p;
+                    src.model.platforms.FragilePlatform fp =
+                        (src.model.platforms.FragilePlatform) p;
                     if (!fp.isBroken()) {
                         fp.step(player);
                     }
@@ -203,7 +245,6 @@ public class GameController {
         }
     }
 
-    /** Gestion des ennemis (mode plateforme). */
     private void handleEnemies() {
         List<Enemy> toRemove = new ArrayList<>();
         for (Enemy enemy : enemies) {
@@ -218,25 +259,21 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /**
-     * Met à jour la caméra selon le mode :
-     * - Alignement vertical automatique si la fenêtre est plus haute que le niveau.
-     */
+    /** Met à jour la caméra selon le mode et la taille de la fenêtre. */
     private void updateCamera(boolean isSpaceship) {
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
 
-        // --- AXE X ---
+        // X
         double targetX = player.getX() - cw / 2.0;
         cameraX += 0.1 * (targetX - cameraX);
         cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
 
-        // --- AXE Y ---
+        // Y
         if (isSpaceship) {
             cameraY = 0;
         } else if (ch > levelHeight) {
-            // Fenêtre trop haute → aligner le bas du monde sur le bas de la fenêtre
-            cameraY = levelHeight - ch;  // valeur négative ou 0
+            cameraY = levelHeight - ch;
         } else {
             double targetY = player.getY() - ch / 2.0;
             cameraY += 0.1 * (targetY - cameraY);
@@ -247,17 +284,23 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Appelle la vue pour dessiner tous les éléments. */
+    /** Dessine tous les éléments via la vue. */
     private void render(boolean isSpaceship) {
-        ArrayList<Image> imgs = new ArrayList<>();
-        ArrayList<Double[]> poses = new ArrayList<>();
+        List<Image> imgs     = new ArrayList<>();
+        List<Double[]> posPl = new ArrayList<>();
         for (Platform p : platforms) {
             imgs.add(p.getTexture());
-            poses.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
-        ArrayList<Double[]> enemyPos = new ArrayList<>();
+
+        List<Double[]> posEn = new ArrayList<>();
         for (Enemy e : enemies) {
-            enemyPos.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
+            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
+        }
+
+        List<Double[]> posProj = new ArrayList<>();
+        for (Projectile p : projectiles) {
+            posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
 
         boolean isJumping = !player.onGround;
@@ -268,11 +311,12 @@ public class GameController {
             player.isWalking(), player.isFacingRight(),
             isJumping,
             isSpaceship,
-            imgs, poses, enemyPos
+            imgs, posPl,
+            posEn,
+            posProj
         );
     }
 
-    /** Remet le joueur à sa position initiale. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
@@ -286,7 +330,6 @@ public class GameController {
         }
     }
 
-    /** Réinitialise tous les flags d'état du joueur. */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);

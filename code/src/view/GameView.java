@@ -9,6 +9,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -19,11 +20,10 @@ public class GameView {
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
-    private double cachedWidth = 0;
-    private double cachedHeight = 0;
+    private double cachedWidth = 0, cachedHeight = 0;
 
     // ------------------------------------------------------------
-    // Animation de l'engrenage
+    // Engrenage
     // ------------------------------------------------------------
     private Image gearSpriteSheet;
     private int gearFrameIndex = 0;
@@ -45,7 +45,7 @@ public class GameView {
     private final long idleFrameDuration = 100_000_000; // 100 ms
 
     // ------------------------------------------------------------
-    // Joueur Walking
+    // Joueur Walk
     // ------------------------------------------------------------
     private Image playerWalkSheet;
     private int walkFrameIndex = 0;
@@ -69,20 +69,15 @@ public class GameView {
     // ------------------------------------------------------------
     // Sprite du vaisseau
     // ------------------------------------------------------------
-    private Image spaceshipImage = new Image("file:../textures/dirigeable v1.png");
-
-    // ------------------------------------------------------------
-    // Offset d'affichage du joueur
-    // ------------------------------------------------------------
-    private final double playerOffsetY = 50; // Ajuste si besoin
+    private Image spaceshipImage;
+    private final double playerOffsetY = 50;
 
     public GameView(GraphicsContext gc) {
         this.gc = gc;
         Canvas canvas = gc.getCanvas();
-        // Active le cache sur le canvas et définit un hint pour la vitesse
         canvas.setCache(true);
         canvas.setCacheHint(CacheHint.SPEED);
-        
+
         try {
             // Engrenage
             gearSpriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
@@ -92,7 +87,6 @@ public class GameView {
                 if (gearFrameWidth != 0) {
                     gearFrameCount = (int) (gearSpriteSheet.getWidth() / gearFrameWidth);
                 }
-                System.out.println("Engrenage chargé : " + gearFrameCount + " frames");
             }
 
             // Joueur Idle
@@ -103,7 +97,6 @@ public class GameView {
                 if (idleFrameWidth != 0) {
                     idleFrameCount = (int) (playerIdleSheet.getWidth() / idleFrameWidth);
                 }
-                System.out.println("Feuille Idle chargée : " + idleFrameCount + " frames");
             }
 
             // Joueur Walk
@@ -114,9 +107,8 @@ public class GameView {
                 if (walkFrameWidth != 0) {
                     walkFrameCount = (int) (playerWalkSheet.getWidth() / walkFrameWidth);
                 }
-                System.out.println("Feuille Walk chargée : " + walkFrameCount + " frames");
             }
-            
+
             // Joueur Jump
             playerJumpSheet = new Image("file:../textures/jump2 wrench-Sheet.png");
             if (!playerJumpSheet.isError()) {
@@ -125,23 +117,17 @@ public class GameView {
                 if (jumpFrameWidth != 0) {
                     jumpFrameCount = (int) (playerJumpSheet.getWidth() / jumpFrameWidth);
                 }
-                System.out.println("Feuille Jump chargée : " + jumpFrameCount + " frames");
-            }
-            
-            // Sprite du vaisseau
-            spaceshipImage = new Image("file:../textures/dirigeable v1.png");
-            if (!spaceshipImage.isError()) {
-                System.out.println("Sprite vaisseau chargé.");
             }
 
+            // Sprite vaisseau
+            spaceshipImage = new Image("file:../textures/dirigeable v1.png");
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
         }
     }
 
     /**
-     * Retourne une version redimensionnée du background.
-     * Cette méthode s'assure que le snapshot est réalisé sur le FX thread.
+     * Retourne une version redimensionnée du background (thread-safe).
      */
     private Image getScaledBackground(Image background, double width, double height) {
         if (Platform.isFxApplicationThread()) {
@@ -155,203 +141,187 @@ public class GameView {
             });
             try {
                 latch.await();
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+            } catch (InterruptedException ignored) {}
             return result[0];
         }
     }
 
     private Image createScaledBackground(Image background, double width, double height) {
-        Canvas tempCanvas = new Canvas(width, height);
-        GraphicsContext gcTemp = tempCanvas.getGraphicsContext2D();
-        gcTemp.drawImage(background, 0, 0, width, height);
-        WritableImage scaledImage = new WritableImage((int) width, (int) height);
-        tempCanvas.snapshot(null, scaledImage);
-        return scaledImage;
+        Canvas temp = new Canvas(width, height);
+        GraphicsContext gc2 = temp.getGraphicsContext2D();
+        gc2.drawImage(background, 0, 0, width, height);
+        WritableImage wi = new WritableImage((int) width, (int) height);
+        temp.snapshot(null, wi);
+        return wi;
     }
 
     /**
-     * Dessine le jeu avec un background statique qui remplit la fenêtre.
-     * Le background est mis à l'échelle et mis en cache afin d'éviter de recalculer l'image à chaque frame.
+     * Dessine la frame complète, avec plateformes, ennemis et projectiles.
      */
-    public void draw(Image backgroundImgFromLevel,
-                     double playerX, double playerY,
-                     double playerWidth, double playerHeight,
-                     boolean isWalking,
-                     boolean facingRight,
-                     boolean isJumping,
-                     boolean spaceshipMode,
-                     List<Image> platformImages,
-                     List<Double[]> platformPositions,
-                     List<Double[]> enemyPositions) {
+    public void draw(
+        Image background,
+        double playerX, double playerY,
+        double playerW, double playerH,
+        boolean isWalking, boolean facingRight,
+        boolean isJumping, boolean spaceshipMode,
+        List<Image> platformImages,
+        List<Double[]> platformPositions,
+        List<Double[]> enemyPositions,
+        List<Double[]> projectilePositions
+    ) {
+        double cw = gc.getCanvas().getWidth();
+        double ch = gc.getCanvas().getHeight();
 
-        double canvasWidth = gc.getCanvas().getWidth();
-        double canvasHeight = gc.getCanvas().getHeight();
-
-        // Fond noir pour effacer le canvas
+        // Fond
         gc.setFill(Color.BLACK);
-        gc.fillRect(0, 0, canvasWidth, canvasHeight);
+        gc.fillRect(0, 0, cw, ch);
 
-        // ------------------------------------------------------------
-        // BACKGROUND (statique, plein écran) avec cache
-        // ------------------------------------------------------------
-        if (backgroundImgFromLevel != null) {
-            if (cachedBackground == null || cachedWidth != canvasWidth || cachedHeight != canvasHeight) {
-                cachedBackground = getScaledBackground(backgroundImgFromLevel, canvasWidth, canvasHeight);
-                cachedWidth = canvasWidth;
-                cachedHeight = canvasHeight;
+        // Background mis à l’échelle + cache
+        if (background != null) {
+            if (cachedBackground == null || cachedWidth != cw || cachedHeight != ch) {
+                cachedBackground = getScaledBackground(background, cw, ch);
+                cachedWidth = cw; cachedHeight = ch;
             }
             gc.drawImage(cachedBackground, 0, 0);
         }
 
-        // ------------------------------------------------------------
-        // ENGRENADE (toujours en haut à gauche)
-        // ------------------------------------------------------------
-        if (gearSpriteSheet != null && gearFrameWidth != 0 && gearFrameHeight != 0) {
-            long currentTime = System.nanoTime();
-            if (currentTime - lastGearFrameTime >= gearFrameDuration) {
+        // Engrenage
+        if (gearSpriteSheet != null && gearFrameWidth > 0) {
+            long now = System.nanoTime();
+            if (now - lastGearFrameTime >= gearFrameDuration) {
                 gearFrameIndex = (gearFrameIndex + 1) % gearFrameCount;
-                lastGearFrameTime = currentTime;
+                lastGearFrameTime = now;
             }
-            int frameX = gearFrameIndex * gearFrameWidth;
+            int sx = gearFrameIndex * gearFrameWidth;
             gc.drawImage(gearSpriteSheet,
-                         frameX, 0, gearFrameWidth, gearFrameHeight,
-                         0, 0,
-                         gearFrameWidth, gearFrameHeight);
+                         sx, 0, gearFrameWidth, gearFrameHeight,
+                         0, 0, gearFrameWidth, gearFrameHeight);
         }
 
-        // ------------------------------------------------------------
-        // JOUEUR
-        // ------------------------------------------------------------
-        double scaleFactor = 2.0;
+        // JOUEUR ou VAISSEAU
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
-
         if (spaceshipMode && spaceshipImage != null) {
+            // Conserve le ratio d'origine du dirigeable
+            double imageW = spaceshipImage.getWidth();
+            double imageH = spaceshipImage.getHeight();
+            double targetH = playerH * 2.0;
+            double targetW = targetH * (imageW / imageH);
+
             if (facingRight) {
-                gc.drawImage(spaceshipImage, drawX, drawY,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                gc.drawImage(spaceshipImage,
+                             drawX, drawY,
+                             targetW, targetH);
             } else {
                 gc.save();
-                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.translate(drawX + targetW, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(spaceshipImage, 0, 0,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                gc.drawImage(spaceshipImage,
+                             0, 0,
+                             targetW, targetH);
                 gc.restore();
             }
-        } else if (isJumping && playerJumpSheet != null && jumpFrameWidth != 0 && jumpFrameHeight != 0) {
-            long currentTime = System.nanoTime();
-            if (currentTime - lastJumpFrameTime >= jumpFrameDuration) {
+        } else if (isJumping && playerJumpSheet != null && jumpFrameWidth > 0) {
+            long now = System.nanoTime();
+            if (now - lastJumpFrameTime >= jumpFrameDuration) {
                 jumpFrameIndex = (jumpFrameIndex + 1) % jumpFrameCount;
-                lastJumpFrameTime = currentTime;
+                lastJumpFrameTime = now;
             }
-            int frameX = jumpFrameIndex * jumpFrameWidth;
+            int sx = jumpFrameIndex * jumpFrameWidth;
             if (facingRight) {
                 gc.drawImage(playerJumpSheet,
-                             frameX, 0, jumpFrameWidth, jumpFrameHeight,
-                             drawX, drawY,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, jumpFrameWidth, jumpFrameHeight,
+                             drawX, drawY, playerW * 2, playerH * 2);
             } else {
                 gc.save();
-                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.translate(drawX + playerW * 2, drawY);
                 gc.scale(-1, 1);
                 gc.drawImage(playerJumpSheet,
-                             frameX, 0, jumpFrameWidth, jumpFrameHeight,
-                             0, 0,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, jumpFrameWidth, jumpFrameHeight,
+                             0, 0, playerW * 2, playerH * 2);
                 gc.restore();
             }
-        } else if (isWalking && playerWalkSheet != null && walkFrameWidth != 0 && walkFrameHeight != 0) {
-            long currentTime = System.nanoTime();
-            if (currentTime - lastWalkFrameTime >= walkFrameDuration) {
+        } else if (isWalking && playerWalkSheet != null && walkFrameWidth > 0) {
+            long now = System.nanoTime();
+            if (now - lastWalkFrameTime >= walkFrameDuration) {
                 walkFrameIndex = (walkFrameIndex + 1) % walkFrameCount;
-                lastWalkFrameTime = currentTime;
+                lastWalkFrameTime = now;
             }
-            int frameX = walkFrameIndex * walkFrameWidth;
+            int sx = walkFrameIndex * walkFrameWidth;
             if (facingRight) {
                 gc.drawImage(playerWalkSheet,
-                             frameX, 0, walkFrameWidth, walkFrameHeight,
-                             drawX, drawY,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, walkFrameWidth, walkFrameHeight,
+                             drawX, drawY, playerW * 2, playerH * 2);
             } else {
                 gc.save();
-                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.translate(drawX + playerW * 2, drawY);
                 gc.scale(-1, 1);
                 gc.drawImage(playerWalkSheet,
-                             frameX, 0, walkFrameWidth, walkFrameHeight,
-                             0, 0,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, walkFrameWidth, walkFrameHeight,
+                             0, 0, playerW * 2, playerH * 2);
                 gc.restore();
             }
-        } else if (!isWalking && playerIdleSheet != null && idleFrameWidth != 0 && idleFrameHeight != 0) {
-            long currentTime = System.nanoTime();
-            if (currentTime - lastIdleFrameTime >= idleFrameDuration) {
+        } else if (playerIdleSheet != null && idleFrameWidth > 0) {
+            long now = System.nanoTime();
+            if (now - lastIdleFrameTime >= idleFrameDuration) {
                 idleFrameIndex = (idleFrameIndex + 1) % idleFrameCount;
-                lastIdleFrameTime = currentTime;
+                lastIdleFrameTime = now;
             }
-            int frameX = idleFrameIndex * idleFrameWidth;
+            int sx = idleFrameIndex * idleFrameWidth;
             if (facingRight) {
                 gc.drawImage(playerIdleSheet,
-                             frameX, 0, idleFrameWidth, idleFrameHeight,
-                             drawX, drawY,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, idleFrameWidth, idleFrameHeight,
+                             drawX, drawY, playerW * 2, playerH * 2);
             } else {
                 gc.save();
-                gc.translate(drawX + playerWidth * scaleFactor, drawY);
+                gc.translate(drawX + playerW * 2, drawY);
                 gc.scale(-1, 1);
                 gc.drawImage(playerIdleSheet,
-                             frameX, 0, idleFrameWidth, idleFrameHeight,
-                             0, 0,
-                             playerWidth * scaleFactor, playerHeight * scaleFactor);
+                             sx, 0, idleFrameWidth, idleFrameHeight,
+                             0, 0, playerW * 2, playerH * 2);
                 gc.restore();
             }
         }
 
-        // ------------------------------------------------------------
         // PLATEFORMES
-        // ------------------------------------------------------------
         for (int i = 0; i < platformImages.size(); i++) {
-            Image platformImage = platformImages.get(i);
+            Image img = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
             double px = pos[0] - cameraX.get();
             double py = pos[1] - cameraY.get();
-            double pw = pos[2];
-            double ph = pos[3];
-
-            if (platformImage != null) {
-                gc.drawImage(platformImage, px, py, pw, ph);
+            double pw = pos[2], ph = pos[3];
+            if (img != null) {
+                gc.drawImage(img, px, py, pw, ph);
             } else {
                 gc.setFill(Color.BLUE);
                 gc.fillRect(px, py, pw, ph);
             }
         }
 
-        // ------------------------------------------------------------
         // ENNEMIS
-        // ------------------------------------------------------------
         gc.setFill(Color.GREEN);
         for (Double[] pos : enemyPositions) {
             double ex = pos[0] - cameraX.get();
             double ey = pos[1] - cameraY.get();
-            double ew = pos[2];
-            double eh = pos[3];
+            double ew = pos[2], eh = pos[3];
             gc.fillRect(ex, ey, ew, eh);
+        }
+
+        // PROJECTILES (mode vaisseau)
+        if (spaceshipMode) {
+            gc.setFill(Color.RED);
+            for (Double[] pos : projectilePositions) {
+                double px = pos[0] - cameraX.get();
+                double py = pos[1] - cameraY.get();
+                double pw = pos[2], ph = pos[3];
+                gc.fillRect(px, py, pw, ph);
+            }
         }
     }
 
-    // Méthodes utilitaires
-    public double getCanvasWidth() {
-        return gc.getCanvas().getWidth();
-    }
-    public double getCanvasHeight() {
-        return gc.getCanvas().getHeight();
-    }
-
-    public DoubleProperty cameraXProperty() {
-        return cameraX;
-    }
-    public DoubleProperty cameraYProperty() {
-        return cameraY;
-    }
+    // Accesseurs pour la caméra et la taille du canvas
+    public DoubleProperty cameraXProperty() { return cameraX; }
+    public DoubleProperty cameraYProperty() { return cameraY; }
+    public double getCanvasWidth()        { return gc.getCanvas().getWidth(); }
+    public double getCanvasHeight()       { return gc.getCanvas().getHeight(); }
 }
