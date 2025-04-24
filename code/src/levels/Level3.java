@@ -38,7 +38,6 @@ public class Level3 extends Level {
         // 3) Décoration : un lampadaire dans le décor
         Image lamp = new Image("file:../textures/lampadaire 1.png");
         double lampH = lamp.getHeight();
-        System.out.println(lampH);
-        decorations.add(new Decoration(500, groundY - lampH, lamp));
+        decorations.add(new Decoration(200, groundY - lampH - 200, lamp));
     }
 }
