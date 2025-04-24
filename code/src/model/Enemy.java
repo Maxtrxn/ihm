@@ -10,7 +10,7 @@ public class Enemy {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.speed = speed;
+        this.speed = speed * 60;
         this.leftBound = leftBound;
         this.rightBound = rightBound;
     }
