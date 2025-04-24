@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import src.Game;
 import src.levels.Level;
 import src.levels.Level1;
+import src.levels.Level2;
 import src.levels.Level3;
 import src.levels.SpaceshipLevel;
 import src.model.Player;
@@ -24,7 +25,7 @@ import src.model.Decoration;
 import src.view.GameView;
 
 public class GameController {
-    private static final double GRAVITY = 0.5;
+    private static final double GRAVITY = 1800.0;
 
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
@@ -111,13 +112,22 @@ public class GameController {
     /** Démarre la boucle via AnimationTimer. */
     public void startGameLoop() {
         gameLoop = new AnimationTimer() {
+            private long lastTime = 0;
             @Override
             public void handle(long now) {
-                update();
+                if (lastTime == 0) {
+                    lastTime = now;
+                    return;
+                }
+                double deltaSec = (now - lastTime) / 1_000_000_000.0;
+                update(deltaSec);
+                lastTime = now;
             }
         };
         gameLoop.start();
     }
+
+
 
     /** Stoppe proprement la boucle en cours. */
     public void stopGameLoop() {
@@ -126,56 +136,58 @@ public class GameController {
         }
     }
 
-    /** Une itération de la boucle (~60FPS). */
-    private void update() {
-        boolean isSpaceship = (level instanceof SpaceshipLevel);
+    /**
+     * Une itération de la boucle (~60FPS), délègue le passage de niveau à Game.nextLevel().
+     * @param deltaSec  Temps écoulé (s) depuis la dernière frame
+     */
+    private void update(double deltaSec) {
+        boolean isSpaceship = level instanceof SpaceshipLevel;
 
-        // dx commun
+        // Calcul du déplacement horizontal en px pour ce frame
         double dx    = 0.0;
-        double speed = player.getSpeed() * 1.5;
-        if (left)  { dx -= speed; player.setFacingRight(false); }
-        if (right) { dx += speed; player.setFacingRight(true); }
+        double speed = player.getSpeed() * 1.5; // px/sec
+        if (left)  { dx -= speed * deltaSec; player.setFacingRight(false); }
+        if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
+        // Mode vaisseau ou plateforme
         if (isSpaceship) {
-            updateSpaceship(dx, speed);
-            updateProjectiles();
+            updateSpaceship(dx, deltaSec);
+            updateProjectiles(deltaSec);
         } else {
-            updatePlatform(dx);
+            updatePlatform(dx, deltaSec);
         }
 
-        // Passage de niveau si on dépasse X=1600
+        // Passage de niveau si on dépasse X = 1600
         if (player.getX() > 1600.0) {
-            javafx.application.Platform.runLater(() -> {
-                if (level instanceof Level1) {
-                    game.loadSpaceshipLevel();
-                } else if (level instanceof SpaceshipLevel) {
-                    // Après le vaisseau → Level 3
-                    game.loadLevel(new Level3(player));
-                } else {
-                    game.nextLevel();
-                }
-            });
+            javafx.application.Platform.runLater(() -> game.nextLevel());
         }
 
-        // Caméra + dessin
+        // Caméra + rendu
         updateCamera(isSpaceship);
         render(isSpaceship);
     }
 
-    /** Déplace le joueur en mode vaisseau. */
-    private void updateSpaceship(double dx, double speed) {
+
+
+    /** @param dx      déplacement horizontal pour ce frame
+     *  @param deltaSec  temps écoulé (s)
+     */
+    private void updateSpaceship(double dx, double deltaSec) {
         double dy = 0.0;
-        if (up)   dy -= speed;
-        if (down) dy += speed;
+        double shipSpeed = player.getSpeed() * 1.5; // px/sec
+        if (up)   dy -= shipSpeed * deltaSec;
+        if (down) dy += shipSpeed * deltaSec;
         player.move(dx, dy);
     }
 
-    /** Met à jour les projectiles (mouvement, collisions, retrait). */
-    private void updateProjectiles() {
+
+
+    /** @param deltaSec  temps écoulé (s) */
+    private void updateProjectiles(double deltaSec) {
         Iterator<Projectile> pit = projectiles.iterator();
         while (pit.hasNext()) {
             Projectile p = pit.next();
-            p.update();
+            p.update(deltaSec);
             if (p.isOutOfBounds(levelWidth)) {
                 pit.remove();
                 continue;
@@ -192,6 +204,7 @@ public class GameController {
         }
     }
 
+
     /** Tire un nouveau projectile depuis la position du joueur. */
     private void fireProjectile() {
         double offsetX = player.isFacingRight()
@@ -202,29 +215,43 @@ public class GameController {
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
     }
 
-    /** Logique du mode plateforme (gravité + collisions). */
-    private void updatePlatform(double dx) {
+
+
+
+    /** 
+     * @param dx       déplacement horizontal pour ce frame (px) 
+     * @param deltaSec temps écoulé (s) depuis la dernière frame
+     */
+    private void updatePlatform(double dx, double deltaSec) {
+        // déclenchement du saut : on passe à -600 px/s (~-10 px/frame @60FPS)
         if (jumping && player.canJump() && !jetpack) {
-            player.velocityY = -10.0;
+            player.setVelocityY(-600.0);
+            player.setOnGround(false); 
             player.incrementJumps();
             jumping = false;
         }
+        // jetpack : vitesse de montée constante (px/s)
         if (jetpack && player.isJetpackActive()) {
-            player.velocityY = -5.0;
+            player.setVelocityY(-300.0); 
         } else {
-            player.velocityY += GRAVITY;
+            // intégration de la gravité en px/s²
+            player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
 
-        double dy = player.velocityY * 2.0;
+        // on déplace en px = vitesse (px/s) * deltaSec (s)
+        double dy = player.velocityY * deltaSec;
         player.move(dx, dy);
 
         handlePlatformCollisions();
-        handleEnemies();
+        handleEnemies(deltaSec);
 
         if (player.getY() > levelHeight) {
             resetPlayerPosition();
         }
     }
+
+
+
 
     private void handlePlatformCollisions() {
         for (Platform p : platforms) {
@@ -249,19 +276,26 @@ public class GameController {
         }
     }
 
-    private void handleEnemies() {
+    /**
+     * @param deltaSec  temps écoulé (s) depuis la dernière frame
+     */
+    private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
         for (Enemy enemy : enemies) {
-            enemy.update();
+            // déplacement de l’ennemi à la bonne vitesse (px/s)
+            enemy.update(deltaSec);
+
             if (player.landsOn(enemy)) {
                 toRemove.add(enemy);
-                player.velocityY = -10.0;
+                player.setVelocityY(-600.0); // rebond identique au saut
             } else if (player.intersects(enemy)) {
                 resetPlayerPosition();
             }
         }
         enemies.removeAll(toRemove);
     }
+
+
 
     private void updateCamera(boolean isSpaceship) {
         double cw = view.getCanvasWidth();

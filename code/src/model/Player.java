@@ -15,7 +15,7 @@ public class Player {
     public boolean onGround = false;
     private int jumps = 0;
     private static final int MAX_JUMPS = 2;
-    private double speed = 3.0;
+    private double speed = 180.0;
     private boolean jetpackActive = false;
     private boolean walking = false;
 
@@ -48,13 +48,13 @@ public class Player {
     public void stopWalking() { walking = false; }
 
     public boolean intersects(Platform platform) {
-        System.out.println("[DEBUG] Player intersects() -> "
+        /*System.out.println("[DEBUG] Player intersects() -> "
             + "Player: x=" + getX() + ", y=" + getY()
             + ", w=" + getWidth() + ", h=" + getHeight()
             + " | Platform: x=" + platform.getX()
             + ", y=" + platform.getY()
             + ", w=" + platform.getWidth()
-            + ", h=" + platform.getHeight());
+            + ", h=" + platform.getHeight());*/
         return getX() < platform.getX() + platform.getWidth()
             && getX() + getWidth() > platform.getX()
             && getY() < platform.getY() + platform.getHeight()

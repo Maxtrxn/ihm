@@ -31,13 +31,20 @@ public class Enemy {
         return height;
     }
 
-    public void update() {
+    /** @param deltaSec  temps écoulé (s) */
+    /**
+ * @param deltaSec  temps écoulé (s) depuis la dernière frame
+ */
+    public void update(double deltaSec) {
+        double move = speed * deltaSec;
         if (movingRight) {
-            x += speed;
+            x += move;
             if (x >= rightBound) movingRight = false;
         } else {
-            x -= speed;
+            x -= move;
             if (x <= leftBound) movingRight = true;
         }
     }
+
+
 }

@@ -17,9 +17,11 @@ public class Projectile {
     }
 
     /** Avance le projectile d’une frame. */
-    public void update() {
-        x += (toRight ? 1 : -1) * SPEED;
+    /** @param deltaSec  temps écoulé (s) */
+    public void update(double deltaSec) {
+        x += (toRight ? 1 : -1) * SPEED * deltaSec;
     }
+
 
     /** Indique si le projectile est hors limites du niveau. */
     public boolean isOutOfBounds(double levelWidth) {

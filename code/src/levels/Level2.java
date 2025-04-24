@@ -33,7 +33,7 @@ public class Level2 extends Level {
         }
 
         // Ennemis
-        enemies.add(new Enemy(450, 230, 50, 50, 2, 400, 600));
-        enemies.add(new Enemy(800, 230, 50, 50, 2, 700, 900));
+        enemies.add(new Enemy(450, 230, 50, 50, 2*60, 400, 600));
+        enemies.add(new Enemy(800, 230, 50, 50, 2*60, 700, 900));
     }
 }

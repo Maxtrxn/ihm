@@ -33,9 +33,16 @@ public class Level3 extends Level {
         platforms.add(new BrickPlatform(1000, 300));
 
         // 3) Décoration : un lampadaire dans le décor
+        /*
         decorations.add(new Decoration(
             500, 300,
             new Image("file:../textures/lampadaire 1.png")
         ));
+        */
+       Image lamp = new Image("file:../textures/lampadaire 1.png");
+        System.out.println("Lampadaire : erreur=" + lamp.isError()
+    + ", w=" + lamp.getWidth() + ", h=" + lamp.getHeight());
+        decorations.add(new Decoration(500, 300, lamp));
+
     }
 }
