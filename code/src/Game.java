@@ -21,24 +21,42 @@ import src.model.Player;
 import src.view.GameView;
 
 public class Game extends Application {
-    // Taille de base (800×600), utilisée comme taille initiale.
+    // Taille “logique” de la vue (sera redimensionnée à la fenêtre)
     private static final int WIDTH  = 800;
     private static final int HEIGHT = 600;
 
     private Stage primaryStage;
+    private Scene  scene;
+    private Pane   root;
+    private Canvas canvas;
     private Player player;
     private GameController controller;
 
-    // Liste de "fabriques" de niveaux, dans l'ordre de jeu
+    // Liste des niveaux dans l’ordre
     private List<Function<Player, Level>> levelSuppliers;
     private int currentLevelIndex = 0;
 
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        this.player = new Player(100, 500);
+        this.player       = new Player(100, 500);
 
-        // Initialise la liste de niveaux
+        // Crée une seule Scene + Canvas qu’on réutilisera
+        this.root   = new Pane();
+        this.canvas = new Canvas(WIDTH, HEIGHT);
+        // le Canvas s’adapte toujours à la taille du Pane
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty());
+        root.getChildren().add(canvas);
+        this.scene = new Scene(root, WIDTH, HEIGHT);
+
+        primaryStage.setTitle("Steampunk Adventure");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
+        primaryStage.setMaximized(true);
+        primaryStage.show();
+
+        // Prépare la liste des niveaux
         levelSuppliers = Arrays.asList(
             Level1::new,
             SpaceshipLevel::new,
@@ -46,65 +64,44 @@ public class Game extends Application {
             Level3::new
         );
 
-        primaryStage.setTitle("Steampunk Adventure");
-        // On maximise la fenêtre sans passer en plein écran
-        primaryStage.setMaximized(true);
-
-        // Charge le premier niveau
+        // Charge et lance le premier niveau
         loadCurrentLevel();
-
-        primaryStage.show();
     }
 
-    /** Charge l’instance du niveau courant. */
+    /** Instancie et affiche le niveau à index currentLevelIndex */
     private void loadCurrentLevel() {
+        // Crée le Level
         Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
-        loadLevel(lvl);
-    }
 
-    /**
-     * Charge un niveau et met en place la scène avec un Canvas redimensionnable.
-     * Arrête la boucle de jeu précédente si elle existe.
-     */
-    public void loadLevel(Level level) {
+        // Si on avait déjà un contrôleur, arrête proprement sa boucle
         if (controller != null) {
             controller.stopGameLoop();
         }
 
-        Pane root = new Pane();
-        Canvas canvas = new Canvas(WIDTH, HEIGHT);
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty());
-        root.getChildren().add(canvas);
-
+        // Redessine le Canvas (avec son nouveau GraphicsContext)
         GraphicsContext gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
-        // ———> on vide le cache du background pour que l’ancien fond n’apparaisse plus
-        view.resetBackgroundCache();
 
+        // Crée le nouveau contrôleur pour ce niveau
         controller = new GameController(
             player,
-            level.getPlatforms(),
-            level.getEnemies(),
-            level.getDecorations(),
+            lvl.getPlatforms(),
+            lvl.getEnemies(),
+            lvl.getDecorations(),
             view,
             this,
-            level
+            lvl
         );
 
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        // Lie les entrées clavier
         controller.handleInput(scene);
-
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(true);
+        // Démarre la boucle
         controller.startGameLoop();
     }
 
-    /**
-     * Passe au niveau suivant dans la liste levelSuppliers.
-     */
+    /** Passe au niveau suivant (ou termine le jeu) */
     public void nextLevel() {
-        // Réinitialise l'état et la position du joueur.
+        // reset du joueur
         controller.resetPlayerState();
         player.setX(100);
         player.setY(500);
@@ -113,20 +110,9 @@ public class Game extends Application {
             currentLevelIndex++;
             loadCurrentLevel();
         } else {
-            System.out.println("Vous avez terminé le jeu !");
+            System.out.println("🎉 Vous avez terminé le jeu !");
             controller.stopGameLoop();
-            // TODO : écran de victoire
         }
-    }
-
-    /**
-     * Charge explicitement le niveau vaisseau (au cas où vous l’appeliez directement).
-     */
-    public void loadSpaceshipLevel() {
-        controller.resetPlayerState();
-        player.setX(100);
-        player.setY(500);
-        loadLevel(new SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {
