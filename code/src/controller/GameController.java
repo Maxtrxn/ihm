@@ -23,25 +23,24 @@ import src.view.GameView;
 
 public class GameController {
     private static final double GRAVITY = 1800.0;
-    /** Vitesse de défilement auto du vaisseau (px/s) */
-    private static final double SHIP_SCROLL_SPEED = 200.0;
+    private static final double SHIP_SCROLL_SPEED = 200.0; // px/s
 
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
 
     private final Player player;
     private final List<Platform> platforms;
-    private final List<Enemy>    enemies;
+    private final List<Enemy> enemies;
     private final List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
-    private final GameView   view;
-    private final Game       game;
-    private final Level      level;
+    private final GameView view;
+    private final Game game;
+    private final Level level;
 
     private final double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
 
-    // Taille “logique” du niveau
+    // Dimensions “logiques” du niveau
     private final double levelWidth  = 3000.0;
     private final double levelHeight = 600.0;
 
@@ -53,20 +52,20 @@ public class GameController {
 
     public GameController(Player player,
                           List<Platform> platforms,
-                          List<Enemy>    enemies,
+                          List<Enemy> enemies,
                           List<Decoration> decorations,
                           GameView view,
                           Game game,
                           Level level) {
-        this.player         = player;
-        this.platforms      = platforms;
-        this.enemies        = enemies;
-        this.decorations    = decorations;
-        this.view           = view;
-        this.game           = game;
-        this.level          = level;
-        this.initialPlayerX = player.getX();
-        this.initialPlayerY = player.getY();
+        this.player          = player;
+        this.platforms       = platforms;
+        this.enemies         = enemies;
+        this.decorations     = decorations;
+        this.view            = view;
+        this.game            = game;
+        this.level           = level;
+        this.initialPlayerX  = player.getX();
+        this.initialPlayerY  = player.getY();
     }
 
     /** Lie les touches aux flags, et gère tirs vs saut. */
@@ -98,7 +97,7 @@ public class GameController {
 
             if (e.getCode() == KeyCode.SPACE && !(level instanceof SpaceshipLevel)) {
                 jumping = false;
-                jetpack  = false;
+                jetpack = false;
                 player.setJetpackActive(false);
                 if (jetpackTimer != null) {
                     jetpackTimer.cancel();
@@ -133,7 +132,7 @@ public class GameController {
         }
     }
 
-    /** Itération de boucle (~60FPS). */
+    /** Itération de la boucle (~60FPS). */
     private void update(double deltaSec) {
         boolean isShip = (level instanceof SpaceshipLevel);
 
@@ -144,7 +143,7 @@ public class GameController {
         if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
         if (isShip) {
-            // Mouvement du vaisseau
+            // Mouvement du vaisseau en mode spaceship
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
 
@@ -166,25 +165,23 @@ public class GameController {
 
         // Passage de niveau automatique
         if (player.getX() > 1600.0) {
-            javafx.application.Platform.runLater(() -> game.nextLevel());
+            javafx.application.Platform.runLater(game::nextLevel);
         }
 
-        // Mise à jour caméra (Y + on remet X pour plateforme)
+        // Mise à jour caméra & rendu
         updateCamera(isShip);
-        // Rendu
         render(isShip);
     }
 
-    /** @param dx déplacement horizontal @param dY temps écoulé */  
+    /** Update en mode spaceship (déplacement libre). */
     private void updateSpaceship(double dx, double deltaSec) {
-        double dy        = 0.0;
-        double shipSpeed = player.getSpeed() * 1.5;
-        if (up)   dy -= shipSpeed * deltaSec;
-        if (down) dy += shipSpeed * deltaSec;
+        double dy = 0.0;
+        if (up)   dy -= player.getSpeed() * 1.5 * deltaSec;
+        if (down) dy += player.getSpeed() * 1.5 * deltaSec;
         player.move(dx, dy);
     }
 
-    /** Gère déplacement & collisions des projectiles. */
+    /** Met à jour projectiles (mouvement + collisions). */
     private void updateProjectiles(double deltaSec) {
         Iterator<Projectile> pit = projectiles.iterator();
         while (pit.hasNext()) {
@@ -206,15 +203,15 @@ public class GameController {
         }
     }
 
-    /** Tire un projectile (mode vaisseau). */
+    /** Tire un projectile (mode spaceship). */
     private void fireProjectile() {
         double offsetX = player.isFacingRight() ? player.getWidth() : -10;
         double px = player.getX() + offsetX;
-        double py = player.getY() + player.getHeight()/2.0;
+        double py = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
     }
 
-    /** Gestion plateforme + gravité + collisions. */
+    /** Update en mode plateforme (gravité + collisions). */
     private void updatePlatform(double dx, double deltaSec) {
         double oldY = player.getY();
 
@@ -242,17 +239,24 @@ public class GameController {
         }
     }
 
-    /** Collisions plateformes (on vient bien d’au-dessus). */
+    /**
+     * Gère les collisions plateformes en s’assurant qu’on vient d’en haut,
+     * puis supprime les plateformes fragiles cassées.
+     */
     private void handlePlatformCollisions(double oldY) {
+        // 1) Reset fragile platforms
         for (Platform p : platforms) {
             if (p instanceof src.model.platforms.FragilePlatform) {
-                ((src.model.platforms.FragilePlatform)p).resetStep(player);
+                ((src.model.platforms.FragilePlatform) p).resetStep(player);
             }
         }
+
+        // 2) Gestion de l’atterrissage
         for (Platform p : platforms) {
             double top    = p.getY();
             double botNow = player.getY() + player.getHeight();
-            double botOld = oldY + player.getHeight();
+            double botOld = oldY            + player.getHeight();
+
             if (player.intersects(p)
                 && player.velocityY > 0
                 && botOld <= top) {
@@ -262,14 +266,22 @@ public class GameController {
                 player.resetJumps();
                 if (p instanceof src.model.platforms.FragilePlatform) {
                     src.model.platforms.FragilePlatform fp =
-                        (src.model.platforms.FragilePlatform)p;
-                    if (!fp.isBroken()) fp.step(player);
+                        (src.model.platforms.FragilePlatform) p;
+                    if (!fp.isBroken()) {
+                        fp.step(player);
+                    }
                 }
             }
         }
+
+        // 3) Suppression des plateformes fragiles désormais cassées
+        platforms.removeIf(p ->
+            p instanceof src.model.platforms.FragilePlatform
+            && ((src.model.platforms.FragilePlatform) p).isBroken()
+        );
     }
 
-    /** Mise à jour et collision ennemis. */
+    /** Gère déplacement & collisions ennemis. */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
         for (Enemy e : enemies) {
@@ -284,25 +296,26 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour cameraX et cameraY selon le mode. */
+    /** Met à jour la caméra selon le mode. */
     private void updateCamera(boolean isShip) {
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
 
         if (!isShip) {
-            // plateforme : on recentre progressivement sur le joueur
-            double targetX = player.getX() - cw/2.0;
-            cameraX += 0.1*(targetX - cameraX);
+            // plateforme : centrage progressif
+            double targetX = player.getX() - cw / 2.0;
+            cameraX += 0.1 * (targetX - cameraX);
             cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
         }
+
         // vertical
         if (isShip) {
             cameraY = 0;
         } else if (ch > levelHeight) {
             cameraY = levelHeight - ch;
         } else {
-            double targetY = player.getY() - ch/2.0;
-            cameraY += 0.1*(targetY - cameraY);
+            double targetY = player.getY() - ch / 2.0;
+            cameraY += 0.1 * (targetY - cameraY);
             cameraY = Math.max(0, Math.min(cameraY, levelHeight - ch));
         }
 
@@ -310,28 +323,25 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine décors, plateformes, ennemis, projectiles et joueur. */
+    /** Dessine tout : décor, plateformes, ennemis, projectiles, joueur/vaisseau. */
     private void render(boolean isShip) {
-        List<Image> decoImgs    = new ArrayList<>();
-        List<Double[]> posDeco  = new ArrayList<>();
+        List<Image> decoImgs   = new ArrayList<>();
+        List<Double[]> posDeco = new ArrayList<>();
         for (Decoration d : decorations) {
             decoImgs.add(d.getTexture());
             posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
-
-        List<Image> platImgs    = new ArrayList<>();
-        List<Double[]> posPl    = new ArrayList<>();
+        List<Image> platImgs   = new ArrayList<>();
+        List<Double[]> posPl   = new ArrayList<>();
         for (Platform p : platforms) {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
-
-        List<Double[]> posEn    = new ArrayList<>();
+        List<Double[]> posEn   = new ArrayList<>();
         for (Enemy e : enemies) {
             posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
         }
-
-        List<Double[]> posProj  = new ArrayList<>();
+        List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
@@ -351,7 +361,7 @@ public class GameController {
         );
     }
 
-    /** Remet le joueur en position/état initial. */
+    /** Remet le joueur en position et état initiaux. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
@@ -365,7 +375,7 @@ public class GameController {
         }
     }
 
-    /** Réinitialise seulement les flags (sans arrêter la boucle). */
+    /** Réinitialise uniquement les flags (sans arrêter la boucle). */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);
