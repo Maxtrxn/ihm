@@ -718,7 +718,7 @@ public class Level3 extends Level {
         Image groundTex = new Image("file:../textures/sol brique.png");
         double tileW = groundTex.getWidth();
         double tileH = groundTex.getHeight();
-        double groundY = 400 - tileH;
+        double groundY = 600 - tileH;
         for (double x = 0; x < levelWidth; x += tileW) {
             platforms.add(new GroundPlatform(x, groundY, groundTex));
         }
@@ -733,8 +733,7 @@ public class Level3 extends Level {
         // 3) Décoration : un lampadaire dans le décor
         Image lamp = new Image("file:../textures/lampadaire 1.png");
         double lampH = lamp.getHeight();
-        System.out.println(lampH);
-        decorations.add(new Decoration(500, groundY - lampH, lamp));
+        decorations.add(new Decoration(200, groundY - lampH - 200, lamp));
     }
 }fin fichier ./src/levels/Level3.java
 
