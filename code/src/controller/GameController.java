@@ -218,33 +218,41 @@ public class GameController {
 
 
 
-    /** 
-     * @param dx       déplacement horizontal pour ce frame (px) 
+    /**
+     * @param dx       déplacement horizontal pour ce frame (px)
      * @param deltaSec temps écoulé (s) depuis la dernière frame
      */
     private void updatePlatform(double dx, double deltaSec) {
+        // Mémorise la position Y AVANT le déplacement
+        double oldY = player.getY();
+
         // déclenchement du saut : on passe à -600 px/s (~-10 px/frame @60FPS)
         if (jumping && player.canJump() && !jetpack) {
-            player.setVelocityY(-600.0);
-            player.setOnGround(false); 
+            player.setVelocityY(-603.0);
+            player.setOnGround(false);
             player.incrementJumps();
             jumping = false;
         }
+
         // jetpack : vitesse de montée constante (px/s)
         if (jetpack && player.isJetpackActive()) {
-            player.setVelocityY(-300.0); 
+            player.setVelocityY(-300.0);
         } else {
             // intégration de la gravité en px/s²
             player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
 
-        // on déplace en px = vitesse (px/s) * deltaSec (s)
+        // déplacement vertical selon deltaSec
         double dy = player.velocityY * deltaSec;
         player.move(dx, dy);
 
-        handlePlatformCollisions();
+        // collisions plateformes en tenant compte de oldY
+        handlePlatformCollisions(oldY);
+
+        // gestion des ennemis
         handleEnemies(deltaSec);
 
+        // reset si chute
         if (player.getY() > levelHeight) {
             resetPlayerPosition();
         }
@@ -253,18 +261,38 @@ public class GameController {
 
 
 
-    private void handlePlatformCollisions() {
+
+    /**
+     * Gère les collisions plateforme en s’assurant que le joueur
+     * venait bien d’au-dessus de la plateforme.
+     *
+     * @param oldY position Y du joueur AVANT le move(...)
+     */
+    private void handlePlatformCollisions(double oldY) {
+        // 1) Reset fragile platforms
         for (Platform p : platforms) {
             if (p instanceof src.model.platforms.FragilePlatform) {
                 ((src.model.platforms.FragilePlatform) p).resetStep(player);
             }
         }
+
+        // 2) Test d’atterrissage
         for (Platform p : platforms) {
-            if (player.intersects(p) && player.velocityY > 0.0) {
-                player.setY(p.getY() - player.getHeight());
+            double platformTop     = p.getY();
+            double playerBottomNow = player.getY() + player.getHeight();
+            double playerBottomOld = oldY            + player.getHeight();
+
+            if (player.intersects(p)
+                && player.velocityY > 0.0
+                && playerBottomOld <= platformTop
+            ) {
+                // Pose le joueur exactement sur la plateforme
+                player.setY(platformTop - player.getHeight());
                 player.velocityY = 0.0;
                 player.setOnGround(true);
                 player.resetJumps();
+
+                // Si plateforme fragile, incrémente son état
                 if (p instanceof src.model.platforms.FragilePlatform) {
                     src.model.platforms.FragilePlatform fp =
                         (src.model.platforms.FragilePlatform) p;
@@ -275,6 +303,7 @@ public class GameController {
             }
         }
     }
+
 
     /**
      * @param deltaSec  temps écoulé (s) depuis la dernière frame

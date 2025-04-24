@@ -28,21 +28,23 @@ public class Level3 extends Level {
         }
 
         // 2) Plateformes en briques
-        platforms.add(new BrickPlatform(200, 400));
-        platforms.add(new BrickPlatform(600, 350));
-        platforms.add(new BrickPlatform(1000, 300));
+        platforms.add(new BrickPlatform(200, 480));
+        platforms.add(new BrickPlatform(200, 380));
+        platforms.add(new BrickPlatform(1000, 480));
+        platforms.add(new BrickPlatform(1000, 380));
+        platforms.add(new BrickPlatform(1200, 280));
 
         // 3) Décoration : un lampadaire dans le décor
-        /*
+        
         decorations.add(new Decoration(
-            500, 300,
+            500, 580 - 224,
             new Image("file:../textures/lampadaire 1.png")
         ));
-        */
+       /*
        Image lamp = new Image("file:../textures/lampadaire 1.png");
         System.out.println("Lampadaire : erreur=" + lamp.isError()
     + ", w=" + lamp.getWidth() + ", h=" + lamp.getHeight());
         decorations.add(new Decoration(500, 300, lamp));
-
+        */
     }
 }
