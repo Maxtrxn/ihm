@@ -158,7 +158,7 @@ public class GameController {
         }
 
         // Passage de niveau si on dépasse X = 1600
-        if (player.getX() > 1600.0) {
+        if (player.getX() > 600.0) {
             javafx.application.Platform.runLater(() -> game.nextLevel());
         }
 

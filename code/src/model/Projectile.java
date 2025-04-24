@@ -7,7 +7,7 @@ public class Projectile {
     private double x, y;
     private static final double WIDTH  = 10;
     private static final double HEIGHT = 4;
-    private static final double SPEED  = 6.0;
+    private static final double SPEED  = 360.0;
     private final boolean toRight;
 
     public Projectile(double x, double y, boolean toRight) {
