@@ -22,29 +22,23 @@ public class Level3 extends Level {
         double levelWidth = 3000;
         Image groundTex = new Image("file:../textures/sol brique.png");
         double tileW = groundTex.getWidth();
-        double groundY = 580;
+        double tileH = groundTex.getHeight();
+        double groundY = 600 - tileH;
         for (double x = 0; x < levelWidth; x += tileW) {
             platforms.add(new GroundPlatform(x, groundY, groundTex));
         }
 
         // 2) Plateformes en briques
-        platforms.add(new BrickPlatform(200, 480));
-        platforms.add(new BrickPlatform(200, 380));
-        platforms.add(new BrickPlatform(1000, 480));
-        platforms.add(new BrickPlatform(1000, 380));
-        platforms.add(new BrickPlatform(1200, 280));
+        platforms.add(new BrickPlatform(200, groundY - 100));
+        platforms.add(new BrickPlatform(200, groundY - 200));
+        platforms.add(new BrickPlatform(1000, groundY - 100));
+        platforms.add(new BrickPlatform(1000, groundY - 200));
+        platforms.add(new BrickPlatform(1200, groundY - 300));
 
         // 3) Décoration : un lampadaire dans le décor
-        
-        decorations.add(new Decoration(
-            500, 580 - 224,
-            new Image("file:../textures/lampadaire 1.png")
-        ));
-       /*
-       Image lamp = new Image("file:../textures/lampadaire 1.png");
-        System.out.println("Lampadaire : erreur=" + lamp.isError()
-    + ", w=" + lamp.getWidth() + ", h=" + lamp.getHeight());
-        decorations.add(new Decoration(500, 300, lamp));
-        */
+        Image lamp = new Image("file:../textures/lampadaire 1.png");
+        double lampH = lamp.getHeight();
+        System.out.println(lampH);
+        decorations.add(new Decoration(500, groundY - lampH, lamp));
     }
 }

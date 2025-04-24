@@ -43,7 +43,7 @@ public class Game extends Application {
 
         // Initialise la liste de niveaux
         levelSuppliers = Arrays.asList(
-            Level3::new,
+            //Level3::new,
             Level1::new,
             SpaceshipLevel::new,
             Level2::new,
