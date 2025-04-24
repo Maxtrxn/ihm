@@ -337,4 +337,10 @@ public class GameView {
     public DoubleProperty cameraYProperty() { return cameraY; }
     public double getCanvasWidth()        { return gc.getCanvas().getWidth(); }
     public double getCanvasHeight()       { return gc.getCanvas().getHeight(); }
+
+    public void resetBackgroundCache() {
+        this.cachedBackground = null;
+        this.cachedWidth  = -1;
+        this.cachedHeight = -1;
+    }
 }

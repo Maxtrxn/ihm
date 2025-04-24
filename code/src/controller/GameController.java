@@ -43,7 +43,6 @@ public class GameController {
     private Timer jetpackTimer;
 
     // Dimensions logiques du niveau
-    private final double levelWidth  = 3000.0;
     private final double levelHeight = 600.0;
 
     // Caméra
@@ -158,7 +157,7 @@ public class GameController {
         }
 
         // Passage de niveau si on dépasse X = 1600
-        if (player.getX() > 1600.0) {
+        if (player.getX() > level.getLevelWidth()) {
             javafx.application.Platform.runLater(() -> game.nextLevel());
         }
 
@@ -333,7 +332,7 @@ public class GameController {
         // X
         double targetX = player.getX() - cw / 2.0;
         cameraX += 0.1 * (targetX - cameraX);
-        cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+        cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
 
         // Y
         if (isSpaceship) {

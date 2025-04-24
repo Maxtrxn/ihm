@@ -11,21 +11,18 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import src.controller.GameController;
+import src.levels.Level;
 import src.levels.Level1;
 import src.levels.SpaceshipLevel;
 import src.levels.Level2;
 import src.levels.Level3;
-import src.levels.Level;
-
-import src.controller.GameController;
-import src.levels.Level;
-import src.levels.Level1;
 import src.model.Player;
 import src.view.GameView;
 
 public class Game extends Application {
     // Taille de base (800×600), utilisée comme taille initiale.
-    private static final int WIDTH = 800;
+    private static final int WIDTH  = 800;
     private static final int HEIGHT = 600;
 
     private Stage primaryStage;
@@ -43,7 +40,6 @@ public class Game extends Application {
 
         // Initialise la liste de niveaux
         levelSuppliers = Arrays.asList(
-            //Level3::new,
             Level1::new,
             SpaceshipLevel::new,
             Level2::new,
@@ -51,8 +47,7 @@ public class Game extends Application {
         );
 
         primaryStage.setTitle("Steampunk Adventure");
-
-        // Maximiser la fenêtre sans passer en plein écran
+        // On maximise la fenêtre sans passer en plein écran
         primaryStage.setMaximized(true);
 
         // Charge le premier niveau
@@ -61,20 +56,16 @@ public class Game extends Application {
         primaryStage.show();
     }
 
-
-    // --- Méthode utilitaire à ajouter ---
+    /** Charge l’instance du niveau courant. */
     private void loadCurrentLevel() {
-        // Crée l’instance du niveau en fonction de currentLevelIndex
         Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
         loadLevel(lvl);
     }
-
 
     /**
      * Charge un niveau et met en place la scène avec un Canvas redimensionnable.
      * Arrête la boucle de jeu précédente si elle existe.
      */
-    // --- Méthode déjà existante qui pose la scène ---
     public void loadLevel(Level level) {
         if (controller != null) {
             controller.stopGameLoop();
@@ -88,8 +79,9 @@ public class Game extends Application {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
+        // ———> on vide le cache du background pour que l’ancien fond n’apparaisse plus
+        view.resetBackgroundCache();
 
-        // Ici, on crée un NOUVEAU controller pour le nouveau niveau
         controller = new GameController(
             player,
             level.getPlatforms(),
@@ -123,20 +115,18 @@ public class Game extends Application {
         } else {
             System.out.println("Vous avez terminé le jeu !");
             controller.stopGameLoop();
-            // TODO : afficher un écran de victoire
+            // TODO : écran de victoire
         }
     }
 
     /**
-     * Charge le niveau vaisseau, accessible depuis Level1.
+     * Charge explicitement le niveau vaisseau (au cas où vous l’appeliez directement).
      */
     public void loadSpaceshipLevel() {
-        // Réinitialise l'état et la position du joueur.
         controller.resetPlayerState();
         player.setX(100);
         player.setY(500);
-
-        loadLevel(new src.levels.SpaceshipLevel(player));
+        loadLevel(new SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {

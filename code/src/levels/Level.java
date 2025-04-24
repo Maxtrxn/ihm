@@ -1,3 +1,4 @@
+// ./src/levels/Level.java
 package src.levels;
 
 import src.model.Player;
@@ -16,6 +17,10 @@ public abstract class Level {
     protected Player player;
     protected Image backgroundImage;
 
+    // dimensions logiques du niveau
+    protected double levelWidth;
+    protected double levelHeight;
+
     public Level(Player player) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -24,25 +29,25 @@ public abstract class Level {
         initialize();
     }
 
+    /** À implémenter : remplir platforms, enemies, decorations, background, et dimensions. */
     protected abstract void initialize();
 
-    public List<Platform> getPlatforms() {
-        return platforms;
-    }
+    // getters pour le contrôleur / la vue
+    public List<Platform> getPlatforms()   { return platforms;    }
+    public List<Enemy>    getEnemies()     { return enemies;      }
+    public List<Decoration> getDecorations(){ return decorations; }
+    public Image         getBackgroundImage() { return backgroundImage; }
+    public double        getLevelWidth()   { return levelWidth;   }
+    public double        getLevelHeight()  { return levelHeight;  }
 
-    public List<Enemy> getEnemies() {
-        return enemies;
-    }
-
-    public List<Decoration> getDecorations() {
-        return decorations;
-    }
-
-    public Image getBackgroundImage() {
-        return backgroundImage;
-    }
-
+    /** Pour charger l’image de fond. */
     protected void setBackgroundImage(String imagePath) {
         this.backgroundImage = new Image(imagePath);
+    }
+
+    /** À appeler dans initialize() pour définir largeur/hauteur logiques. */
+    protected void setLevelDimensions(double width, double height) {
+        this.levelWidth  = width;
+        this.levelHeight = height;
     }
 }
