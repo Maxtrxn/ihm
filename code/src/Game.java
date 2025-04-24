@@ -17,11 +17,12 @@ import src.levels.Level1;
 import src.levels.SpaceshipLevel;
 import src.levels.Level2;
 import src.levels.Level3;
+import src.levels.Level4;
 import src.model.Player;
 import src.view.GameView;
 
 public class Game extends Application {
-    // Taille “logique” de la vue (sera redimensionnée à la fenêtre)
+    // Taille "logique" de la vue (sera redimensionnée à la fenêtre)
     private static final int WIDTH  = 800;
     private static final int HEIGHT = 600;
 
@@ -32,7 +33,7 @@ public class Game extends Application {
     private Player player;
     private GameController controller;
 
-    // Liste des niveaux dans l’ordre
+    // Liste des niveaux dans l'ordre
     private List<Function<Player, Level>> levelSuppliers;
     private int currentLevelIndex = 0;
 
@@ -41,10 +42,10 @@ public class Game extends Application {
         this.primaryStage = primaryStage;
         this.player       = new Player(100, 500);
 
-        // Crée une seule Scene + Canvas qu’on réutilisera
+        // Crée une seule Scene + Canvas qu'on réutilisera
         this.root   = new Pane();
         this.canvas = new Canvas(WIDTH, HEIGHT);
-        // le Canvas s’adapte toujours à la taille du Pane
+        // le Canvas s'adapte toujours à la taille du Pane
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
         root.getChildren().add(canvas);
@@ -61,7 +62,8 @@ public class Game extends Application {
             Level1::new,
             SpaceshipLevel::new,
             Level2::new,
-            Level3::new
+            Level3::new,
+            Level4::new  // Ajout du niveau 4
         );
 
         // Charge et lance le premier niveau
