@@ -14,11 +14,13 @@ import javafx.scene.image.Image;
 import src.Game;
 import src.levels.Level;
 import src.levels.Level1;
+import src.levels.Level3;
 import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
 import src.model.Projectile;
+import src.model.Decoration;
 import src.view.GameView;
 
 public class GameController {
@@ -29,7 +31,8 @@ public class GameController {
 
     private final Player player;
     private final List<Platform> platforms;
-    private final List<Enemy>   enemies;
+    private final List<Enemy> enemies;
+    private final List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
     private final GameView view;
     private final Game game;
@@ -51,12 +54,14 @@ public class GameController {
     public GameController(Player player,
                           List<Platform> platforms,
                           List<Enemy> enemies,
+                          List<Decoration> decorations,
                           GameView view,
                           Game game,
                           Level level) {
         this.player          = player;
         this.platforms       = platforms;
         this.enemies         = enemies;
+        this.decorations     = decorations;
         this.view            = view;
         this.game            = game;
         this.level           = level;
@@ -143,6 +148,9 @@ public class GameController {
             javafx.application.Platform.runLater(() -> {
                 if (level instanceof Level1) {
                     game.loadSpaceshipLevel();
+                } else if (level instanceof SpaceshipLevel) {
+                    // Après le vaisseau → Level 3
+                    game.loadLevel(new Level3(player));
                 } else {
                     game.nextLevel();
                 }
@@ -168,12 +176,10 @@ public class GameController {
         while (pit.hasNext()) {
             Projectile p = pit.next();
             p.update();
-            // Hors limites ?
             if (p.isOutOfBounds(levelWidth)) {
                 pit.remove();
                 continue;
             }
-            // Collision avec un ennemi ?
             Iterator<Enemy> eit = enemies.iterator();
             while (eit.hasNext()) {
                 Enemy enemy = eit.next();
@@ -190,9 +196,7 @@ public class GameController {
     private void fireProjectile() {
         double offsetX = player.isFacingRight()
                        ? player.getWidth()
-                       : -Projectile.class.cast(new Projectile(0,0,true)).getWidth();
-        // Mais on connaît la largeur = 10, simplifions :
-        offsetX = player.isFacingRight() ? player.getWidth() : -10;
+                       : -10;
         double px = player.getX() + offsetX;
         double py = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
@@ -259,7 +263,6 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode et la taille de la fenêtre. */
     private void updateCamera(boolean isSpaceship) {
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
@@ -284,23 +287,34 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine tous les éléments via la vue. */
+    /** Dessine décors, plateformes, ennemis, projectiles, joueur/vaisseau. */
     private void render(boolean isSpaceship) {
+        // Décorations
+        List<Image> decoImgs = new ArrayList<>();
+        List<Double[]> posDeco = new ArrayList<>();
+        for (Decoration d : decorations) {
+            decoImgs.add(d.getTexture());
+            posDeco.add(new Double[]{ d.getX(), d.getY(), d.getWidth(), d.getHeight() });
+        }
+
+        // Plateformes
         List<Image> imgs     = new ArrayList<>();
         List<Double[]> posPl = new ArrayList<>();
         for (Platform p : platforms) {
             imgs.add(p.getTexture());
-            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+            posPl.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
         }
 
+        // Ennemis
         List<Double[]> posEn = new ArrayList<>();
         for (Enemy e : enemies) {
-            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
+            posEn.add(new Double[]{ e.getX(), e.getY(), e.getWidth(), e.getHeight() });
         }
 
+        // Projectiles
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
-            posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+            posProj.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
         }
 
         boolean isJumping = !player.onGround;
@@ -311,6 +325,7 @@ public class GameController {
             player.isWalking(), player.isFacingRight(),
             isJumping,
             isSpaceship,
+            decoImgs, posDeco,
             imgs, posPl,
             posEn,
             posProj
@@ -342,7 +357,7 @@ public class GameController {
         }
     }
 
-    /** Tâche interne pour activer le jetpack après 500 ms (mode plateforme). */
+    /** Tâche interne pour activer le jetpack après 500 ms (mode plateforme). */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {

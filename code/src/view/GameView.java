@@ -156,7 +156,7 @@ public class GameView {
     }
 
     /**
-     * Dessine la frame complète, avec plateformes, ennemis et projectiles.
+     * Dessine la frame complète, avec décorations, plateformes, ennemis et projectiles.
      */
     public void draw(
         Image background,
@@ -164,6 +164,8 @@ public class GameView {
         double playerW, double playerH,
         boolean isWalking, boolean facingRight,
         boolean isJumping, boolean spaceshipMode,
+        List<Image> decorationImages,
+        List<Double[]> decorationPositions,
         List<Image> platformImages,
         List<Double[]> platformPositions,
         List<Double[]> enemyPositions,
@@ -172,7 +174,7 @@ public class GameView {
         double cw = gc.getCanvas().getWidth();
         double ch = gc.getCanvas().getHeight();
 
-        // Fond
+        // Fond noir
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, cw, ch);
 
@@ -198,11 +200,22 @@ public class GameView {
                          0, 0, gearFrameWidth, gearFrameHeight);
         }
 
+        // 1) Décorations (lampadaire, etc.)
+        for (int i = 0; i < decorationImages.size(); i++) {
+            Image img = decorationImages.get(i);
+            Double[] pos = decorationPositions.get(i);
+            double dx = pos[0] - cameraX.get();
+            double dy = pos[1] - cameraY.get();
+            double dw = pos[2], dh = pos[3];
+            if (img != null) {
+                gc.drawImage(img, dx, dy, dw, dh);
+            }
+        }
+
         // JOUEUR ou VAISSEAU
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
-            // Conserve le ratio d'origine du dirigeable
             double imageW = spaceshipImage.getWidth();
             double imageH = spaceshipImage.getHeight();
             double targetH = playerH * 2.0;
@@ -283,7 +296,7 @@ public class GameView {
             }
         }
 
-        // PLATEFORMES
+        // 3) Plateformes
         for (int i = 0; i < platformImages.size(); i++) {
             Image img = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
@@ -298,7 +311,7 @@ public class GameView {
             }
         }
 
-        // ENNEMIS
+        // 4) Ennemis
         gc.setFill(Color.GREEN);
         for (Double[] pos : enemyPositions) {
             double ex = pos[0] - cameraX.get();
@@ -307,7 +320,7 @@ public class GameView {
             gc.fillRect(ex, ey, ew, eh);
         }
 
-        // PROJECTILES (mode vaisseau)
+        // 5) Projectiles (mode vaisseau)
         if (spaceshipMode) {
             gc.setFill(Color.RED);
             for (Double[] pos : projectilePositions) {

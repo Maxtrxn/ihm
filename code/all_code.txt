@@ -15,11 +15,13 @@ import javafx.scene.image.Image;
 import src.Game;
 import src.levels.Level;
 import src.levels.Level1;
+import src.levels.Level3;
 import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
 import src.model.Projectile;
+import src.model.Decoration;
 import src.view.GameView;
 
 public class GameController {
@@ -30,7 +32,8 @@ public class GameController {
 
     private final Player player;
     private final List<Platform> platforms;
-    private final List<Enemy>   enemies;
+    private final List<Enemy> enemies;
+    private final List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
     private final GameView view;
     private final Game game;
@@ -52,12 +55,14 @@ public class GameController {
     public GameController(Player player,
                           List<Platform> platforms,
                           List<Enemy> enemies,
+                          List<Decoration> decorations,
                           GameView view,
                           Game game,
                           Level level) {
         this.player          = player;
         this.platforms       = platforms;
         this.enemies         = enemies;
+        this.decorations     = decorations;
         this.view            = view;
         this.game            = game;
         this.level           = level;
@@ -144,6 +149,9 @@ public class GameController {
             javafx.application.Platform.runLater(() -> {
                 if (level instanceof Level1) {
                     game.loadSpaceshipLevel();
+                } else if (level instanceof SpaceshipLevel) {
+                    // Après le vaisseau → Level 3
+                    game.loadLevel(new Level3(player));
                 } else {
                     game.nextLevel();
                 }
@@ -169,12 +177,10 @@ public class GameController {
         while (pit.hasNext()) {
             Projectile p = pit.next();
             p.update();
-            // Hors limites ?
             if (p.isOutOfBounds(levelWidth)) {
                 pit.remove();
                 continue;
             }
-            // Collision avec un ennemi ?
             Iterator<Enemy> eit = enemies.iterator();
             while (eit.hasNext()) {
                 Enemy enemy = eit.next();
@@ -191,9 +197,7 @@ public class GameController {
     private void fireProjectile() {
         double offsetX = player.isFacingRight()
                        ? player.getWidth()
-                       : -Projectile.class.cast(new Projectile(0,0,true)).getWidth();
-        // Mais on connaît la largeur = 10, simplifions :
-        offsetX = player.isFacingRight() ? player.getWidth() : -10;
+                       : -10;
         double px = player.getX() + offsetX;
         double py = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
@@ -260,7 +264,6 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode et la taille de la fenêtre. */
     private void updateCamera(boolean isSpaceship) {
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
@@ -285,23 +288,34 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine tous les éléments via la vue. */
+    /** Dessine décors, plateformes, ennemis, projectiles, joueur/vaisseau. */
     private void render(boolean isSpaceship) {
+        // Décorations
+        List<Image> decoImgs = new ArrayList<>();
+        List<Double[]> posDeco = new ArrayList<>();
+        for (Decoration d : decorations) {
+            decoImgs.add(d.getTexture());
+            posDeco.add(new Double[]{ d.getX(), d.getY(), d.getWidth(), d.getHeight() });
+        }
+
+        // Plateformes
         List<Image> imgs     = new ArrayList<>();
         List<Double[]> posPl = new ArrayList<>();
         for (Platform p : platforms) {
             imgs.add(p.getTexture());
-            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+            posPl.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
         }
 
+        // Ennemis
         List<Double[]> posEn = new ArrayList<>();
         for (Enemy e : enemies) {
-            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
+            posEn.add(new Double[]{ e.getX(), e.getY(), e.getWidth(), e.getHeight() });
         }
 
+        // Projectiles
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
-            posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+            posProj.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
         }
 
         boolean isJumping = !player.onGround;
@@ -312,6 +326,7 @@ public class GameController {
             player.isWalking(), player.isFacingRight(),
             isJumping,
             isSpaceship,
+            decoImgs, posDeco,
             imgs, posPl,
             posEn,
             posProj
@@ -343,7 +358,7 @@ public class GameController {
         }
     }
 
-    /** Tâche interne pour activer le jetpack après 500 ms (mode plateforme). */
+    /** Tâche interne pour activer le jetpack après 500 ms (mode plateforme). */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {
@@ -371,8 +386,6 @@ import javafx.stage.Stage;
 import src.controller.GameController;
 import src.levels.Level;
 import src.levels.Level1;
-import src.levels.Level2;
-import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.view.GameView;
 
@@ -411,22 +424,21 @@ public class Game extends Application {
 
         // Création du Canvas (initialement 800×600).
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
-
         // Lie la largeur/hauteur du Canvas à celles du Pane.
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
-
         root.getChildren().add(canvas);
 
         // Récupération du GraphicsContext pour dessiner.
         GraphicsContext gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
 
-        // Création du contrôleur de jeu.
+        // Création du contrôleur de jeu (on lui passe aussi les décorations).
         controller = new GameController(
             player,
             level.getPlatforms(),
             level.getEnemies(),
+            level.getDecorations(),
             view,
             this,
             level
@@ -453,7 +465,8 @@ public class Game extends Application {
         player.setX(100);
         player.setY(500);
 
-        loadLevel(new Level2(player));
+        // Niveau 2 classique
+        loadLevel(new src.levels.Level2(player));
     }
 
     /**
@@ -465,7 +478,7 @@ public class Game extends Application {
         player.setX(100);
         player.setY(500);
 
-        loadLevel(new SpaceshipLevel(player));
+        loadLevel(new src.levels.SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {
@@ -582,12 +595,62 @@ fin fichier ./src/levels/Level2.java
 
 
 
+début fichier ./src/levels/Level3.java
+package src.levels;
+
+import javafx.scene.image.Image;
+
+import src.model.Player;
+import src.model.Decoration;
+import src.model.platforms.GroundPlatform;
+import src.model.platforms.BrickPlatform;
+
+public class Level3 extends Level {
+
+    public Level3(Player player) {
+        super(player);
+    }
+
+    @Override
+    protected void initialize() {
+        // Arrière-plan principal
+        setBackgroundImage("file:../textures/background_level3.png");
+
+        // 1) Sol en briques sur toute la largeur
+        double levelWidth = 3000;
+        Image groundTex = new Image("file:../textures/sol brique.png");
+        double tileW = groundTex.getWidth();
+        double groundY = 580;
+        for (double x = 0; x < levelWidth; x += tileW) {
+            platforms.add(new GroundPlatform(x, groundY, groundTex));
+        }
+
+        // 2) Plateformes en briques
+        platforms.add(new BrickPlatform(200, 400));
+        platforms.add(new BrickPlatform(600, 350));
+        platforms.add(new BrickPlatform(1000, 300));
+
+        // 3) Décoration : un lampadaire dans le décor
+        decorations.add(new Decoration(
+            500, 300,
+            new Image("file:../textures/lampadaire 1.png")
+        ));
+    }
+}
+fin fichier ./src/levels/Level3.java
+
+
+
+
+
 début fichier ./src/levels/Level.java
 package src.levels;
 
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Decoration;
+
 import javafx.scene.image.Image;
 import java.util.List;
 import java.util.ArrayList;
@@ -595,13 +658,15 @@ import java.util.ArrayList;
 public abstract class Level {
     protected List<Platform> platforms;
     protected List<Enemy> enemies;
+    protected List<Decoration> decorations;
     protected Player player;
     protected Image backgroundImage;
 
     public Level(Player player) {
-        this.player = player;
-        this.platforms = new ArrayList<>();
-        this.enemies = new ArrayList<>();
+        this.player      = player;
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
         initialize();
     }
 
@@ -615,6 +680,10 @@ public abstract class Level {
         return enemies;
     }
 
+    public List<Decoration> getDecorations() {
+        return decorations;
+    }
+
     public Image getBackgroundImage() {
         return backgroundImage;
     }
@@ -622,7 +691,8 @@ public abstract class Level {
     protected void setBackgroundImage(String imagePath) {
         this.backgroundImage = new Image(imagePath);
     }
-}fin fichier ./src/levels/Level.java
+}
+fin fichier ./src/levels/Level.java
 
 
 
@@ -651,6 +721,35 @@ public class SpaceshipLevel extends Level {
     }
 }
 fin fichier ./src/levels/SpaceshipLevel.java
+
+
+
+
+
+début fichier ./src/model/Decoration.java
+package src.model;
+
+import javafx.scene.image.Image;
+
+public class Decoration {
+    private double x, y, width, height;
+    private Image texture;
+
+    public Decoration(double x, double y, Image texture) {
+        this.x = x;
+        this.y = y;
+        this.texture = texture;
+        this.width = texture.getWidth();
+        this.height = texture.getHeight();
+    }
+
+    public double getX()      { return x; }
+    public double getY()      { return y; }
+    public double getWidth()  { return width; }
+    public double getHeight() { return height; }
+    public Image getTexture() { return texture; }
+}
+fin fichier ./src/model/Decoration.java
 
 
 
@@ -731,6 +830,24 @@ public abstract class Platform {
     public Image getTexture() { return texture; }
 }
 fin fichier ./src/model/Platform.java
+
+
+
+
+
+début fichier ./src/model/platforms/BrickPlatform.java
+package src.model.platforms;
+
+import javafx.scene.image.Image;
+import src.model.Platform;
+
+public class BrickPlatform extends Platform {
+
+    public BrickPlatform(double x, double y) {
+        super(x, y, new Image("file:../textures/plateforme brique sombres.png"));
+    }
+}
+fin fichier ./src/model/platforms/BrickPlatform.java
 
 
 
@@ -1277,7 +1394,7 @@ public class GameView {
     }
 
     /**
-     * Dessine la frame complète, avec plateformes, ennemis et projectiles.
+     * Dessine la frame complète, avec décorations, plateformes, ennemis et projectiles.
      */
     public void draw(
         Image background,
@@ -1285,6 +1402,8 @@ public class GameView {
         double playerW, double playerH,
         boolean isWalking, boolean facingRight,
         boolean isJumping, boolean spaceshipMode,
+        List<Image> decorationImages,
+        List<Double[]> decorationPositions,
         List<Image> platformImages,
         List<Double[]> platformPositions,
         List<Double[]> enemyPositions,
@@ -1293,7 +1412,7 @@ public class GameView {
         double cw = gc.getCanvas().getWidth();
         double ch = gc.getCanvas().getHeight();
 
-        // Fond
+        // Fond noir
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, cw, ch);
 
@@ -1319,11 +1438,22 @@ public class GameView {
                          0, 0, gearFrameWidth, gearFrameHeight);
         }
 
+        // 1) Décorations (lampadaire, etc.)
+        for (int i = 0; i < decorationImages.size(); i++) {
+            Image img = decorationImages.get(i);
+            Double[] pos = decorationPositions.get(i);
+            double dx = pos[0] - cameraX.get();
+            double dy = pos[1] - cameraY.get();
+            double dw = pos[2], dh = pos[3];
+            if (img != null) {
+                gc.drawImage(img, dx, dy, dw, dh);
+            }
+        }
+
         // JOUEUR ou VAISSEAU
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
-            // Conserve le ratio d'origine du dirigeable
             double imageW = spaceshipImage.getWidth();
             double imageH = spaceshipImage.getHeight();
             double targetH = playerH * 2.0;
@@ -1404,7 +1534,7 @@ public class GameView {
             }
         }
 
-        // PLATEFORMES
+        // 3) Plateformes
         for (int i = 0; i < platformImages.size(); i++) {
             Image img = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
@@ -1419,7 +1549,7 @@ public class GameView {
             }
         }
 
-        // ENNEMIS
+        // 4) Ennemis
         gc.setFill(Color.GREEN);
         for (Double[] pos : enemyPositions) {
             double ex = pos[0] - cameraX.get();
@@ -1428,7 +1558,7 @@ public class GameView {
             gc.fillRect(ex, ey, ew, eh);
         }
 
-        // PROJECTILES (mode vaisseau)
+        // 5) Projectiles (mode vaisseau)
         if (spaceshipMode) {
             gc.setFill(Color.RED);
             for (Double[] pos : projectilePositions) {

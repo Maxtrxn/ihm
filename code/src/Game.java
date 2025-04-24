@@ -10,8 +10,6 @@ import javafx.stage.Stage;
 import src.controller.GameController;
 import src.levels.Level;
 import src.levels.Level1;
-import src.levels.Level2;
-import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.view.GameView;
 
@@ -50,22 +48,21 @@ public class Game extends Application {
 
         // Création du Canvas (initialement 800×600).
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
-
         // Lie la largeur/hauteur du Canvas à celles du Pane.
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
-
         root.getChildren().add(canvas);
 
         // Récupération du GraphicsContext pour dessiner.
         GraphicsContext gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
 
-        // Création du contrôleur de jeu.
+        // Création du contrôleur de jeu (on lui passe aussi les décorations).
         controller = new GameController(
             player,
             level.getPlatforms(),
             level.getEnemies(),
+            level.getDecorations(),
             view,
             this,
             level
@@ -92,7 +89,8 @@ public class Game extends Application {
         player.setX(100);
         player.setY(500);
 
-        loadLevel(new Level2(player));
+        // Niveau 2 classique
+        loadLevel(new src.levels.Level2(player));
     }
 
     /**
@@ -104,7 +102,7 @@ public class Game extends Application {
         player.setX(100);
         player.setY(500);
 
-        loadLevel(new SpaceshipLevel(player));
+        loadLevel(new src.levels.SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {
