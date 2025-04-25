@@ -1,0 +1,67 @@
+{
+	"platforms": [
+	  // Sol en GroundPlatform (répété)
+	  { "type": "GroundPlatform", "x": 0, "y": 536 },
+	  { "type": "GroundPlatform", "x": 128, "y": 536 },
+	  { "type": "GroundPlatform", "x": 256, "y": 536 },
+	  { "type": "GroundPlatform", "x": 384, "y": 536 },
+	  { "type": "GroundPlatform", "x": 512, "y": 536 },
+	  { "type": "GroundPlatform", "x": 640, "y": 536 },
+	  { "type": "GroundPlatform", "x": 768, "y": 536 },
+	  { "type": "GroundPlatform", "x": 896, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1024, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1152, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1280, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1408, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1536, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1664, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1792, "y": 536 },
+	  { "type": "GroundPlatform", "x": 1920, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2048, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2176, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2304, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2432, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2560, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2688, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2816, "y": 536 },
+	  { "type": "GroundPlatform", "x": 2944, "y": 536 },
+
+	  // Plateformes en acier
+	  { "type": "SteelPlatform", "x": 200, "y": 436 },
+	  { "type": "SteelPlatform", "x": 1000, "y": 436 },
+	  { "type": "SteelPlatform", "x": 1000, "y": 400 },
+	  { "type": "SteelPlatform", "x": 0, "y": 236 },
+	  { "type": "SteelPlatform", "x": 500, "y": 86 }
+	],
+	"enemies": [
+	  {
+		"x": 650,
+		"y": 236,
+		"width": 50,
+		"height": 50,
+		"speed": 2,
+		"patrolStart": 600,
+		"patrolEnd": 800
+	  },
+	  {
+		"x": 1200,
+		"y": 486,
+		"width": 50,
+		"height": 50,
+		"speed": 2,
+		"patrolStart": 1100,
+		"patrolEnd": 1300
+	  }
+	],
+	"decorations": [
+	  {
+		"type": "Lampadaire",
+		"x": 1200,
+		"y": 36,
+		"image": "file:../textures/lampadaire 1.png"
+	  }
+	],
+	"backgroundImage": "file:../textures/background temporaire1.png",
+	"levelWidth": 3000,
+	"levelHeight": 600
+}

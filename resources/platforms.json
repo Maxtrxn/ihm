@@ -1,0 +1,12 @@
+{
+  "acier": {
+    "texture": "../textures/plateforme acier 1.png",
+    "width": 5,
+    "height": 1
+  },
+  "cuivre": {
+    "texture": "../textures/plateforme cuivre.png",
+    "width": 5,
+    "height": 1
+  }
+}
