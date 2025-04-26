@@ -1,12 +1,16 @@
 {
     "java.project.referencedLibraries": [
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.base.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.controls.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.fxml.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.graphics.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.media.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.swing.jar",
-        "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.web.jar",
-        "test-lib/**/*.jar"
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.base.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.controls.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.fxml.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.graphics.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.media.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.swing.jar",
+      "/home/matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib/javafx.web.jar",
+      "test-lib/**/*.jar",
+  
+      // <-- Ajout du jar JSON (org.json)
+      "${workspaceFolder}/libs/json-20231013.jar"
     ]
-}
+  }
+  
