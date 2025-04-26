@@ -5,7 +5,6 @@ import javafx.scene.image.Image;
 import src.common.JsonReader;
 import src.model.Platform;
 import src.model.Enemy;
-import src.model.Boss;
 import src.model.Decoration;
 import src.model.Player;
 import src.model.platforms.FragilePlatform;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Level {
+    // ——— Champs principaux ———
     protected List<Platform>   platforms;
     protected List<Enemy>      enemies;
     protected List<Decoration> decorations;
@@ -25,7 +25,11 @@ public class Level {
     protected double           levelWidth;
     protected double           levelHeight;
 
-    /** Constructeur codé en dur */
+    // ——— Zone de boss (optionnelle) ———
+    private double bossZoneStart = Double.NEGATIVE_INFINITY;
+    private double bossZoneEnd   = Double.POSITIVE_INFINITY;
+
+    /** Constructeur codé en dur (sans JSON). */
     public Level(Player player) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -34,7 +38,7 @@ public class Level {
         initialize();
     }
 
-    /** Constructeur JSON */
+    /** Constructeur JSON : charge "levels/{levelName}.json". */
     public Level(Player player, String levelName) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -43,20 +47,23 @@ public class Level {
         initialize(levelName);
     }
 
-    /** À surcharger si code en dur */
+    /** À surcharger pour niveaux codés en dur. */
     protected void initialize() {
-        // vide par défaut
+        // par défaut, rien
     }
 
-    /** Initialise depuis JSON */
+    /** Initialise le niveau depuis le JSON correspondant. */
     protected void initialize(String levelName) {
         JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
+        if (L == null) {
+            throw new IllegalStateException("Impossible de charger le JSON pour le niveau : " + levelName);
+        }
 
-        // 1) background + dimensions
+        // 1) Background + dimensions
         setBackgroundImage(L.getString("backgroundImage"));
         setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
 
-        // 2) plateformes
+        // 2) Plateformes
         JSONArray plats = L.getJSONArray("platforms");
         for (int i = 0; i < plats.length(); i++) {
             JSONObject p = plats.getJSONObject(i);
@@ -70,7 +77,7 @@ public class Level {
             }
         }
 
-        // 3) ennemis + boss
+        // 3) Ennemis + boss
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
@@ -81,14 +88,15 @@ public class Level {
             double speed       = e.getDouble("speed");
             double patrolStart = e.getDouble("patrolStart");
             double patrolEnd   = e.getDouble("patrolEnd");
-            if (e.optBoolean("boss", false)) {
-                enemies.add(new Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+            boolean isBoss     = e.optBoolean("boss", false);
+            if (isBoss) {
+                enemies.add(new src.model.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
             } else {
                 enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
             }
         }
 
-        // 4) décorations
+        // 4) Décorations (optionnel)
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
@@ -96,9 +104,16 @@ public class Level {
                 decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), tex));
             }
         }
+
+        // 5) Zone de boss (optionnel)
+        if (L.has("bossZone")) {
+            JSONObject bz = L.getJSONObject("bossZone");
+            bossZoneStart = bz.getDouble("startX");
+            bossZoneEnd   = bz.getDouble("endX");
+        }
     }
 
-    // ——————————— Getters ———————————
+    // ——— Getters ———
 
     public List<Platform>   getPlatforms()       { return platforms;    }
     public List<Enemy>      getEnemies()         { return enemies;      }
@@ -107,7 +122,12 @@ public class Level {
     public double           getLevelWidth()      { return levelWidth;   }
     public double           getLevelHeight()     { return levelHeight;  }
 
-    // ——————————— Helpers ———————————
+    /** Coordonnée X où commence la zone de boss (infinie si non définie). */
+    public double getBossZoneStart() { return bossZoneStart; }
+    /** Coordonnée X où se termine la zone de boss (infinie si non définie). */
+    public double getBossZoneEnd()   { return bossZoneEnd;   }
+
+    // ——— Helpers ———
 
     protected void setBackgroundImage(String path) {
         this.backgroundImage = new Image(path);
