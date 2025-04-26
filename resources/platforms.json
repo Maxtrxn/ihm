@@ -1,12 +1,20 @@
 {
   "acier": {
-    "texture": "../textures/plateforme acier 1.png",
+    "texture": "file:../textures/plateforme_acier_1.png",
+	"scaleFactor": 0.3;
     "width": 5,
     "height": 1
   },
   "cuivre": {
-    "texture": "../textures/plateforme cuivre.png",
+    "texture": "file:../textures/plateforme cuivre.png",
+	"scaleFactor": 1.0;
     "width": 5,
     "height": 1
+  },
+  "sol": {
+	 "texture": "file:../textures/sol.png",
+	 "scaleFactor": 1.0;
+	 "width": 5,
+     "height": 1
   }
 }

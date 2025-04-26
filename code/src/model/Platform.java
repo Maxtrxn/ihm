@@ -1,8 +1,12 @@
 package src.model;
 
 import javafx.scene.image.Image;
+import src.common.JsonReader;
 
-public abstract class Platform {
+import org.json.JSONObject;
+
+public class Platform {
+    protected static JSONObject platformsJson = JsonReader.getJsonObjectContent("platforms.json");
     protected double x, y, width, height;
     protected Image texture;
 
@@ -14,6 +18,19 @@ public abstract class Platform {
         // Dimensions initiales basées sur la taille d'origine de la texture
         this.width = texture.getWidth();
         this.height = texture.getHeight();
+    }
+
+
+    public Platform(double x, double y, String platformName) {
+        JSONObject platformJson = platformsJson.getJSONObject(platformName);
+        this.x = x;
+        this.y = y;
+        this.texture = new Image(platformJson.getString("texture"));
+
+        // Dimensions initiales basées sur la taille d'origine de la texture
+        double scaleFactor = platformJson.getDouble("scaleFactor");
+        this.width = texture.getWidth() * scaleFactor;
+        this.height = texture.getHeight() * scaleFactor;
     }
 
     public double getX()      { return x; }

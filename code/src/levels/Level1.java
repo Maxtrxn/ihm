@@ -12,11 +12,18 @@ import src.model.Enemy;
 public class Level1 extends Level {
 
     public Level1(Player player) {
-        super(player);
+        super(player, "level1");
     }
 
     @Override
     protected void initialize() {
+        super.initialize();
+        
+        if (true){
+            return;
+        }
+        
+
         // Arrière-plan
         setBackgroundImage("file:../textures/background temporaire1.png");
 

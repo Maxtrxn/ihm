@@ -2,6 +2,7 @@
 package src.levels;
 
 import src.model.Player;
+import src.model.platforms.SteelPlatform;
 import src.model.Platform;
 import src.model.Enemy;
 import src.common.JsonReader;
@@ -25,7 +26,7 @@ public abstract class Level {
     protected double levelWidth;
     protected double levelHeight;
 
-    public Level(Player player, String levelName) {
+    public Level(Player player) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
         this.enemies     = new ArrayList<>();
@@ -33,21 +34,56 @@ public abstract class Level {
         initialize();
     }
 
+    public Level(Player player, String levelName) {
+        this.player      = player;
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
+        initialize(levelName);
+    }
+
     /** À implémenter : remplir platforms, enemies, decorations, background, et dimensions. */
     protected void initialize(){
-        /* 
-        JsonReader jsonReader = new JsonReader();
-
-        JSONObject levelJson = jsonReader.getJsonObjectContent("/levels/level1.json");
-
+        JSONObject levelJson = JsonReader.getJsonObjectContent("levels/level1.json");
+        
+        
         JSONArray platformsJson = levelJson.getJSONArray("platforms");
-        JSONArray ennemiesJson = levelJson.getJSONArray("ennemiesJson");
+        for (int i = 0; i < platformsJson.length(); i++) {
+            JSONObject platformJson = platformsJson.getJSONObject(i);
+            platforms.add(new Platform(platformJson.getInt("x"), platformJson.getInt("y"),"acier"));
+        }
+        
+
+        JSONArray enemiesJson = levelJson.getJSONArray("enemies");
+
         String backgroundFilePath = levelJson.getString("backgroundImage");
+
+        setBackgroundImage(backgroundFilePath);
         this.levelWidth = levelJson.getInt("levelWidth");
         this.levelHeight = levelJson.getInt("levelHeight");
-        */
-
     }
+
+
+    protected void initialize(String levelName){
+        JSONObject levelJson = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
+        
+        
+        JSONArray platformsJson = levelJson.getJSONArray("platforms");
+        for (int i = 0; i < platformsJson.length(); i++) {
+            JSONObject platformJson = platformsJson.getJSONObject(i);
+            platforms.add(new Platform(platformJson.getInt("x"), platformJson.getInt("y"), platformJson.getString("type")));
+        }
+
+        JSONArray enemiesJson = levelJson.getJSONArray("enemies");
+
+        String backgroundFilePath = levelJson.getString("backgroundImage");
+
+        setBackgroundImage(backgroundFilePath);
+        this.levelWidth = levelJson.getInt("levelWidth");
+        this.levelHeight = levelJson.getInt("levelHeight");
+    }
+
+
 
     // getters pour le contrôleur / la vue
     public List<Platform> getPlatforms()   { return platforms;    }
