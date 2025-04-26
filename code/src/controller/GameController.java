@@ -14,7 +14,6 @@ import javafx.scene.image.Image;
 
 import src.Game;
 import src.levels.Level;
-import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
@@ -41,10 +40,6 @@ public class GameController {
 
     private final double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
-
-    // Dimensions “logiques” du niveau
-    private final double levelWidth  = 3000.0;
-    private final double levelHeight = 600.0;
 
     // Caméra
     private double cameraX = 0.0, cameraY = 0.0;
@@ -73,13 +68,15 @@ public class GameController {
     /** Lie les touches aux flags, et gère tirs vs saut. */
     public void handleInput(Scene scene) {
         scene.setOnKeyPressed(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = true;
             if (e.getCode() == KeyCode.RIGHT) right = true;
             if (e.getCode() == KeyCode.UP)    up    = true;
             if (e.getCode() == KeyCode.DOWN)  down  = true;
 
             if (e.getCode() == KeyCode.SPACE) {
-                if (level instanceof SpaceshipLevel) {
+                if (isShip) {
                     fireProjectile();
                 } else {
                     jumping = true;
@@ -92,12 +89,14 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = false;
             if (e.getCode() == KeyCode.RIGHT) right = false;
             if (e.getCode() == KeyCode.UP)    up    = false;
             if (e.getCode() == KeyCode.DOWN)  down  = false;
 
-            if (e.getCode() == KeyCode.SPACE && !(level instanceof SpaceshipLevel)) {
+            if (e.getCode() == KeyCode.SPACE && !isShip) {
                 jumping = false;
                 jetpack = false;
                 player.setJetpackActive(false);
@@ -136,7 +135,7 @@ public class GameController {
 
     /** Itération de la boucle (~60FPS). */
     private void update(double deltaSec) {
-        boolean isShip = (level instanceof SpaceshipLevel);
+        boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
         // dx selon input
         double dx    = 0.0;
@@ -149,9 +148,9 @@ public class GameController {
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
 
-            // Défilement auto de la caméra
+            // ——— Défilement auto de la caméra ———
             cameraX += SHIP_SCROLL_SPEED * deltaSec;
-            cameraX = Math.min(cameraX, levelWidth - view.getCanvasWidth());
+            cameraX = Math.min(cameraX, level.getLevelWidth() - view.getCanvasWidth());
 
             // Contrainte du joueur dans la zone visible
             double minX    = cameraX;
@@ -164,8 +163,8 @@ public class GameController {
             updatePlatform(dx, deltaSec);
         }
 
-        // Passage de niveau automatique
-        if (player.getX() > 1600.0) {
+        // Passage de niveau automatique : bord droit du joueur atteint la fin du niveau
+        if (player.getX() + player.getWidth() >= level.getLevelWidth()) {
             javafx.application.Platform.runLater(game::nextLevel);
         }
 
@@ -188,7 +187,7 @@ public class GameController {
         while (pit.hasNext()) {
             Projectile p = pit.next();
             p.update(deltaSec);
-            if (p.isOutOfBounds(levelWidth)) {
+            if (p.isOutOfBounds(level.getLevelWidth())) {
                 pit.remove();
                 continue;
             }
@@ -235,15 +234,12 @@ public class GameController {
         handlePlatformCollisions(oldY);
         handleEnemies(deltaSec);
 
-        if (player.getY() > levelHeight) {
+        if (player.getY() > level.getLevelHeight()) {
             resetPlayerPosition();
         }
     }
 
-    /**
-     * Gère les collisions plateformes en s’assurant qu’on vient d’en haut,
-     * puis supprime les plateformes fragiles cassées.
-     */
+    /** Gère les collisions plateformes et supprime les fragiles cassées. */
     private void handlePlatformCollisions(double oldY) {
         // 1) Reset fragile platforms
         for (Platform p : platforms) {
@@ -252,11 +248,11 @@ public class GameController {
             }
         }
 
-        // 2) Gestion de l’atterrissage
+        // 2) Atterrissage
         for (Platform p : platforms) {
             double top    = p.getY();
             double botNow = player.getY() + player.getHeight();
-            double botOld = oldY            + player.getHeight();
+            double botOld = oldY + player.getHeight();
 
             if (player.intersects(p)
                 && player.velocityY > 0
@@ -266,8 +262,7 @@ public class GameController {
                 player.setOnGround(true);
                 player.resetJumps();
                 if (p instanceof src.model.platforms.FragilePlatform) {
-                    src.model.platforms.FragilePlatform fp =
-                        (src.model.platforms.FragilePlatform) p;
+                    var fp = (src.model.platforms.FragilePlatform) p;
                     if (!fp.isBroken()) {
                         fp.step(player);
                     }
@@ -275,7 +270,7 @@ public class GameController {
             }
         }
 
-        // 3) Suppression des plateformes fragiles désormais cassées
+        // 3) Suppression des plateformes fragiles cassées
         platforms.removeIf(p ->
             p instanceof src.model.platforms.FragilePlatform
             && ((src.model.platforms.FragilePlatform) p).isBroken()
@@ -314,17 +309,17 @@ public class GameController {
         if (!isShip) {
             double targetX = player.getX() - cw / 2.0;
             cameraX += 0.1 * (targetX - cameraX);
-            cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+            cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
         }
 
         if (isShip) {
             cameraY = 0;
-        } else if (ch > levelHeight) {
-            cameraY = levelHeight - ch;
+        } else if (ch > level.getLevelHeight()) {
+            cameraY = level.getLevelHeight() - ch;
         } else {
             double targetY = player.getY() - ch / 2.0;
             cameraY += 0.1 * (targetY - cameraY);
-            cameraY = Math.max(0, Math.min(cameraY, levelHeight - ch));
+            cameraY = Math.max(0, Math.min(cameraY, level.getLevelHeight() - ch));
         }
 
         view.cameraXProperty().set(cameraX);
@@ -339,12 +334,14 @@ public class GameController {
             decoImgs.add(d.getTexture());
             posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
+
         List<Image> platImgs   = new ArrayList<>();
         List<Double[]> posPl   = new ArrayList<>();
         for (Platform p : platforms) {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
+
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});

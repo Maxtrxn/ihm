@@ -39,6 +39,7 @@ fin fichier ./src/common/JsonReader.java
 
 
 début fichier ./src/controller/GameController.java
+// src/controller/GameController.java
 package src.controller;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Boss;
 import src.model.Projectile;
 import src.model.Decoration;
 import src.view.GameView;
@@ -190,8 +192,7 @@ public class GameController {
 
             // Défilement auto de la caméra
             cameraX += SHIP_SCROLL_SPEED * deltaSec;
-            double maxCam = levelWidth - view.getCanvasWidth();
-            cameraX = Math.min(cameraX, maxCam);
+            cameraX = Math.min(cameraX, levelWidth - view.getCanvasWidth());
 
             // Contrainte du joueur dans la zone visible
             double minX    = cameraX;
@@ -328,8 +329,17 @@ public class GameController {
         for (Enemy e : enemies) {
             e.update(deltaSec);
             if (player.landsOn(e)) {
-                toRemove.add(e);
-                player.setVelocityY(-600.0);
+                if (e instanceof Boss) {
+                    Boss boss = (Boss) e;
+                    boss.hit();
+                    if (boss.isDead()) {
+                        toRemove.add(boss);
+                    }
+                    player.setVelocityY(-600.0);
+                } else {
+                    toRemove.add(e);
+                    player.setVelocityY(-600.0);
+                }
             } else if (player.intersects(e)) {
                 resetPlayerPosition();
             }
@@ -343,13 +353,11 @@ public class GameController {
         double ch = view.getCanvasHeight();
 
         if (!isShip) {
-            // plateforme : centrage progressif
             double targetX = player.getX() - cw / 2.0;
             cameraX += 0.1 * (targetX - cameraX);
             cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
         }
 
-        // vertical
         if (isShip) {
             cameraY = 0;
         } else if (ch > levelHeight) {
@@ -378,10 +386,6 @@ public class GameController {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
-        List<Double[]> posEn   = new ArrayList<>();
-        for (Enemy e : enemies) {
-            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
-        }
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
@@ -397,7 +401,7 @@ public class GameController {
             isShip,
             decoImgs, posDeco,
             platImgs, posPl,
-            posEn,
+            enemies,
             posProj
         );
     }
@@ -437,8 +441,7 @@ public class GameController {
             player.setJetpackActive(true);
         }
     }
-}
-fin fichier ./src/controller/GameController.java
+}fin fichier ./src/controller/GameController.java
 
 
 
@@ -567,6 +570,7 @@ import javafx.scene.image.Image;
 import src.common.JsonReader;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Boss;
 import src.model.Decoration;
 import src.model.Player;
 import src.model.platforms.FragilePlatform;
@@ -577,11 +581,6 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * Classe de base pour un niveau, désormais unique :
- * - Si on appelle new Level(player, "level1") => initialise depuis JSON.
- * - Si on appelle new Level(player)      => initialize() vide (mode codé en dur).
- */
 public class Level {
     protected List<Platform>   platforms;
     protected List<Enemy>      enemies;
@@ -591,7 +590,7 @@ public class Level {
     protected double           levelWidth;
     protected double           levelHeight;
 
-    /** Constructeur « code en dur » (si jamais utilisé) */
+    /** Constructeur codé en dur */
     public Level(Player player) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -600,7 +599,7 @@ public class Level {
         initialize();
     }
 
-    /** Constructeur JSON : charge "levels/{levelName}.json" */
+    /** Constructeur JSON */
     public Level(Player player, String levelName) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -609,7 +608,7 @@ public class Level {
         initialize(levelName);
     }
 
-    /** À surcharger si on veut un niveau codé en dur */
+    /** À surcharger si code en dur */
     protected void initialize() {
         // vide par défaut
     }
@@ -632,27 +631,29 @@ public class Level {
             if ("fragile".equals(name)) {
                 platforms.add(new FragilePlatform(x, y));
             } else {
-                // constructeur Platform(x,y,name) lira texture + scaleFactor depuis platforms.json
                 platforms.add(new Platform(x, y, name));
             }
         }
 
-        // 3) ennemis
+        // 3) ennemis + boss
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
-            enemies.add(new Enemy(
-                e.getDouble("x"),
-                e.getDouble("y"),
-                e.getDouble("width"),
-                e.getDouble("height"),
-                e.getDouble("speed"),
-                e.getDouble("patrolStart"),
-                e.getDouble("patrolEnd")
-            ));
+            double x           = e.getDouble("x");
+            double y           = e.getDouble("y");
+            double width       = e.getDouble("width");
+            double height      = e.getDouble("height");
+            double speed       = e.getDouble("speed");
+            double patrolStart = e.getDouble("patrolStart");
+            double patrolEnd   = e.getDouble("patrolEnd");
+            if (e.optBoolean("boss", false)) {
+                enemies.add(new Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+            } else {
+                enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
+            }
         }
 
-        // 4) décorations (facultatif)
+        // 4) décorations
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
@@ -662,7 +663,7 @@ public class Level {
         }
     }
 
-    // ——————————— Getters pour GameController / GameView ———————————
+    // ——————————— Getters ———————————
 
     public List<Platform>   getPlatforms()       { return platforms;    }
     public List<Enemy>      getEnemies()         { return enemies;      }
@@ -711,6 +712,49 @@ public class SpaceshipLevel extends Level {
     }
 }
 fin fichier ./src/levels/SpaceshipLevel.java
+
+
+
+
+
+début fichier ./src/model/Boss.java
+package src.model;
+
+public class Boss extends Enemy {
+    private int hits = 0;
+    private static final int MAX_HITS = 3;
+    private double hitTimer = 0.0; // en secondes
+
+    public Boss(double x, double y, double width, double height,
+                double speed, double leftBound, double rightBound) {
+        super(x, y, width, height, speed, leftBound, rightBound);
+    }
+
+    @Override
+    public void update(double deltaSec) {
+        super.update(deltaSec);
+        if (hitTimer > 0) {
+            hitTimer = Math.max(0, hitTimer - deltaSec);
+        }
+    }
+
+    /** Appelée quand le joueur saute dessus */
+    public void hit() {
+        hits++;
+        hitTimer = 0.2; // flash rouge pendant 0,2 s
+    }
+
+    /** True si le boss doit disparaître */
+    public boolean isDead() {
+        return hits >= MAX_HITS;
+    }
+
+    /** True si on est en plein flash rouge */
+    public boolean isHit() {
+        return hitTimer > 0;
+    }
+}
+fin fichier ./src/model/Boss.java
 
 
 
@@ -1165,6 +1209,7 @@ fin fichier ./src/test/SpaceshipTest.java
 
 
 début fichier ./src/view/GameView.java
+// src/view/GameView.java
 package src.view;
 
 import javafx.application.Platform;
@@ -1179,6 +1224,9 @@ import javafx.scene.paint.Color;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import src.model.Enemy;
+import src.model.Boss;
 
 public class GameView {
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
@@ -1335,7 +1383,7 @@ public class GameView {
         List<Double[]> decorationPositions,
         List<Image> platformImages,
         List<Double[]> platformPositions,
-        List<Double[]> enemyPositions,
+        List<Enemy> enemies,
         List<Double[]> projectilePositions
     ) {
         double cw = gc.getCanvas().getWidth();
@@ -1367,7 +1415,7 @@ public class GameView {
                          0, 0, gearFrameWidth, gearFrameHeight);
         }
 
-        // 1) Décorations (lampadaire, etc.)
+        // 1) Décorations
         for (int i = 0; i < decorationImages.size(); i++) {
             Image img = decorationImages.get(i);
             Double[] pos = decorationPositions.get(i);
@@ -1478,12 +1526,16 @@ public class GameView {
             }
         }
 
-        // 4) Ennemis
-        gc.setFill(Color.GREEN);
-        for (Double[] pos : enemyPositions) {
-            double ex = pos[0] - cameraX.get();
-            double ey = pos[1] - cameraY.get();
-            double ew = pos[2], eh = pos[3];
+        // 4) Ennemis + boss
+        for (Enemy e : enemies) {
+            double ex = e.getX() - cameraX.get();
+            double ey = e.getY() - cameraY.get();
+            double ew = e.getWidth(), eh = e.getHeight();
+            if (e instanceof Boss && ((Boss) e).isHit()) {
+                gc.setFill(Color.RED);
+            } else {
+                gc.setFill(Color.GREEN);
+            }
             gc.fillRect(ex, ey, ew, eh);
         }
 
@@ -1499,7 +1551,6 @@ public class GameView {
         }
     }
 
-    // Accesseurs pour la caméra et la taille du canvas
     public DoubleProperty cameraXProperty() { return cameraX; }
     public DoubleProperty cameraYProperty() { return cameraY; }
     public double getCanvasWidth()        { return gc.getCanvas().getWidth(); }
