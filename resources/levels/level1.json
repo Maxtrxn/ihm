@@ -24,12 +24,35 @@
 	  { "name": "sol", "x": 2688, "y": 576 },
 	  { "name": "sol", "x": 2816, "y": 576 },
 	  { "name": "sol", "x": 2944, "y": 576 },
-
-	  { "name": "acier", "x": 200, "y": 436 },
+	  { "name": "sol", "x": 3072, "y": 576 },
+	  { "name": "sol", "x": 3200, "y": 576 },
+	  { "name": "sol", "x": 3328, "y": 576 },
+	  { "name": "sol", "x": 3456, "y": 576 },
+	  { "name": "sol", "x": 3584, "y": 576 },
+	  { "name": "sol", "x": 3712, "y": 576 },
+	  { "name": "sol", "x": 3840, "y": 576 },
+	  { "name": "sol", "x": 3968, "y": 576 },
+	  { "name": "sol", "x": 4096, "y": 576 },
+	  { "name": "sol", "x": 4224, "y": 576 },
+	  { "name": "sol", "x": 4352, "y": 576 },
+	  { "name": "sol", "x": 4480, "y": 576 },
+	  { "name": "sol", "x": 4608, "y": 576 },
+	  { "name": "sol", "x": 4736, "y": 576 },
+	  { "name": "sol", "x": 4864, "y": 576 },
+	  { "name": "sol", "x": 4992, "y": 576 },
+	  { "name": "sol", "x": 5120, "y": 576 },
+	  { "name": "sol", "x": 5248, "y": 576 },
+	  { "name": "sol", "x": 5376, "y": 576 },
+	  { "name": "sol", "x": 5504, "y": 576 },
+	  { "name": "sol", "x": 5632, "y": 576 },
+	  { "name": "sol", "x": 5760, "y": 576 },
+	  { "name": "sol", "x": 5888, "y": 576 },
+	  { "name": "sol", "x": 6016, "y": 576 },
+	  { "name": "acier", "x": 200,  "y": 436 },
 	  { "name": "acier", "x": 1000, "y": 436 },
 	  { "name": "acier", "x": 1000, "y": 400 },
-	  { "name": "acier", "x": 0, "y": 236 },
-	  { "name": "acier", "x": 500, "y": 86 }
+	  { "name": "acier", "x": 0,    "y": 236 },
+	  { "name": "acier", "x": 500,  "y": 86 }
 	],
 	"enemies": [
 	  {
@@ -49,6 +72,16 @@
 		"speed": 2,
 		"patrolStart": 1100,
 		"patrolEnd": 1300
+	  },
+	  {
+		"x": 2800,
+		"y": 426,
+		"width": 150,
+		"height": 150,
+		"speed": 0,
+		"patrolStart": 2800,
+		"patrolEnd": 2800,
+		"boss": true
 	  }
 	],
 	"decorations": [
@@ -60,6 +93,7 @@
 	  }
 	],
 	"backgroundImage": "file:../textures/background temporaire1.png",
-	"levelWidth": 3000,
+	"levelWidth": 6000,
 	"levelHeight": 600
-}
+  }
+  

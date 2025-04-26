@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 import src.common.JsonReader;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Boss;
 import src.model.Decoration;
 import src.model.Player;
 import src.model.platforms.FragilePlatform;
@@ -15,11 +16,6 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.ArrayList;
 
-/**
- * Classe de base pour un niveau, désormais unique :
- * - Si on appelle new Level(player, "level1") => initialise depuis JSON.
- * - Si on appelle new Level(player)      => initialize() vide (mode codé en dur).
- */
 public class Level {
     protected List<Platform>   platforms;
     protected List<Enemy>      enemies;
@@ -29,7 +25,7 @@ public class Level {
     protected double           levelWidth;
     protected double           levelHeight;
 
-    /** Constructeur « code en dur » (si jamais utilisé) */
+    /** Constructeur codé en dur */
     public Level(Player player) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -38,7 +34,7 @@ public class Level {
         initialize();
     }
 
-    /** Constructeur JSON : charge "levels/{levelName}.json" */
+    /** Constructeur JSON */
     public Level(Player player, String levelName) {
         this.player      = player;
         this.platforms   = new ArrayList<>();
@@ -47,7 +43,7 @@ public class Level {
         initialize(levelName);
     }
 
-    /** À surcharger si on veut un niveau codé en dur */
+    /** À surcharger si code en dur */
     protected void initialize() {
         // vide par défaut
     }
@@ -70,27 +66,29 @@ public class Level {
             if ("fragile".equals(name)) {
                 platforms.add(new FragilePlatform(x, y));
             } else {
-                // constructeur Platform(x,y,name) lira texture + scaleFactor depuis platforms.json
                 platforms.add(new Platform(x, y, name));
             }
         }
 
-        // 3) ennemis
+        // 3) ennemis + boss
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
-            enemies.add(new Enemy(
-                e.getDouble("x"),
-                e.getDouble("y"),
-                e.getDouble("width"),
-                e.getDouble("height"),
-                e.getDouble("speed"),
-                e.getDouble("patrolStart"),
-                e.getDouble("patrolEnd")
-            ));
+            double x           = e.getDouble("x");
+            double y           = e.getDouble("y");
+            double width       = e.getDouble("width");
+            double height      = e.getDouble("height");
+            double speed       = e.getDouble("speed");
+            double patrolStart = e.getDouble("patrolStart");
+            double patrolEnd   = e.getDouble("patrolEnd");
+            if (e.optBoolean("boss", false)) {
+                enemies.add(new Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+            } else {
+                enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
+            }
         }
 
-        // 4) décorations (facultatif)
+        // 4) décorations
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
@@ -100,7 +98,7 @@ public class Level {
         }
     }
 
-    // ——————————— Getters pour GameController / GameView ———————————
+    // ——————————— Getters ———————————
 
     public List<Platform>   getPlatforms()       { return platforms;    }
     public List<Enemy>      getEnemies()         { return enemies;      }

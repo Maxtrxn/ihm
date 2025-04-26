@@ -1,3 +1,4 @@
+// src/controller/GameController.java
 package src.controller;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
+import src.model.Boss;
 import src.model.Projectile;
 import src.model.Decoration;
 import src.view.GameView;
@@ -149,8 +151,7 @@ public class GameController {
 
             // Défilement auto de la caméra
             cameraX += SHIP_SCROLL_SPEED * deltaSec;
-            double maxCam = levelWidth - view.getCanvasWidth();
-            cameraX = Math.min(cameraX, maxCam);
+            cameraX = Math.min(cameraX, levelWidth - view.getCanvasWidth());
 
             // Contrainte du joueur dans la zone visible
             double minX    = cameraX;
@@ -287,8 +288,17 @@ public class GameController {
         for (Enemy e : enemies) {
             e.update(deltaSec);
             if (player.landsOn(e)) {
-                toRemove.add(e);
-                player.setVelocityY(-600.0);
+                if (e instanceof Boss) {
+                    Boss boss = (Boss) e;
+                    boss.hit();
+                    if (boss.isDead()) {
+                        toRemove.add(boss);
+                    }
+                    player.setVelocityY(-600.0);
+                } else {
+                    toRemove.add(e);
+                    player.setVelocityY(-600.0);
+                }
             } else if (player.intersects(e)) {
                 resetPlayerPosition();
             }
@@ -302,13 +312,11 @@ public class GameController {
         double ch = view.getCanvasHeight();
 
         if (!isShip) {
-            // plateforme : centrage progressif
             double targetX = player.getX() - cw / 2.0;
             cameraX += 0.1 * (targetX - cameraX);
             cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
         }
 
-        // vertical
         if (isShip) {
             cameraY = 0;
         } else if (ch > levelHeight) {
@@ -337,10 +345,6 @@ public class GameController {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
-        List<Double[]> posEn   = new ArrayList<>();
-        for (Enemy e : enemies) {
-            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
-        }
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
@@ -356,7 +360,7 @@ public class GameController {
             isShip,
             decoImgs, posDeco,
             platImgs, posPl,
-            posEn,
+            enemies,
             posProj
         );
     }

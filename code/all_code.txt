@@ -445,7 +445,7 @@ fin fichier ./src/controller/GameController.java
 
 
 début fichier ./src/Game.java
-// code/src/Game.java
+// src/Game.java
 package src;
 
 import javafx.application.Application;
@@ -456,9 +456,8 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import src.controller.GameController;
-import src.levels.JsonLevel;
-import src.levels.SpaceshipLevel;
 import src.levels.Level;
+import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.view.GameView;
 
@@ -471,8 +470,8 @@ public class Game extends Application {
     private static final int HEIGHT = 600;
 
     private Stage primaryStage;
-    private Scene  scene;
-    private Pane   root;
+    private Scene scene;
+    private Pane root;
     private Canvas canvas;
     private Player player;
     private GameController controller;
@@ -483,14 +482,14 @@ public class Game extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        this.player       = new Player(100, 500);
+        this.player = new Player(100, 500);
 
-        this.root   = new Pane();
-        this.canvas = new Canvas(WIDTH, HEIGHT);
+        root = new Pane();
+        canvas = new Canvas(WIDTH, HEIGHT);
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
         root.getChildren().add(canvas);
-        this.scene = new Scene(root, WIDTH, HEIGHT);
+        scene = new Scene(root, WIDTH, HEIGHT);
 
         primaryStage.setTitle("Steampunk Adventure");
         primaryStage.setScene(scene);
@@ -498,14 +497,15 @@ public class Game extends Application {
         primaryStage.setMaximized(true);
         primaryStage.show();
 
-        List<String> levelNames = List.of("level1", "level2", "level3", "level4");
+        // Liste des noms de niveaux JSON
+        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5");
         levelSuppliers = new ArrayList<>();
 
-        // Instancie un JsonLevel pour chaque JSON
+        // Instancie Level(player, name) pour chaque JSON
         levelNames.forEach(name ->
-            levelSuppliers.add(p -> new JsonLevel(p, name))
+            levelSuppliers.add(p -> new Level(p, name))
         );
-        // Insère le niveau vaisseau en 2ᵉ position
+        // Insère le niveau vaisseau après le premier
         levelSuppliers.add(1, SpaceshipLevel::new);
 
         loadCurrentLevel();
@@ -559,70 +559,85 @@ fin fichier ./src/Game.java
 
 
 
-début fichier ./src/levels/JsonLevel.java
-// code/src/levels/JsonLevel.java
+début fichier ./src/levels/Level.java
+// src/levels/Level.java
 package src.levels;
+
+import javafx.scene.image.Image;
+import src.common.JsonReader;
+import src.model.Platform;
+import src.model.Enemy;
+import src.model.Decoration;
+import src.model.Player;
+import src.model.platforms.FragilePlatform;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import src.common.JsonReader;
-import src.model.Platform;
-import src.model.Decoration;
-import src.model.Enemy;
-import src.model.Player;
-import src.model.Projectile;
-import src.model.Player;
-import src.model.Projectile;
-import src.model.Projectile;
 
-import src.model.Projectile;
-import src.model.Projectile;
-import src.model.Projectile;
-import src.model.Player;
-import src.model.Platform;
-import src.model.Decoration;
-import src.model.Enemy;
-import src.model.Platform;
-import src.model.Decoration;
-import src.model.Enemy;
-import src.model.platforms.FragilePlatform;
+import java.util.List;
+import java.util.ArrayList;
 
-import javafx.scene.image.Image;
-import java.util.function.Function;
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * Classe de base pour un niveau, désormais unique :
+ * - Si on appelle new Level(player, "level1") => initialise depuis JSON.
+ * - Si on appelle new Level(player)      => initialize() vide (mode codé en dur).
+ */
+public class Level {
+    protected List<Platform>   platforms;
+    protected List<Enemy>      enemies;
+    protected List<Decoration> decorations;
+    protected Player           player;
+    protected Image            backgroundImage;
+    protected double           levelWidth;
+    protected double           levelHeight;
 
-public class JsonLevel extends Level {
-    private static final Map<String, Function<JSONObject, Platform>> PLATFORM_FACTORIES = new HashMap<>();
-    static {
-        PLATFORM_FACTORIES.put("sol",     p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
-        PLATFORM_FACTORIES.put("acier",   p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
-        PLATFORM_FACTORIES.put("cuivre",  p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
-        PLATFORM_FACTORIES.put("fragile", p -> new FragilePlatform(p.getDouble("x"), p.getDouble("y")));
+    /** Constructeur « code en dur » (si jamais utilisé) */
+    public Level(Player player) {
+        this.player      = player;
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
+        initialize();
     }
 
-    public JsonLevel(Player player, String levelName) {
-        super(player, levelName);
+    /** Constructeur JSON : charge "levels/{levelName}.json" */
+    public Level(Player player, String levelName) {
+        this.player      = player;
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
+        initialize(levelName);
     }
 
-    @Override
+    /** À surcharger si on veut un niveau codé en dur */
+    protected void initialize() {
+        // vide par défaut
+    }
+
+    /** Initialise depuis JSON */
     protected void initialize(String levelName) {
         JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
 
+        // 1) background + dimensions
         setBackgroundImage(L.getString("backgroundImage"));
         setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
 
+        // 2) plateformes
         JSONArray plats = L.getJSONArray("platforms");
         for (int i = 0; i < plats.length(); i++) {
             JSONObject p = plats.getJSONObject(i);
             String name = p.getString("name");
-            Function<JSONObject,Platform> factory = PLATFORM_FACTORIES.get(name);
-            if (factory == null) {
-                throw new IllegalArgumentException("Type de plateforme inconnu : " + name);
+            double x     = p.getDouble("x");
+            double y     = p.getDouble("y");
+            if ("fragile".equals(name)) {
+                platforms.add(new FragilePlatform(x, y));
+            } else {
+                // constructeur Platform(x,y,name) lira texture + scaleFactor depuis platforms.json
+                platforms.add(new Platform(x, y, name));
             }
-            platforms.add(factory.apply(p));
         }
 
+        // 3) ennemis
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
@@ -637,6 +652,7 @@ public class JsonLevel extends Level {
             ));
         }
 
+        // 4) décorations (facultatif)
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
@@ -645,8 +661,28 @@ public class JsonLevel extends Level {
             }
         }
     }
+
+    // ——————————— Getters pour GameController / GameView ———————————
+
+    public List<Platform>   getPlatforms()       { return platforms;    }
+    public List<Enemy>      getEnemies()         { return enemies;      }
+    public List<Decoration> getDecorations()     { return decorations;  }
+    public Image            getBackgroundImage() { return backgroundImage; }
+    public double           getLevelWidth()      { return levelWidth;   }
+    public double           getLevelHeight()     { return levelHeight;  }
+
+    // ——————————— Helpers ———————————
+
+    protected void setBackgroundImage(String path) {
+        this.backgroundImage = new Image(path);
+    }
+
+    protected void setLevelDimensions(double w, double h) {
+        this.levelWidth  = w;
+        this.levelHeight = h;
+    }
 }
-fin fichier ./src/levels/JsonLevel.java
+fin fichier ./src/levels/Level.java
 
 
 
