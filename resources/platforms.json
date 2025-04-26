@@ -1,86 +1,58 @@
 {
   "acier": {
-    "texture": "file:../textures/plateforme_acier_1.png",
+    "textureFileName": "plateforme_acier_1.png",
 	"scaleFactor": 0.3,
-    "width": 5,
-    "height": 1
   },
   "cuivre": {
-    "texture": "file:../textures/plateforme cuivre.png",
+    "textureFileName": "plateforme cuivre.png",
 	"scaleFactor": 1.0,
-    "width": 5,
-    "height": 1
   },
   "brique": {
-    "texture": "file:../textures/plateforme brique.png",
+    "textureFileName": "plateforme brique.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "brique_sombre": {
-    "texture": "file:../textures/plateforme brique sombres.png",
+    "textureFileName": "plateforme brique sombres.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "brique_tres_sombre": {
-    "texture": "file:../textures/plateforme brique tres sombre.png",
+    "textureFileName": "plateforme brique tres sombre.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "brique_tres_tres_sombre": {
-    "texture": "file:../textures/plateforme brique tres tres sombre.png",
+    "textureFileName": "plateforme brique tres tres sombre.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "murret": {
-    "texture": "file:../textures/murret.png",
+    "textureFileName": "murret.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "sol": {
-    "texture": "file:../textures/sol.png",
+    "textureFileName": "sol.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
    "sol_brique": {
-    "texture": "file:../textures/sol brique.png",
+    "textureFileName": "sol brique.png",
     "scaleFactor": 1.0,
-    "width": 5,
-      "height": 1
    },
     "sol_brique_sombre": {
-      "texture": "file:../textures/sol brique sombre.png",
+      "textureFileName": "sol brique sombre.png",
       "scaleFactor": 1.0,
-      "width": 5,
-        "height": 1
     },
     "sol_brique_tres_sombre": {
-      "texture": "file:../textures/sol brique tres sombre.png",
+      "textureFileName": "sol brique tres sombre.png",
       "scaleFactor": 1.0,
-      "width": 5,
-        "height": 1
     },
     "sol_brique_tres_tres_sombre": {
-      "texture": "file:../textures/sol brique tres tres sombre.png",
+      "textureFileName": "sol brique tres tres sombre.png",
       "scaleFactor": 1.0,
-      "width": 5,
-        "height": 1
     },
     "sol bronze": {
-      "texture": "file:../textures/sol bronze.png",
+      "textureFileName": "sol bronze.png",
       "scaleFactor": 1.0,
-      "width": 5,
-        "height": 1
     },
     "sol pierre": {
-      "texture": "file:../textures/sol pierre.png",
+      "textureFileName": "sol pierre.png",
       "scaleFactor": 1.0,
-      "width": 5,
-        "height": 1
     }
 }

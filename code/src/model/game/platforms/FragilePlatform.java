@@ -1,8 +1,8 @@
-package src.model.platforms;
+package src.model.game.platforms;
 
 import javafx.scene.image.Image;
-import src.model.Platform;
-import src.model.Player;
+import src.model.game.Platform;
+import src.model.game.Player;
 
 public class FragilePlatform extends Platform {
     private int steps = 0;

@@ -1,4 +1,4 @@
-package src.model;
+package src.model.game;
 
 import javafx.scene.image.Image;
 import src.common.JsonReader;
@@ -25,7 +25,7 @@ public class Platform {
         JSONObject platformJson = platformsJson.getJSONObject(platformName);
         this.x = x;
         this.y = y;
-        this.texture = new Image(platformJson.getString("texture"));
+        this.texture = new Image("file:../resources/textures/" + platformJson.getString("textureFileName"));
 
         // Dimensions initiales basées sur la taille d'origine de la texture
         double scaleFactor = platformJson.getDouble("scaleFactor");

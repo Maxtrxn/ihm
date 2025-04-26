@@ -1,4 +1,4 @@
-package src.model;
+package src.model.game;
 
 public class Boss extends Enemy {
     private int hits = 0;

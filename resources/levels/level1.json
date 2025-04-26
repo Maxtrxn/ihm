@@ -96,7 +96,7 @@
 	  "startX": 2600.0,
 	  "endX":   3200.0
 	},
-	"backgroundImage": "file:../textures/background temporaire1.png",
+	"backgroundImageFileName": "background temporaire1.png",
 	"levelWidth":      6000,
 	"levelHeight":     600
   }

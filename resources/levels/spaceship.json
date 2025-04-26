@@ -2,7 +2,7 @@
     "platforms": [],
     "enemies": [],
     "decorations": [],
-    "backgroundImage": "file:../textures/background temporaire1.png",
+    "backgroundImage": "background temporaire1.png",
     "levelWidth": 6000,
     "levelHeight": 600
   }

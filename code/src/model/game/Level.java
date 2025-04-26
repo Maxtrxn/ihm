@@ -1,13 +1,13 @@
 // src/levels/Level.java
-package src.levels;
+package src.model.game;
 
 import javafx.scene.image.Image;
 import src.common.JsonReader;
-import src.model.Platform;
-import src.model.Enemy;
-import src.model.Decoration;
-import src.model.Player;
-import src.model.platforms.FragilePlatform;
+import src.model.game.Decoration;
+import src.model.game.Enemy;
+import src.model.game.Platform;
+import src.model.game.Player;
+import src.model.game.platforms.FragilePlatform;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -60,7 +60,7 @@ public class Level {
         }
 
         // 1) Background + dimensions
-        setBackgroundImage(L.getString("backgroundImage"));
+        setBackgroundImage("file:../resources/textures/" + L.getString("backgroundImageFileName"));
         setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
 
         // 2) Plateformes
@@ -90,7 +90,7 @@ public class Level {
             double patrolEnd   = e.getDouble("patrolEnd");
             boolean isBoss     = e.optBoolean("boss", false);
             if (isBoss) {
-                enemies.add(new src.model.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+                enemies.add(new src.model.game.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
             } else {
                 enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
             }

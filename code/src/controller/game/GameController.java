@@ -1,5 +1,5 @@
 // src/controller/GameController.java
-package src.controller;
+package src.controller.game;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,14 +13,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.image.Image;
 
 import src.Game;
-import src.levels.Level;
-import src.model.Player;
-import src.model.Platform;
-import src.model.Enemy;
-import src.model.Boss;
-import src.model.Projectile;
-import src.model.Decoration;
-import src.view.GameView;
+import src.model.game.Boss;
+import src.model.game.Decoration;
+import src.model.game.Enemy;
+import src.model.game.Level;
+import src.model.game.Platform;
+import src.model.game.Player;
+import src.model.game.Projectile;
+import src.view.game.GameView;
 
 public class GameController {
     private static final double GRAVITY           = 1800.0;
@@ -265,8 +265,8 @@ public class GameController {
 
     private void handlePlatformCollisions(double oldY) {
         for (Platform p : platforms) {
-            if (p instanceof src.model.platforms.FragilePlatform) {
-                ((src.model.platforms.FragilePlatform) p).resetStep(player);
+            if (p instanceof src.model.game.platforms.FragilePlatform) {
+                ((src.model.game.platforms.FragilePlatform) p).resetStep(player);
             }
         }
         for (Platform p : platforms) {
@@ -278,15 +278,15 @@ public class GameController {
                 player.velocityY = 0;
                 player.setOnGround(true);
                 player.resetJumps();
-                if (p instanceof src.model.platforms.FragilePlatform) {
-                    var fp = (src.model.platforms.FragilePlatform) p;
+                if (p instanceof src.model.game.platforms.FragilePlatform) {
+                    var fp = (src.model.game.platforms.FragilePlatform) p;
                     if (!fp.isBroken()) fp.step(player);
                 }
             }
         }
         platforms.removeIf(p ->
-            p instanceof src.model.platforms.FragilePlatform
-            && ((src.model.platforms.FragilePlatform) p).isBroken()
+            p instanceof src.model.game.platforms.FragilePlatform
+            && ((src.model.game.platforms.FragilePlatform) p).isBroken()
         );
     }
 

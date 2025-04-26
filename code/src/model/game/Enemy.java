@@ -1,4 +1,4 @@
-package src.model;
+package src.model.game;
 
 public class Enemy {
     private double x, y, width, height, speed;

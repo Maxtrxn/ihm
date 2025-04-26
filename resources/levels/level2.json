@@ -51,7 +51,7 @@
         "patrolEnd": 900
       }
     ],
-    "backgroundImage": "file:../textures/background_level2.png",
+    "backgroundImageFileName": "background_level2.png",
     "levelWidth": 3000,
     "levelHeight": 600
   }

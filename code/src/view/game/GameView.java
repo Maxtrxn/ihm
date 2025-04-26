@@ -1,5 +1,5 @@
 // src/view/GameView.java
-package src.view;
+package src.view.game;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
@@ -10,12 +10,11 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import src.model.game.Boss;
+import src.model.game.Enemy;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import src.model.Enemy;
-import src.model.Boss;
 
 public class GameView {
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
@@ -84,7 +83,7 @@ public class GameView {
 
         try {
             // Engrenage
-            gearSpriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
+            gearSpriteSheet = new Image("file:../resources/textures/engrenage_animation-Sheet.png");
             if (!gearSpriteSheet.isError()) {
                 gearFrameHeight = (int) gearSpriteSheet.getHeight();
                 gearFrameWidth  = gearFrameHeight;
@@ -94,7 +93,7 @@ public class GameView {
             }
 
             // Joueur Idle
-            playerIdleSheet = new Image("file:../textures/static wrench-Sheet.png");
+            playerIdleSheet = new Image("file:../resources/textures/static wrench-Sheet.png");
             if (!playerIdleSheet.isError()) {
                 idleFrameHeight = (int) playerIdleSheet.getHeight();
                 idleFrameWidth  = idleFrameHeight;
@@ -104,7 +103,7 @@ public class GameView {
             }
 
             // Joueur Walk
-            playerWalkSheet = new Image("file:../textures/sprite sheet wrench walking.png");
+            playerWalkSheet = new Image("file:../resources/textures/sprite sheet wrench walking.png");
             if (!playerWalkSheet.isError()) {
                 walkFrameHeight = (int) playerWalkSheet.getHeight();
                 walkFrameWidth  = walkFrameHeight;
@@ -114,7 +113,7 @@ public class GameView {
             }
 
             // Joueur Jump
-            playerJumpSheet = new Image("file:../textures/jump2 wrench-Sheet.png");
+            playerJumpSheet = new Image("file:../resources/textures/jump2 wrench-Sheet.png");
             if (!playerJumpSheet.isError()) {
                 jumpFrameHeight = (int) playerJumpSheet.getHeight();
                 jumpFrameWidth  = jumpFrameHeight;
@@ -124,7 +123,7 @@ public class GameView {
             }
 
             // Sprite vaisseau
-            spaceshipImage = new Image("file:../textures/dirigeable v1.png");
+            spaceshipImage = new Image("file:../resources/textures/dirigeable v1.png");
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
         }

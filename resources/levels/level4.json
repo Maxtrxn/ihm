@@ -34,7 +34,7 @@
         "image": "file:../textures/lampadaire 1.png"
       }
     ],
-    "backgroundImage": "file:../textures/background_level4.png",
+    "backgroundImageFileName": "background_level4.png",
     "levelWidth": 3000,
     "levelHeight": 600
   }
