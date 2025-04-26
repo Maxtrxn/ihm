@@ -44,23 +44,6 @@ public abstract class Level {
 
     /** À implémenter : remplir platforms, enemies, decorations, background, et dimensions. */
     protected void initialize(){
-        JSONObject levelJson = JsonReader.getJsonObjectContent("levels/level1.json");
-        
-        
-        JSONArray platformsJson = levelJson.getJSONArray("platforms");
-        for (int i = 0; i < platformsJson.length(); i++) {
-            JSONObject platformJson = platformsJson.getJSONObject(i);
-            platforms.add(new Platform(platformJson.getInt("x"), platformJson.getInt("y"),"acier"));
-        }
-        
-
-        JSONArray enemiesJson = levelJson.getJSONArray("enemies");
-
-        String backgroundFilePath = levelJson.getString("backgroundImage");
-
-        setBackgroundImage(backgroundFilePath);
-        this.levelWidth = levelJson.getInt("levelWidth");
-        this.levelHeight = levelJson.getInt("levelHeight");
     }
 
 
@@ -71,7 +54,7 @@ public abstract class Level {
         JSONArray platformsJson = levelJson.getJSONArray("platforms");
         for (int i = 0; i < platformsJson.length(); i++) {
             JSONObject platformJson = platformsJson.getJSONObject(i);
-            platforms.add(new Platform(platformJson.getInt("x"), platformJson.getInt("y"), platformJson.getString("type")));
+            platforms.add(new Platform(platformJson.getInt("x"), platformJson.getInt("y"), platformJson.getString("name")));
         }
 
         JSONArray enemiesJson = levelJson.getJSONArray("enemies");
