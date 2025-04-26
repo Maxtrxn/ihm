@@ -1,3 +1,4 @@
+// src/view/GameView.java
 package src.view;
 
 import javafx.application.Platform;
@@ -12,6 +13,9 @@ import javafx.scene.paint.Color;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import src.model.Enemy;
+import src.model.Boss;
 
 public class GameView {
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
@@ -168,7 +172,7 @@ public class GameView {
         List<Double[]> decorationPositions,
         List<Image> platformImages,
         List<Double[]> platformPositions,
-        List<Double[]> enemyPositions,
+        List<Enemy> enemies,
         List<Double[]> projectilePositions
     ) {
         double cw = gc.getCanvas().getWidth();
@@ -200,7 +204,7 @@ public class GameView {
                          0, 0, gearFrameWidth, gearFrameHeight);
         }
 
-        // 1) Décorations (lampadaire, etc.)
+        // 1) Décorations
         for (int i = 0; i < decorationImages.size(); i++) {
             Image img = decorationImages.get(i);
             Double[] pos = decorationPositions.get(i);
@@ -311,12 +315,16 @@ public class GameView {
             }
         }
 
-        // 4) Ennemis
-        gc.setFill(Color.GREEN);
-        for (Double[] pos : enemyPositions) {
-            double ex = pos[0] - cameraX.get();
-            double ey = pos[1] - cameraY.get();
-            double ew = pos[2], eh = pos[3];
+        // 4) Ennemis + boss
+        for (Enemy e : enemies) {
+            double ex = e.getX() - cameraX.get();
+            double ey = e.getY() - cameraY.get();
+            double ew = e.getWidth(), eh = e.getHeight();
+            if (e instanceof Boss && ((Boss) e).isHit()) {
+                gc.setFill(Color.RED);
+            } else {
+                gc.setFill(Color.GREEN);
+            }
             gc.fillRect(ex, ey, ew, eh);
         }
 
@@ -332,7 +340,6 @@ public class GameView {
         }
     }
 
-    // Accesseurs pour la caméra et la taille du canvas
     public DoubleProperty cameraXProperty() { return cameraX; }
     public DoubleProperty cameraYProperty() { return cameraY; }
     public double getCanvasWidth()        { return gc.getCanvas().getWidth(); }
