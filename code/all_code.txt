@@ -1,3 +1,43 @@
+début fichier ./src/common/JsonReader.java
+// code/src/common/JsonReader.java
+package src.common;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
+
+import javafx.application.Platform;
+import org.json.JSONObject;
+
+public class JsonReader {
+    public static JSONObject getJsonObjectContent(String resourcePath) {
+        try (InputStream in = JsonReader.class
+                 .getClassLoader()
+                 .getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                System.err.println("Ressource introuvable: " + resourcePath);
+                Platform.exit();
+                return null;
+            }
+            String json = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                            .lines()
+                            .collect(Collectors.joining("\n"));
+            return new JSONObject(json);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Platform.exit();
+            return null;
+        }
+    }
+}
+fin fichier ./src/common/JsonReader.java
+
+
+
+
+
 début fichier ./src/controller/GameController.java
 package src.controller;
 
@@ -14,9 +54,6 @@ import javafx.scene.image.Image;
 
 import src.Game;
 import src.levels.Level;
-import src.levels.Level1;
-import src.levels.Level2;
-import src.levels.Level3;
 import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
@@ -27,6 +64,7 @@ import src.view.GameView;
 
 public class GameController {
     private static final double GRAVITY = 1800.0;
+    private static final double SHIP_SCROLL_SPEED = 200.0; // px/s
 
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
@@ -43,7 +81,7 @@ public class GameController {
     private final double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
 
-    // Dimensions logiques du niveau
+    // Dimensions “logiques” du niveau
     private final double levelWidth  = 3000.0;
     private final double levelHeight = 600.0;
 
@@ -128,8 +166,6 @@ public class GameController {
         gameLoop.start();
     }
 
-
-
     /** Stoppe proprement la boucle en cours. */
     public void stopGameLoop() {
         if (gameLoop != null) {
@@ -137,53 +173,56 @@ public class GameController {
         }
     }
 
-    /**
-     * Une itération de la boucle (~60FPS), délègue le passage de niveau à Game.nextLevel().
-     * @param deltaSec  Temps écoulé (s) depuis la dernière frame
-     */
+    /** Itération de la boucle (~60FPS). */
     private void update(double deltaSec) {
-        boolean isSpaceship = level instanceof SpaceshipLevel;
+        boolean isShip = (level instanceof SpaceshipLevel);
 
-        // Calcul du déplacement horizontal en px pour ce frame
+        // dx selon input
         double dx    = 0.0;
-        double speed = player.getSpeed() * 1.5; // px/sec
+        double speed = player.getSpeed() * 1.5; // px/s
         if (left)  { dx -= speed * deltaSec; player.setFacingRight(false); }
         if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
-        // Mode vaisseau ou plateforme
-        if (isSpaceship) {
+        if (isShip) {
+            // Mouvement du vaisseau en mode spaceship
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
+
+            // Défilement auto de la caméra
+            cameraX += SHIP_SCROLL_SPEED * deltaSec;
+            double maxCam = levelWidth - view.getCanvasWidth();
+            cameraX = Math.min(cameraX, maxCam);
+
+            // Contrainte du joueur dans la zone visible
+            double minX    = cameraX;
+            double maxXpos = cameraX + view.getCanvasWidth() - player.getWidth();
+            if (player.getX() < minX)    player.setX(minX);
+            if (player.getX() > maxXpos) player.setX(maxXpos);
+
         } else {
+            // Mode plateforme
             updatePlatform(dx, deltaSec);
         }
 
-        // Passage de niveau si on dépasse X = 1600
+        // Passage de niveau automatique
         if (player.getX() > 1600.0) {
-            javafx.application.Platform.runLater(() -> game.nextLevel());
+            javafx.application.Platform.runLater(game::nextLevel);
         }
 
-        // Caméra + rendu
-        updateCamera(isSpaceship);
-        render(isSpaceship);
+        // Mise à jour caméra & rendu
+        updateCamera(isShip);
+        render(isShip);
     }
 
-
-
-    /** @param dx      déplacement horizontal pour ce frame
-     *  @param deltaSec  temps écoulé (s)
-     */
+    /** Update en mode spaceship (déplacement libre). */
     private void updateSpaceship(double dx, double deltaSec) {
         double dy = 0.0;
-        double shipSpeed = player.getSpeed() * 1.5; // px/sec
-        if (up)   dy -= shipSpeed * deltaSec;
-        if (down) dy += shipSpeed * deltaSec;
+        if (up)   dy -= player.getSpeed() * 1.5 * deltaSec;
+        if (down) dy += player.getSpeed() * 1.5 * deltaSec;
         player.move(dx, dy);
     }
 
-
-
-    /** @param deltaSec  temps écoulé (s) */
+    /** Met à jour projectiles (mouvement + collisions). */
     private void updateProjectiles(double deltaSec) {
         Iterator<Projectile> pit = projectiles.iterator();
         while (pit.hasNext()) {
@@ -205,29 +244,18 @@ public class GameController {
         }
     }
 
-
-    /** Tire un nouveau projectile depuis la position du joueur. */
+    /** Tire un projectile (mode spaceship). */
     private void fireProjectile() {
-        double offsetX = player.isFacingRight()
-                       ? player.getWidth()
-                       : -10;
+        double offsetX = player.isFacingRight() ? player.getWidth() : -10;
         double px = player.getX() + offsetX;
         double py = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
     }
 
-
-
-
-    /**
-     * @param dx       déplacement horizontal pour ce frame (px)
-     * @param deltaSec temps écoulé (s) depuis la dernière frame
-     */
+    /** Update en mode plateforme (gravité + collisions). */
     private void updatePlatform(double dx, double deltaSec) {
-        // Mémorise la position Y AVANT le déplacement
         double oldY = player.getY();
 
-        // déclenchement du saut : on passe à -600 px/s (~-10 px/frame @60FPS)
         if (jumping && player.canJump() && !jetpack) {
             player.setVelocityY(-603.0);
             player.setOnGround(false);
@@ -235,39 +263,26 @@ public class GameController {
             jumping = false;
         }
 
-        // jetpack : vitesse de montée constante (px/s)
         if (jetpack && player.isJetpackActive()) {
             player.setVelocityY(-300.0);
         } else {
-            // intégration de la gravité en px/s²
             player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
 
-        // déplacement vertical selon deltaSec
         double dy = player.velocityY * deltaSec;
         player.move(dx, dy);
 
-        // collisions plateformes en tenant compte de oldY
         handlePlatformCollisions(oldY);
-
-        // gestion des ennemis
         handleEnemies(deltaSec);
 
-        // reset si chute
         if (player.getY() > levelHeight) {
             resetPlayerPosition();
         }
     }
 
-
-
-
-
     /**
-     * Gère les collisions plateforme en s’assurant que le joueur
-     * venait bien d’au-dessus de la plateforme.
-     *
-     * @param oldY position Y du joueur AVANT le move(...)
+     * Gère les collisions plateformes en s’assurant qu’on vient d’en haut,
+     * puis supprime les plateformes fragiles cassées.
      */
     private void handlePlatformCollisions(double oldY) {
         // 1) Reset fragile platforms
@@ -277,23 +292,19 @@ public class GameController {
             }
         }
 
-        // 2) Test d’atterrissage
+        // 2) Gestion de l’atterrissage
         for (Platform p : platforms) {
-            double platformTop     = p.getY();
-            double playerBottomNow = player.getY() + player.getHeight();
-            double playerBottomOld = oldY            + player.getHeight();
+            double top    = p.getY();
+            double botNow = player.getY() + player.getHeight();
+            double botOld = oldY            + player.getHeight();
 
             if (player.intersects(p)
-                && player.velocityY > 0.0
-                && playerBottomOld <= platformTop
-            ) {
-                // Pose le joueur exactement sur la plateforme
-                player.setY(platformTop - player.getHeight());
-                player.velocityY = 0.0;
+                && player.velocityY > 0
+                && botOld <= top) {
+                player.setY(top - player.getHeight());
+                player.velocityY = 0;
                 player.setOnGround(true);
                 player.resetJumps();
-
-                // Si plateforme fragile, incrémente son état
                 if (p instanceof src.model.platforms.FragilePlatform) {
                     src.model.platforms.FragilePlatform fp =
                         (src.model.platforms.FragilePlatform) p;
@@ -303,41 +314,43 @@ public class GameController {
                 }
             }
         }
+
+        // 3) Suppression des plateformes fragiles désormais cassées
+        platforms.removeIf(p ->
+            p instanceof src.model.platforms.FragilePlatform
+            && ((src.model.platforms.FragilePlatform) p).isBroken()
+        );
     }
 
-
-    /**
-     * @param deltaSec  temps écoulé (s) depuis la dernière frame
-     */
+    /** Gère déplacement & collisions ennemis. */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
-        for (Enemy enemy : enemies) {
-            // déplacement de l’ennemi à la bonne vitesse (px/s)
-            enemy.update(deltaSec);
-
-            if (player.landsOn(enemy)) {
-                toRemove.add(enemy);
-                player.setVelocityY(-600.0); // rebond identique au saut
-            } else if (player.intersects(enemy)) {
+        for (Enemy e : enemies) {
+            e.update(deltaSec);
+            if (player.landsOn(e)) {
+                toRemove.add(e);
+                player.setVelocityY(-600.0);
+            } else if (player.intersects(e)) {
                 resetPlayerPosition();
             }
         }
         enemies.removeAll(toRemove);
     }
 
-
-
-    private void updateCamera(boolean isSpaceship) {
+    /** Met à jour la caméra selon le mode. */
+    private void updateCamera(boolean isShip) {
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
 
-        // X
-        double targetX = player.getX() - cw / 2.0;
-        cameraX += 0.1 * (targetX - cameraX);
-        cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+        if (!isShip) {
+            // plateforme : centrage progressif
+            double targetX = player.getX() - cw / 2.0;
+            cameraX += 0.1 * (targetX - cameraX);
+            cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+        }
 
-        // Y
-        if (isSpaceship) {
+        // vertical
+        if (isShip) {
             cameraY = 0;
         } else if (ch > levelHeight) {
             cameraY = levelHeight - ch;
@@ -351,34 +364,27 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine décors, plateformes, ennemis, projectiles, joueur/vaisseau. */
-    private void render(boolean isSpaceship) {
-        // Décorations
-        List<Image> decoImgs = new ArrayList<>();
+    /** Dessine tout : décor, plateformes, ennemis, projectiles, joueur/vaisseau. */
+    private void render(boolean isShip) {
+        List<Image> decoImgs   = new ArrayList<>();
         List<Double[]> posDeco = new ArrayList<>();
         for (Decoration d : decorations) {
             decoImgs.add(d.getTexture());
-            posDeco.add(new Double[]{ d.getX(), d.getY(), d.getWidth(), d.getHeight() });
+            posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
-
-        // Plateformes
-        List<Image> imgs     = new ArrayList<>();
-        List<Double[]> posPl = new ArrayList<>();
+        List<Image> platImgs   = new ArrayList<>();
+        List<Double[]> posPl   = new ArrayList<>();
         for (Platform p : platforms) {
-            imgs.add(p.getTexture());
-            posPl.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
+            platImgs.add(p.getTexture());
+            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
-
-        // Ennemis
-        List<Double[]> posEn = new ArrayList<>();
+        List<Double[]> posEn   = new ArrayList<>();
         for (Enemy e : enemies) {
-            posEn.add(new Double[]{ e.getX(), e.getY(), e.getWidth(), e.getHeight() });
+            posEn.add(new Double[]{e.getX(), e.getY(), e.getWidth(), e.getHeight()});
         }
-
-        // Projectiles
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
-            posProj.add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
+            posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
 
         boolean isJumping = !player.onGround;
@@ -388,18 +394,19 @@ public class GameController {
             player.getWidth(), player.getHeight(),
             player.isWalking(), player.isFacingRight(),
             isJumping,
-            isSpaceship,
+            isShip,
             decoImgs, posDeco,
-            imgs, posPl,
+            platImgs, posPl,
             posEn,
             posProj
         );
     }
 
+    /** Remet le joueur en position et état initiaux. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
-        player.velocityY    = 0.0;
+        player.velocityY    = 0;
         player.setOnGround(true);
         player.resetJumps();
         player.setJetpackActive(false);
@@ -409,11 +416,12 @@ public class GameController {
         }
     }
 
+    /** Réinitialise uniquement les flags (sans arrêter la boucle). */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);
         player.resetJumps();
-        player.setVelocityY(0.0);
+        player.setVelocityY(0);
         player.setOnGround(true);
         if (jetpackTimer != null) {
             jetpackTimer.cancel();
@@ -421,7 +429,7 @@ public class GameController {
         }
     }
 
-    /** Tâche interne pour activer le jetpack après 500 ms (mode plateforme). */
+    /** TimerTask interne pour activer le jetpack après 500 ms. */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {
@@ -437,6 +445,7 @@ fin fichier ./src/controller/GameController.java
 
 
 début fichier ./src/Game.java
+// code/src/Game.java
 package src;
 
 import javafx.application.Application;
@@ -446,112 +455,87 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.function.Function;
-
-import src.levels.Level1;
-import src.levels.SpaceshipLevel;
-import src.levels.Level2;
-import src.levels.Level3;
-import src.levels.Level;
-
 import src.controller.GameController;
+import src.levels.JsonLevel;
+import src.levels.SpaceshipLevel;
 import src.levels.Level;
-import src.levels.Level1;
 import src.model.Player;
 import src.view.GameView;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 public class Game extends Application {
-    // Taille de base (800×600), utilisée comme taille initiale.
-    private static final int WIDTH = 800;
+    private static final int WIDTH  = 800;
     private static final int HEIGHT = 600;
 
     private Stage primaryStage;
+    private Scene  scene;
+    private Pane   root;
+    private Canvas canvas;
     private Player player;
     private GameController controller;
 
-    // Liste de "fabriques" de niveaux, dans l'ordre de jeu
     private List<Function<Player, Level>> levelSuppliers;
     private int currentLevelIndex = 0;
 
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        this.player = new Player(100, 500);
+        this.player       = new Player(100, 500);
 
-        // Initialise la liste de niveaux
-        levelSuppliers = Arrays.asList(
-            //Level3::new,
-            Level1::new,
-            SpaceshipLevel::new,
-            Level2::new,
-            Level3::new
-        );
+        this.root   = new Pane();
+        this.canvas = new Canvas(WIDTH, HEIGHT);
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty());
+        root.getChildren().add(canvas);
+        this.scene = new Scene(root, WIDTH, HEIGHT);
 
         primaryStage.setTitle("Steampunk Adventure");
-
-        // Maximiser la fenêtre sans passer en plein écran
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
         primaryStage.setMaximized(true);
-
-        // Charge le premier niveau
-        loadCurrentLevel();
-
         primaryStage.show();
+
+        List<String> levelNames = List.of("level1", "level2", "level3", "level4");
+        levelSuppliers = new ArrayList<>();
+
+        // Instancie un JsonLevel pour chaque JSON
+        levelNames.forEach(name ->
+            levelSuppliers.add(p -> new JsonLevel(p, name))
+        );
+        // Insère le niveau vaisseau en 2ᵉ position
+        levelSuppliers.add(1, SpaceshipLevel::new);
+
+        loadCurrentLevel();
     }
 
-
-    // --- Méthode utilitaire à ajouter ---
     private void loadCurrentLevel() {
-        // Crée l’instance du niveau en fonction de currentLevelIndex
         Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
-        loadLevel(lvl);
-    }
 
-
-    /**
-     * Charge un niveau et met en place la scène avec un Canvas redimensionnable.
-     * Arrête la boucle de jeu précédente si elle existe.
-     */
-    // --- Méthode déjà existante qui pose la scène ---
-    public void loadLevel(Level level) {
         if (controller != null) {
             controller.stopGameLoop();
         }
 
-        Pane root = new Pane();
-        Canvas canvas = new Canvas(WIDTH, HEIGHT);
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty());
-        root.getChildren().add(canvas);
-
         GraphicsContext gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
 
-        // Ici, on crée un NOUVEAU controller pour le nouveau niveau
         controller = new GameController(
             player,
-            level.getPlatforms(),
-            level.getEnemies(),
-            level.getDecorations(),
+            lvl.getPlatforms(),
+            lvl.getEnemies(),
+            lvl.getDecorations(),
             view,
             this,
-            level
+            lvl
         );
 
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
         controller.handleInput(scene);
-
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(true);
         controller.startGameLoop();
     }
 
-    /**
-     * Passe au niveau suivant dans la liste levelSuppliers.
-     */
     public void nextLevel() {
-        // Réinitialise l'état et la position du joueur.
         controller.resetPlayerState();
         player.setX(100);
         player.setY(500);
@@ -560,22 +544,9 @@ public class Game extends Application {
             currentLevelIndex++;
             loadCurrentLevel();
         } else {
-            System.out.println("Vous avez terminé le jeu !");
+            System.out.println("🎉 Vous avez terminé le jeu !");
             controller.stopGameLoop();
-            // TODO : afficher un écran de victoire
         }
-    }
-
-    /**
-     * Charge le niveau vaisseau, accessible depuis Level1.
-     */
-    public void loadSpaceshipLevel() {
-        // Réinitialise l'état et la position du joueur.
-        controller.resetPlayerState();
-        player.setX(100);
-        player.setY(500);
-
-        loadLevel(new src.levels.SpaceshipLevel(player));
     }
 
     public static void main(String[] args) {
@@ -588,213 +559,94 @@ fin fichier ./src/Game.java
 
 
 
-début fichier ./src/levels/Level1.java
+début fichier ./src/levels/JsonLevel.java
+// code/src/levels/JsonLevel.java
 package src.levels;
 
-import javafx.scene.image.Image;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import src.common.JsonReader;
+import src.model.Platform;
+import src.model.Decoration;
+import src.model.Enemy;
+import src.model.Player;
+import src.model.Projectile;
+import src.model.Player;
+import src.model.Projectile;
+import src.model.Projectile;
+
+import src.model.Projectile;
+import src.model.Projectile;
+import src.model.Projectile;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Decoration;
-import src.model.platforms.SteelPlatform;
-import src.model.platforms.GroundPlatform;
-import src.model.platforms.BrickPlatform;
 import src.model.Enemy;
-
-public class Level1 extends Level {
-
-    public Level1(Player player) {
-        super(player);
-    }
-
-    @Override
-    protected void initialize() {
-        // Arrière-plan
-        setBackgroundImage("file:../textures/background temporaire1.png");
-
-        // ----------------------------------------------
-        // 1) Ajouter un sol répété sur la largeur du niveau
-        // ----------------------------------------------
-        double levelWidth = 3000;    // Largeur totale du niveau
-        Image groundTex = new Image("file:../textures/sol.png");
-        double tileW = groundTex.getWidth();
-        double tileH = groundTex.getHeight();
-        double groundY = 600 - tileH;
-        for (double x = 0; x < levelWidth; x += tileW) {
-            platforms.add(new GroundPlatform(x, groundY, groundTex));
-        }
-
-        // ----------------------------------------------
-        // 2) Tes autres plateformes en acier
-        // ----------------------------------------------
-        platforms.add(new SteelPlatform(200, groundY - 100));
-        platforms.add(new SteelPlatform(1000, groundY - 100));
-        platforms.add(new SteelPlatform(1000, 400));
-        platforms.add(new SteelPlatform(0, groundY - 300));
-        platforms.add(new SteelPlatform(500, groundY - 450));
-
-        // ----------------------------------------------
-        // 3) Ennemis
-        // ----------------------------------------------
-        enemies.add(new Enemy(650, groundY - 300, 50, 50, 2, 600, 800));
-        enemies.add(new Enemy(1200, groundY - 50, 50, 50, 2, 1100, 1300));
-
-        // 4) Décoration : un lampadaire dans le décor
-        Image lamp = new Image("file:../textures/lampadaire 1.png");
-        double lampH = lamp.getHeight();
-        decorations.add(new Decoration(1200, groundY - lampH - 300, lamp));
-    }
-
-}fin fichier ./src/levels/Level1.java
-
-
-
-
-
-début fichier ./src/levels/Level2.java
-package src.levels;
-
-import src.model.Player;
-import src.model.platforms.CopperPlatform;
+import src.model.Platform;
+import src.model.Decoration;
+import src.model.Enemy;
 import src.model.platforms.FragilePlatform;
+
 import javafx.scene.image.Image;
-import src.model.platforms.GroundPlatform;
-import src.model.Enemy;
+import java.util.function.Function;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Level2 extends Level {
+public class JsonLevel extends Level {
+    private static final Map<String, Function<JSONObject, Platform>> PLATFORM_FACTORIES = new HashMap<>();
+    static {
+        PLATFORM_FACTORIES.put("sol",     p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
+        PLATFORM_FACTORIES.put("acier",   p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
+        PLATFORM_FACTORIES.put("cuivre",  p -> new Platform(p.getDouble("x"), p.getDouble("y"), p.getString("name")));
+        PLATFORM_FACTORIES.put("fragile", p -> new FragilePlatform(p.getDouble("x"), p.getDouble("y")));
+    }
 
-    public Level2(Player player) {
-        super(player);
+    public JsonLevel(Player player, String levelName) {
+        super(player, levelName);
     }
 
     @Override
-    protected void initialize() {
-        setBackgroundImage("file:../textures/background_level2.png");
+    protected void initialize(String levelName) {
+        JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
 
-        double levelWidth = 3000;
-        Image groundTex = new Image("file:../textures/sol brique.png");
-        double tileW = groundTex.getWidth();
-        double tileH = groundTex.getHeight();
-        double groundY = 600 - tileH;
-        for (double x = 0; x < levelWidth; x += tileW) {
-            platforms.add(new GroundPlatform(x, groundY, groundTex));
+        setBackgroundImage(L.getString("backgroundImage"));
+        setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
+
+        JSONArray plats = L.getJSONArray("platforms");
+        for (int i = 0; i < plats.length(); i++) {
+            JSONObject p = plats.getJSONObject(i);
+            String name = p.getString("name");
+            Function<JSONObject,Platform> factory = PLATFORM_FACTORIES.get(name);
+            if (factory == null) {
+                throw new IllegalArgumentException("Type de plateforme inconnu : " + name);
+            }
+            platforms.add(factory.apply(p));
         }
 
-        platforms.add(new FragilePlatform(100, groundY - 300)); // Première plateforme cassée
-        platforms.add(new CopperPlatform(400, groundY - 250));
-        platforms.add(new CopperPlatform(700, groundY - 300));
-        platforms.add(new CopperPlatform(200, groundY - 350));
-        platforms.add(new CopperPlatform(400, groundY - 350));
-
-        // Ennemis
-        enemies.add(new Enemy(450, 230, 50, 50, 2, 400, 600));
-        enemies.add(new Enemy(800, 230, 50, 50, 2, 700, 900));
-    }
-}
-fin fichier ./src/levels/Level2.java
-
-
-
-
-
-début fichier ./src/levels/Level3.java
-package src.levels;
-
-import javafx.scene.image.Image;
-
-import src.model.Player;
-import src.model.Decoration;
-import src.model.platforms.GroundPlatform;
-import src.model.platforms.BrickPlatform;
-
-public class Level3 extends Level {
-
-    public Level3(Player player) {
-        super(player);
-    }
-
-    @Override
-    protected void initialize() {
-        // Arrière-plan principal
-        setBackgroundImage("file:../textures/background_level3.png");
-
-        // 1) Sol en briques sur toute la largeur
-        double levelWidth = 3000;
-        Image groundTex = new Image("file:../textures/sol brique.png");
-        double tileW = groundTex.getWidth();
-        double tileH = groundTex.getHeight();
-        double groundY = 600 - tileH;
-        for (double x = 0; x < levelWidth; x += tileW) {
-            platforms.add(new GroundPlatform(x, groundY, groundTex));
+        JSONArray ens = L.getJSONArray("enemies");
+        for (int i = 0; i < ens.length(); i++) {
+            JSONObject e = ens.getJSONObject(i);
+            enemies.add(new Enemy(
+                e.getDouble("x"),
+                e.getDouble("y"),
+                e.getDouble("width"),
+                e.getDouble("height"),
+                e.getDouble("speed"),
+                e.getDouble("patrolStart"),
+                e.getDouble("patrolEnd")
+            ));
         }
 
-        // 2) Plateformes en briques
-        platforms.add(new BrickPlatform(200, groundY - 100));
-        platforms.add(new BrickPlatform(200, groundY - 200));
-        platforms.add(new BrickPlatform(1000, groundY - 100));
-        platforms.add(new BrickPlatform(1000, groundY - 200));
-        platforms.add(new BrickPlatform(1200, groundY - 300));
-
-        // 3) Décoration : un lampadaire dans le décor
-        Image lamp = new Image("file:../textures/lampadaire 1.png");
-        double lampH = lamp.getHeight();
-        decorations.add(new Decoration(1200, groundY - lampH - 300, lamp));
-    }
-}fin fichier ./src/levels/Level3.java
-
-
-
-
-
-début fichier ./src/levels/Level.java
-package src.levels;
-
-import src.model.Player;
-import src.model.Platform;
-import src.model.Enemy;
-import src.model.Decoration;
-
-import javafx.scene.image.Image;
-import java.util.List;
-import java.util.ArrayList;
-
-public abstract class Level {
-    protected List<Platform> platforms;
-    protected List<Enemy> enemies;
-    protected List<Decoration> decorations;
-    protected Player player;
-    protected Image backgroundImage;
-
-    public Level(Player player) {
-        this.player      = player;
-        this.platforms   = new ArrayList<>();
-        this.enemies     = new ArrayList<>();
-        this.decorations = new ArrayList<>();
-        initialize();
-    }
-
-    protected abstract void initialize();
-
-    public List<Platform> getPlatforms() {
-        return platforms;
-    }
-
-    public List<Enemy> getEnemies() {
-        return enemies;
-    }
-
-    public List<Decoration> getDecorations() {
-        return decorations;
-    }
-
-    public Image getBackgroundImage() {
-        return backgroundImage;
-    }
-
-    protected void setBackgroundImage(String imagePath) {
-        this.backgroundImage = new Image(imagePath);
+        if (L.has("decorations")) {
+            for (Object o : L.getJSONArray("decorations")) {
+                JSONObject d = (JSONObject) o;
+                Image tex = new Image(d.getString("image"));
+                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), tex));
+            }
+        }
     }
 }
-fin fichier ./src/levels/Level.java
+fin fichier ./src/levels/JsonLevel.java
 
 
 
@@ -917,8 +769,12 @@ début fichier ./src/model/Platform.java
 package src.model;
 
 import javafx.scene.image.Image;
+import src.common.JsonReader;
 
-public abstract class Platform {
+import org.json.JSONObject;
+
+public class Platform {
+    protected static JSONObject platformsJson = JsonReader.getJsonObjectContent("platforms.json");
     protected double x, y, width, height;
     protected Image texture;
 
@@ -932,6 +788,19 @@ public abstract class Platform {
         this.height = texture.getHeight();
     }
 
+
+    public Platform(double x, double y, String platformName) {
+        JSONObject platformJson = platformsJson.getJSONObject(platformName);
+        this.x = x;
+        this.y = y;
+        this.texture = new Image(platformJson.getString("texture"));
+
+        // Dimensions initiales basées sur la taille d'origine de la texture
+        double scaleFactor = platformJson.getDouble("scaleFactor");
+        this.width = texture.getWidth() * scaleFactor;
+        this.height = texture.getHeight() * scaleFactor;
+    }
+
     public double getX()      { return x; }
     public double getY()      { return y; }
     public double getWidth()  { return width; }
@@ -939,41 +808,6 @@ public abstract class Platform {
     public Image getTexture() { return texture; }
 }
 fin fichier ./src/model/Platform.java
-
-
-
-
-
-début fichier ./src/model/platforms/BrickPlatform.java
-package src.model.platforms;
-
-import javafx.scene.image.Image;
-import src.model.Platform;
-
-public class BrickPlatform extends Platform {
-
-    public BrickPlatform(double x, double y) {
-        super(x, y, new Image("file:../textures/plateforme brique.png"));
-    }
-}
-fin fichier ./src/model/platforms/BrickPlatform.java
-
-
-
-
-
-début fichier ./src/model/platforms/CopperPlatform.java
-package src.model.platforms;
-
-import javafx.scene.image.Image;
-import src.model.Platform;
-
-public class CopperPlatform extends Platform {
-
-    public CopperPlatform(double x, double y) {
-        super(x, y, new Image("file:../textures/plateforme cuivre.png"));
-    }
-}fin fichier ./src/model/platforms/CopperPlatform.java
 
 
 
@@ -1032,58 +866,6 @@ public class FragilePlatform extends Platform {
     }
 }
 fin fichier ./src/model/platforms/FragilePlatform.java
-
-
-
-
-
-début fichier ./src/model/platforms/GroundPlatform.java
-package src.model.platforms;
-
-import javafx.scene.image.Image;
-import src.model.Platform;
-
-public class GroundPlatform extends Platform {
-    public GroundPlatform(double x, double y, Image texture) {
-        super(x, y, texture);
-    }
-}
-fin fichier ./src/model/platforms/GroundPlatform.java
-
-
-
-
-
-début fichier ./src/model/platforms/SteelPlatform.java
-package src.model.platforms;
-
-import javafx.scene.image.Image;
-import src.model.Platform;
-
-public class SteelPlatform extends Platform {
-
-    public SteelPlatform(double x, double y) {
-        super(x, y, new Image("file:../textures/plateforme_acier_1.png"));
-
-        if (this.texture.isError()) {
-            System.err.println("Error loading SteelPlatform texture.");
-        }
-
-        // Facteur de réduction (ajuste si tu veux plus petit/grand)
-        double scaleFactor = 0.3;
-
-        // On réduit la bounding box (collision + affichage) à 30% de la taille initiale
-        this.width  = this.width  * scaleFactor;
-        this.height = this.height * scaleFactor;
-
-        // On ne modifie pas this.y, donc le "haut" reste à y
-        // (Si tu veux garder le bas au même endroit, voir plus bas *)
-
-        System.out.println("[SteelPlatform] new bounding box => x=" + this.x
-            + ", y=" + this.y + ", w=" + this.width + ", h=" + this.height);
-    }
-}
-fin fichier ./src/model/platforms/SteelPlatform.java
 
 
 
@@ -1686,8 +1468,33 @@ public class GameView {
     public DoubleProperty cameraYProperty() { return cameraY; }
     public double getCanvasWidth()        { return gc.getCanvas().getWidth(); }
     public double getCanvasHeight()       { return gc.getCanvas().getHeight(); }
+
+    public void resetBackgroundCache() {
+        this.cachedBackground = null;
+        this.cachedWidth  = -1;
+        this.cachedHeight = -1;
+    }
 }
 fin fichier ./src/view/GameView.java
+
+
+
+
+
+début fichier ./.vscode/launch.json
+
+{
+"version": "0.2.0",
+"configurations": [
+    {
+        "type": "java",
+        "name": "Launch Game",
+        "request": "launch",
+        "mainClass": "src.Game",
+        "vmArgs": "--module-path matthieu/Documents/zulu21.38.21-ca-fx-jdk21.0.5-linux_x64/lib --add-modules javafx.controls,javafx.fxml"
+    }
+]
+}fin fichier ./.vscode/launch.json
 
 
 
