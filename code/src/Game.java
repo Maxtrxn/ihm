@@ -51,7 +51,7 @@ public class Game extends Application {
         primaryStage.show();
 
         // Liste des noms de niveaux JSON
-        List<String> levelNames = List.of("level1", "level2", "level3", "level4");
+        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5");
         levelSuppliers = new ArrayList<>();
 
         // Instancie Level(player, name) pour chaque JSON
