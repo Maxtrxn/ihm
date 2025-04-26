@@ -4,13 +4,11 @@ package src;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import src.controller.GameController;
 import src.levels.Level;
-import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.view.GameView;
 
@@ -55,11 +53,11 @@ public class Game extends Application {
         levelSuppliers = new ArrayList<>();
 
         // Instancie Level(player, name) pour chaque JSON
-        levelNames.forEach(name ->
-            levelSuppliers.add(p -> new Level(p, name))
-        );
-        // Insère le niveau vaisseau après le premier
-        levelSuppliers.add(1, SpaceshipLevel::new);
+        for (String name : levelNames) {
+            levelSuppliers.add(p -> new Level(p, name));
+        }
+        // Insère le niveau vaisseau (spaceship.json) après le premier
+        levelSuppliers.add(1, p -> new Level(p, "spaceship"));
 
         loadCurrentLevel();
     }
@@ -71,7 +69,7 @@ public class Game extends Application {
             controller.stopGameLoop();
         }
 
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        var gc = canvas.getGraphicsContext2D();
         GameView view = new GameView(gc);
 
         controller = new GameController(

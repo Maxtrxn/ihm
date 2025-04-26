@@ -14,7 +14,6 @@ import javafx.scene.image.Image;
 
 import src.Game;
 import src.levels.Level;
-import src.levels.SpaceshipLevel;
 import src.model.Player;
 import src.model.Platform;
 import src.model.Enemy;
@@ -24,30 +23,29 @@ import src.model.Decoration;
 import src.view.GameView;
 
 public class GameController {
-    private static final double GRAVITY = 1800.0;
+    private static final double GRAVITY           = 1800.0;
     private static final double SHIP_SCROLL_SPEED = 200.0; // px/s
 
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
 
-    private final Player player;
-    private final List<Platform> platforms;
-    private final List<Enemy> enemies;
+    private final Player           player;
+    private final List<Platform>   platforms;
+    private final List<Enemy>      enemies;
     private final List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
-    private final GameView view;
-    private final Game game;
-    private final Level level;
+    private final GameView         view;
+    private final Game             game;
+    private final Level            level;
 
     private final double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
 
-    // Dimensions “logiques” du niveau
-    private final double levelWidth  = 3000.0;
-    private final double levelHeight = 600.0;
-
     // Caméra
     private double cameraX = 0.0, cameraY = 0.0;
+
+    // Boss fight lock
+    private boolean inBossFight = false;
 
     // Boucle JavaFX
     private AnimationTimer gameLoop;
@@ -73,13 +71,15 @@ public class GameController {
     /** Lie les touches aux flags, et gère tirs vs saut. */
     public void handleInput(Scene scene) {
         scene.setOnKeyPressed(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = true;
             if (e.getCode() == KeyCode.RIGHT) right = true;
             if (e.getCode() == KeyCode.UP)    up    = true;
             if (e.getCode() == KeyCode.DOWN)  down  = true;
 
             if (e.getCode() == KeyCode.SPACE) {
-                if (level instanceof SpaceshipLevel) {
+                if (isShip) {
                     fireProjectile();
                 } else {
                     jumping = true;
@@ -92,12 +92,14 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = false;
             if (e.getCode() == KeyCode.RIGHT) right = false;
             if (e.getCode() == KeyCode.UP)    up    = false;
             if (e.getCode() == KeyCode.DOWN)  down  = false;
 
-            if (e.getCode() == KeyCode.SPACE && !(level instanceof SpaceshipLevel)) {
+            if (e.getCode() == KeyCode.SPACE && !isShip) {
                 jumping = false;
                 jetpack = false;
                 player.setJetpackActive(false);
@@ -136,22 +138,31 @@ public class GameController {
 
     /** Itération de la boucle (~60FPS). */
     private void update(double deltaSec) {
-        boolean isShip = (level instanceof SpaceshipLevel);
+        boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
-        // dx selon input
+        // 1) Détection de l'entrée en zone de boss (seulement si un boss est encore vivant)
+        boolean bossAlive = enemies.stream().anyMatch(e -> e instanceof Boss);
+        if (!inBossFight
+            && bossAlive
+            && player.getX() + player.getWidth() >= level.getBossZoneStart()) {
+            inBossFight = true;
+        }
+
+        // 2) Mouvement du joueur / vaisseau
         double dx    = 0.0;
         double speed = player.getSpeed() * 1.5; // px/s
         if (left)  { dx -= speed * deltaSec; player.setFacingRight(false); }
         if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
         if (isShip) {
-            // Mouvement du vaisseau en mode spaceship
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
 
-            // Défilement auto de la caméra
-            cameraX += SHIP_SCROLL_SPEED * deltaSec;
-            cameraX = Math.min(cameraX, levelWidth - view.getCanvasWidth());
+            // Défilement auto si pas en boss fight
+            if (!inBossFight) {
+                cameraX += SHIP_SCROLL_SPEED * deltaSec;
+                cameraX = Math.min(cameraX, level.getLevelWidth() - view.getCanvasWidth());
+            }
 
             // Contrainte du joueur dans la zone visible
             double minX    = cameraX;
@@ -160,16 +171,28 @@ public class GameController {
             if (player.getX() > maxXpos) player.setX(maxXpos);
 
         } else {
-            // Mode plateforme
             updatePlatform(dx, deltaSec);
         }
 
-        // Passage de niveau automatique
-        if (player.getX() > 1600.0) {
+        // 3) Confinement en zone de boss selon les bornes du JSON
+        if (inBossFight) {
+            double startX = level.getBossZoneStart();
+            double endX   = level.getBossZoneEnd() - player.getWidth();
+            if (player.getX() < startX) player.setX(startX);
+            if (player.getX() > endX)   player.setX(endX);
+        }
+
+        // 4) Passage de niveau lorsque le joueur atteint la fin du level
+        if (player.getX() + player.getWidth() >= level.getLevelWidth()) {
             javafx.application.Platform.runLater(game::nextLevel);
         }
 
-        // Mise à jour caméra & rendu
+        // 5) Sortie du boss fight si le boss est éliminé
+        if (inBossFight && !bossAlive) {
+            inBossFight = false;
+        }
+
+        // 6) Mise à jour caméra et rendu
         updateCamera(isShip);
         render(isShip);
     }
@@ -188,7 +211,7 @@ public class GameController {
         while (pit.hasNext()) {
             Projectile p = pit.next();
             p.update(deltaSec);
-            if (p.isOutOfBounds(levelWidth)) {
+            if (p.isOutOfBounds(level.getLevelWidth())) {
                 pit.remove();
                 continue;
             }
@@ -207,8 +230,8 @@ public class GameController {
     /** Tire un projectile (mode spaceship). */
     private void fireProjectile() {
         double offsetX = player.isFacingRight() ? player.getWidth() : -10;
-        double px = player.getX() + offsetX;
-        double py = player.getY() + player.getHeight() / 2.0;
+        double px      = player.getX() + offsetX;
+        double py      = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
     }
 
@@ -235,54 +258,38 @@ public class GameController {
         handlePlatformCollisions(oldY);
         handleEnemies(deltaSec);
 
-        if (player.getY() > levelHeight) {
+        if (player.getY() > level.getLevelHeight()) {
             resetPlayerPosition();
         }
     }
 
-    /**
-     * Gère les collisions plateformes en s’assurant qu’on vient d’en haut,
-     * puis supprime les plateformes fragiles cassées.
-     */
     private void handlePlatformCollisions(double oldY) {
-        // 1) Reset fragile platforms
         for (Platform p : platforms) {
             if (p instanceof src.model.platforms.FragilePlatform) {
                 ((src.model.platforms.FragilePlatform) p).resetStep(player);
             }
         }
-
-        // 2) Gestion de l’atterrissage
         for (Platform p : platforms) {
             double top    = p.getY();
             double botNow = player.getY() + player.getHeight();
-            double botOld = oldY            + player.getHeight();
-
-            if (player.intersects(p)
-                && player.velocityY > 0
-                && botOld <= top) {
+            double botOld = oldY + player.getHeight();
+            if (player.intersects(p) && player.velocityY > 0 && botOld <= top) {
                 player.setY(top - player.getHeight());
                 player.velocityY = 0;
                 player.setOnGround(true);
                 player.resetJumps();
                 if (p instanceof src.model.platforms.FragilePlatform) {
-                    src.model.platforms.FragilePlatform fp =
-                        (src.model.platforms.FragilePlatform) p;
-                    if (!fp.isBroken()) {
-                        fp.step(player);
-                    }
+                    var fp = (src.model.platforms.FragilePlatform) p;
+                    if (!fp.isBroken()) fp.step(player);
                 }
             }
         }
-
-        // 3) Suppression des plateformes fragiles désormais cassées
         platforms.removeIf(p ->
             p instanceof src.model.platforms.FragilePlatform
             && ((src.model.platforms.FragilePlatform) p).isBroken()
         );
     }
 
-    /** Gère déplacement & collisions ennemis. */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
         for (Enemy e : enemies) {
@@ -291,9 +298,7 @@ public class GameController {
                 if (e instanceof Boss) {
                     Boss boss = (Boss) e;
                     boss.hit();
-                    if (boss.isDead()) {
-                        toRemove.add(boss);
-                    }
+                    if (boss.isDead()) toRemove.add(boss);
                     player.setVelocityY(-600.0);
                 } else {
                     toRemove.add(e);
@@ -306,32 +311,38 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode. */
+    /** Met à jour la caméra selon le mode, ou la bloque en boss fight. */
     private void updateCamera(boolean isShip) {
+        if (inBossFight) {
+            view.cameraXProperty().set(cameraX);
+            view.cameraYProperty().set(cameraY);
+            return;
+        }
+
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
 
         if (!isShip) {
             double targetX = player.getX() - cw / 2.0;
             cameraX += 0.1 * (targetX - cameraX);
-            cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+            cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
         }
 
         if (isShip) {
             cameraY = 0;
-        } else if (ch > levelHeight) {
-            cameraY = levelHeight - ch;
+        } else if (ch > level.getLevelHeight()) {
+            cameraY = level.getLevelHeight() - ch;
         } else {
             double targetY = player.getY() - ch / 2.0;
             cameraY += 0.1 * (targetY - cameraY);
-            cameraY = Math.max(0, Math.min(cameraY, levelHeight - ch));
+            cameraY = Math.max(0, Math.min(cameraY, level.getLevelHeight() - ch));
         }
 
         view.cameraXProperty().set(cameraX);
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine tout : décor, plateformes, ennemis, projectiles, joueur/vaisseau. */
+    /** Dessine tous les éléments du jeu. */
     private void render(boolean isShip) {
         List<Image> decoImgs   = new ArrayList<>();
         List<Double[]> posDeco = new ArrayList<>();
@@ -339,12 +350,14 @@ public class GameController {
             decoImgs.add(d.getTexture());
             posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
+
         List<Image> platImgs   = new ArrayList<>();
         List<Double[]> posPl   = new ArrayList<>();
         for (Platform p : platforms) {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
+
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
@@ -365,11 +378,11 @@ public class GameController {
         );
     }
 
-    /** Remet le joueur en position et état initiaux. */
+    /** Réinitialise le joueur à sa position de départ. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
-        player.velocityY    = 0;
+        player.velocityY = 0;
         player.setOnGround(true);
         player.resetJumps();
         player.setJetpackActive(false);
@@ -379,7 +392,7 @@ public class GameController {
         }
     }
 
-    /** Réinitialise uniquement les flags (sans arrêter la boucle). */
+    /** Réinitialise seulement les flags d’état du joueur. */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);
@@ -392,7 +405,7 @@ public class GameController {
         }
     }
 
-    /** TimerTask interne pour activer le jetpack après 500 ms. */
+    /** TimerTask pour activer le jetpack après 500 ms. */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {
