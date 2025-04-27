@@ -129,6 +129,7 @@ public class Level {
     public void setLevelWidth(double w) {this.levelWidth = w;}
     public void setLevelHeight(double h) {this.levelHeight = h;}
     public void addPlatform(double x, double y, String platformName) {this.platforms.add(new Platform(x, y, platformName));}
+    public void addDecoration(double x, double y, String decorationName) {this.decorations.add(new Decoration(x, y, decorationName));}
 
 
     // ——————————— Helpers ———————————
@@ -152,7 +153,7 @@ public class Level {
         for (Decoration decoration : decorations) {   
             decorationsJSON.put(decoration.toJSONObject());
         }
-        levelJSON.put("enemies", decorationsJSON);
+        levelJSON.put("decorations", decorationsJSON);
 
         levelJSON.put("backgroundImage", this.backgroundImage != null ? this.backgroundImage.getUrl() : null);
         levelJSON.put("levelWidth", this.levelWidth);

@@ -1,7 +1,7 @@
 package src.view.editor;
 
 import src.view.editor.gameEditorSubView.EditorMenuBar;
-import src.view.editor.gameEditorSubView.EditorPlatformSelector;
+import src.view.editor.gameEditorSubView.EditorLevelObjectSelector;
 import src.view.editor.gameEditorSubView.MapEditor;
 import src.view.editor.gameEditorSubView.MapEditorSettings;
 import src.controller.editor.GameEditorController;
@@ -15,17 +15,23 @@ import javafx.scene.image.ImageView;
 
 
 public class GameEditorView extends BorderPane{
+    public enum LevelObjectType {
+        PLATFORM, DECORATION, ENEMY;
+    }
+
     private final GameEditorController controller;
     private MapEditor center = null;
     private EditorMenuBar top = null;
-    private EditorPlatformSelector left = null;
+    private EditorLevelObjectSelector left = null;
     private MapEditorSettings bottom = null;
+    private Stage stage;
 
 
     public GameEditorView(GameEditorController controller, Stage stage) {
         super();
         this.controller = controller;
         this.controller.setView(this);
+        this.stage = stage;
         
 
         //La racine est un BorderPane qui contient :
@@ -36,7 +42,7 @@ public class GameEditorView extends BorderPane{
         
         this.top = new EditorMenuBar(this);
         this.setTop(top);
-        this.left = new EditorPlatformSelector(this);
+        this.left = new EditorLevelObjectSelector(this);
         this.setLeft(left);
         Scene scene = new Scene(this);
         scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
@@ -45,7 +51,7 @@ public class GameEditorView extends BorderPane{
     }
 
     public GameEditorController getController() {return this.controller;}
-
+    public Stage getStage() {return this.stage;}
     
     public void initLevel(String levelName, int cellSize, int nbRows, int nbCols){
         this.center = new MapEditor(cellSize, nbRows, nbCols, this);
@@ -64,10 +70,10 @@ public class GameEditorView extends BorderPane{
         }
     }
 
-    public void updateSelectedPlatform(String platformName, ImageView selectedPlatformImage){
+    public void updateSelectedLevelObject(String name, LevelObjectType levelObjectType, ImageView selectedLevelObjectImage){
         if(this.center != null){
-            this.center.setSelectedPlatformImage(selectedPlatformImage);
-            this.controller.updateSelectedPlatform(platformName);
+            this.center.setSelectedLevelObjectImage(selectedLevelObjectImage, levelObjectType);
+            this.controller.updateSelectedLevelObjectName(name);
         }
     }
 

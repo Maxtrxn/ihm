@@ -36,8 +36,13 @@ public class JsonReader {
     }
 
 
-    public static void saveJsonObject(JSONObject object, String filePathFromResources){
-        try (FileWriter file = new FileWriter("../resources/" + filePathFromResources)) {
+    public static void saveJsonObject(JSONObject object, String filePathFromResources, boolean overwrite) throws JsonReaderException{
+        File level = new File("../resources/" + filePathFromResources);
+        if(!overwrite && level.exists()){
+            throw new JsonReaderException("Le fichier existe déjà");
+        }
+
+        try (FileWriter file = new FileWriter(level)) {
             file.write(object.toString(4));
             file.flush();
         } catch (IOException e) {

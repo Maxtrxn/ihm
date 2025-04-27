@@ -1,26 +1,26 @@
 package src.view.editor.gameEditorSubView;
 
-import java.rmi.Remote;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import src.model.game.Decoration;
+import src.model.game.Level;
+import src.model.game.Platform;
 import src.view.editor.GameEditorView;
+import src.view.editor.GameEditorView.LevelObjectType;
 
 public class MapEditor extends ScrollPane{
     private Rectangle[][] rectangles;
@@ -36,9 +36,11 @@ public class MapEditor extends ScrollPane{
     private final Color DEFAULT_COLOR = Color.rgb(255, 255, 255, 0.0); //Couleur de base d'une case : blanc pour l'instant mais transparent après
     private final Color HOVER_COLOR = Color.rgb(0, 0, 255, 0.3); //Couleur de la case sélectionnée : bleu translucide
     private final Color SELECT_COLOR = Color.rgb(0, 255, 0, 0.3); //Couleur de la case sélectionnée : rouge translucide
-    private ImageView selectedPlatformImage = null;
+    private ImageView selectedLevelObjectImage = null;
+    private LevelObjectType selectedLevelObjectType;
     private Rectangle selectedRectangle = null;
     private GameEditorView parent = null;
+    
 
 
     public MapEditor(int cellSize, int gridPaneNbRows, int gridPaneNbCols, GameEditorView parent){
@@ -75,9 +77,10 @@ public class MapEditor extends ScrollPane{
     }
 
 
-    public void setSelectedPlatformImage(ImageView selectedPlatformImage){
-        this.mainLayer.getChildren().remove(this.selectedPlatformImage);
-        this.selectedPlatformImage = selectedPlatformImage;
+    public void setSelectedLevelObjectImage(ImageView selectedLevelObjectImage, LevelObjectType selectedLevelObjectType){
+        this.mainLayer.getChildren().remove(this.selectedLevelObjectImage);
+        this.selectedLevelObjectImage = selectedLevelObjectImage;
+        this.selectedLevelObjectType = selectedLevelObjectType;
     }
 
 
@@ -88,7 +91,7 @@ public class MapEditor extends ScrollPane{
                 Rectangle rect = new Rectangle(this.cellSize, this.cellSize);
                 rect.setFill(this.DEFAULT_COLOR);
                 rect.setOnMouseEntered((MouseEvent e) -> {
-                    if(this.selectedPlatformImage == null){
+                    if(this.selectedLevelObjectImage == null){
                         if(rect.getFill() != this.SELECT_COLOR){
                             rect.setFill(this.HOVER_COLOR);
                         }
@@ -99,9 +102,9 @@ public class MapEditor extends ScrollPane{
                         int colIndex = (col == null) ? 0 : col;
                         int rowIndex = (row == null) ? 0 : row;
 
-                        this.mainLayer.getChildren().add(this.selectedPlatformImage);
-                        this.selectedPlatformImage.setLayoutX(colIndex * cellSize);
-                        this.selectedPlatformImage.setLayoutY(rowIndex * cellSize);
+                        this.mainLayer.getChildren().add(this.selectedLevelObjectImage);
+                        this.selectedLevelObjectImage.setLayoutX(colIndex * cellSize);
+                        this.selectedLevelObjectImage.setLayoutY(rowIndex * cellSize);
                         
                         //PLACEMENT DU BLOC DANS LE GRIDPANE MAIS VOIR CHATGPT POUR ÇA--------------------------------------------------------------------------------------------
                         
@@ -109,12 +112,12 @@ public class MapEditor extends ScrollPane{
                     
                 });
                 rect.setOnMouseExited((MouseEvent e) -> {
-                    if(this.selectedPlatformImage == null){
+                    if(this.selectedLevelObjectImage == null){
                         if(rect.getFill() != this.SELECT_COLOR){
                             rect.setFill(this.DEFAULT_COLOR);
                         }
                     }else{
-                        this.mainLayer.getChildren().remove(this.selectedPlatformImage);
+                        this.mainLayer.getChildren().remove(this.selectedLevelObjectImage);
                     }
                 });
 
@@ -123,7 +126,7 @@ public class MapEditor extends ScrollPane{
                     if(this.selectedRectangle != null) this.selectedRectangle.setFill(this.DEFAULT_COLOR);
                     
 
-                    if(this.selectedPlatformImage != null){
+                    if(this.selectedLevelObjectImage != null){
                         this.selectedRectangle = null;
                         Integer col = GridPane.getColumnIndex(rect);
                         Integer row = GridPane.getRowIndex(rect);
@@ -131,14 +134,31 @@ public class MapEditor extends ScrollPane{
                         int colIndex = (col == null) ? 0 : col;
                         int rowIndex = (row == null) ? 0 : row;
 
-                        ImageView temp = new ImageView(this.selectedPlatformImage.getImage());
+                        double levelObjectX = colIndex * cellSize;
+                        double levelObjectY = rowIndex * cellSize;
+                        /*
+                        ImageView temp = new ImageView(this.selectedLevelObjectImage.getImage());
                         this.mainLayer.getChildren().add(temp);
 
-                        double platformX = colIndex * cellSize;
-                        double platformY = rowIndex * cellSize;
-                        temp.setLayoutX(platformX);
-                        temp.setLayoutY(platformY);
-                        this.parent.getController().addPlatform(platformX, platformY);
+                        temp.setLayoutX(levelObjectX);
+                        temp.setLayoutY(levelObjectY);
+                        */
+
+                        switch (this.selectedLevelObjectType) {
+                            case LevelObjectType.PLATFORM:
+                                this.parent.getController().addPlatform(levelObjectX, levelObjectY);
+                                break;
+                            case LevelObjectType.DECORATION:
+                                this.parent.getController().addDecoration(levelObjectX, levelObjectY, false);
+                                break;
+                            case LevelObjectType.ENEMY:
+                                this.parent.getController().addEnemy(levelObjectX, levelObjectY, 0, 0, 0);
+                                break;
+                            default:
+                                break;
+                        }
+                        showLevel();
+                        
                     }else{
                         this.selectedRectangle = rect;
                         rect.setFill(this.SELECT_COLOR);
@@ -210,5 +230,26 @@ public class MapEditor extends ScrollPane{
 
     public void hideGridLines(){
         gridPane.setStyle("-fx-grid-lines-visible: false;");
+    }
+
+
+    public void showLevel(){
+        Level level = this.parent.getController().getLevel();
+
+        this.mainLayer.getChildren().clear();
+        for (Platform platform : level.getPlatforms()) {
+            ImageView temp = new ImageView(platform.getTexture());
+            this.mainLayer.getChildren().add(temp);
+            temp.setLayoutX(platform.getX());
+            temp.setLayoutY(platform.getY());
+        }
+
+        this.behindLayer.getChildren().clear();
+        for (Decoration decoration : level.getDecorations()) {
+            ImageView temp = new ImageView(decoration.getTexture());
+            this.behindLayer.getChildren().add(temp);
+            temp.setLayoutX(decoration.getX());
+            temp.setLayoutY(decoration.getY());
+        }
     }
 }
