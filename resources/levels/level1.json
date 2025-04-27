@@ -92,8 +92,8 @@
 	  }
 	],
 	"bossZone": {
-	  "startX": 2600.0,
-	  "endX":   3200.0
+	  "startX": 2000.0,
+	  "endX":   4000.0
 	},
 	"backgroundImageFileName": "background temporaire1.png",
 	"levelWidth":      6000,

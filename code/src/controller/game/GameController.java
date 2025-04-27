@@ -1,4 +1,3 @@
-// src/controller/GameController.java
 package src.controller.game;
 
 import java.util.ArrayList;
@@ -292,57 +291,100 @@ public class GameController {
         );
     }
 
+    /**
+     * Met à jour chaque ennemi et gère les collisions avec le joueur :
+     * - Si le joueur atterrit sur un ennemi, on inflige des dégâts ou on le supprime.
+     * - Si le joueur touche un ennemi autrement qu’en saut, on le réinitialise (mort).
+     *
+     * @param deltaSec Temps écoulé depuis la dernière frame (en secondes)
+     */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
+
         for (Enemy e : enemies) {
+            // 1) Mise à jour du comportement de l'ennemi (patrouille, saut, etc.)
             e.update(deltaSec);
+
+            // 2) Si le joueur atterrit sur l'ennemi
             if (player.landsOn(e)) {
                 if (e instanceof Boss) {
                     Boss boss = (Boss) e;
                     boss.hit();
-                    if (boss.isDead()) toRemove.add(boss);
+                    // Si le boss est mort après ce hit, on le supprime
+                    if (boss.isDead()) {
+                        toRemove.add(boss);
+                    }
+                    // Rebond du joueur après avoir touché le boss
                     player.setVelocityY(-600.0);
                 } else {
+                    // Ennemis normaux : on les supprime et le joueur rebondit
                     toRemove.add(e);
                     player.setVelocityY(-600.0);
                 }
-            } else if (player.intersects(e)) {
+            }
+            // 3) Si le joueur entre en collision (hors atterrissage), c'est la mort
+            else if (player.intersects(e)) {
                 resetPlayerPosition();
             }
         }
+
+        // 4) On retire tous les ennemis marqués pour suppression
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode, ou la bloque en boss fight. */
     private void updateCamera(boolean isShip) {
+        double cw = view.getCanvasWidth();
+        double ch = view.getCanvasHeight();
+        double levelH = level.getLevelHeight();
+        double levelW = level.getLevelWidth();
+    
         if (inBossFight) {
+            // --- Boss-fight : centre horizontalement sur la zone de boss ---
+            double startX = level.getBossZoneStart();
+            double endX   = level.getBossZoneEnd();
+            double zoneCenter = (startX + endX) / 2.0;
+            cameraX = zoneCenter - cw/2.0;
+            cameraX = Math.max(0, Math.min(cameraX, levelW - cw));
+    
+            // --- Boss-fight vertical : aligner le bas du niveau ---
+            if (levelH <= ch) {
+                // si le level est plus petit que la fenêtre, on décale négativement
+                cameraY = levelH - ch;
+            } else {
+                // sinon on plaque le bas du level en bas de fenêtre
+                cameraY = levelH - ch;
+            }
             view.cameraXProperty().set(cameraX);
             view.cameraYProperty().set(cameraY);
             return;
         }
-
-        double cw = view.getCanvasWidth();
-        double ch = view.getCanvasHeight();
-
-        if (!isShip) {
-            double targetX = player.getX() - cw / 2.0;
-            cameraX += 0.1 * (targetX - cameraX);
-            cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
-        }
-
+    
+        // --- Mode vaisseau (spaceship) : on plaque en Y en haut ---
         if (isShip) {
             cameraY = 0;
-        } else if (ch > level.getLevelHeight()) {
-            cameraY = level.getLevelHeight() - ch;
         } else {
-            double targetY = player.getY() - ch / 2.0;
-            cameraY += 0.1 * (targetY - cameraY);
-            cameraY = Math.max(0, Math.min(cameraY, level.getLevelHeight() - ch));
+            // --- Mode plateforme : X suivi lissé ---
+            double targetX = player.getX() - cw/2.0;
+            cameraX += 0.1 * (targetX - cameraX);
+            cameraX = Math.max(0, Math.min(cameraX, levelW - cw));
+    
+            // --- Mode plateforme : Y ---
+            if (levelH <= ch) {
+                // niveau plus petit que la fenêtre : aligner en bas
+                cameraY = levelH - ch;
+            } else {
+                // niveau plus grand : centrer sur le joueur avec lissage
+                double targetY = player.getY() - ch/2.0;
+                cameraY += 0.1 * (targetY - cameraY);
+                cameraY = Math.max(0, Math.min(cameraY, levelH - ch));
+            }
         }
-
+    
         view.cameraXProperty().set(cameraX);
         view.cameraYProperty().set(cameraY);
     }
+    
+
 
     /** Dessine tous les éléments du jeu. */
     private void render(boolean isShip) {
