@@ -37,17 +37,19 @@ public class EditorMenuBar extends MenuBar{
         //Création des éléments que contient "Fichier"
         MenuItem newLevelItem = new MenuItem("Nouveau");
         newLevelItem.setOnAction(e -> newLevelItemAction());
-        MenuItem openLevelItem = new MenuItem("Ouvrir");
+        MenuItem openLevelItem = new MenuItem("Charger un niveau");
         openLevelItem.setOnAction(event -> openLevelItemAction());
+        MenuItem deleteLevelItem = new MenuItem("Supprimer un niveau");
+        deleteLevelItem.setOnAction(event -> deleteLevelItemAction());
         MenuItem choseBackgroundItem = new MenuItem("Choisir une image de fond");
         choseBackgroundItem.setOnAction(event -> choseBackgroundItemAction());
         MenuItem saveLevelItem = new MenuItem("Enregistrer");
         saveLevelItem.setOnAction(event -> saveLevelItemAction());
         MenuItem changeLevelNameItem = new MenuItem("Changer le nom du niveau");
         changeLevelNameItem.setOnAction(event -> changeLevelNameItemAction());
-        MenuItem quitItem = new MenuItem("Quitter");
+        MenuItem quitItem = new MenuItem("Quitter l'éditeur");
         quitItem.setOnAction(event -> Platform.exit());
-        fichierMenu.getItems().addAll(newLevelItem, openLevelItem, choseBackgroundItem, saveLevelItem, changeLevelNameItem, new SeparatorMenuItem(), quitItem);
+        fichierMenu.getItems().addAll(newLevelItem, openLevelItem, saveLevelItem, deleteLevelItem, choseBackgroundItem, changeLevelNameItem, new SeparatorMenuItem(), quitItem);
 
         //Création du menu "Paramètres"
         Menu parametresMenu = new Menu("Paramètres");
@@ -167,7 +169,7 @@ public class EditorMenuBar extends MenuBar{
         final String[] levelName = {null};
         Stage window = new Stage();
         window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Sélectionnez un niveau");
+        window.setTitle("Sélectionnez un niveau à charger");
 
         ListView<String> listView = new ListView<>();
         File directory = new File("../resources/levels/");
@@ -192,7 +194,7 @@ public class EditorMenuBar extends MenuBar{
         VBox layout = new VBox(10, listView, buttons);
         Scene scene = new Scene(layout, 400, 400);
         window.setScene(scene);
-        window.showAndWait(); // Bloque jusqu'à ce que la fenêtre soit fermée
+        window.showAndWait();
 
         if(levelName[0] != null){
             this.parent.getController().loadLevel(levelName[0]);
@@ -237,6 +239,44 @@ public class EditorMenuBar extends MenuBar{
         newWindow.setScene(scene);
         newWindow.setTitle("Changement du nom de niveau pour la sauvegarde");
         newWindow.showAndWait();
+    }
+
+
+
+    private void deleteLevelItemAction(){
+        final String[] levelName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez un niveau à supprimer");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File("../resources/levels/");
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName.substring(0, fileName.lastIndexOf('.')));
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            levelName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(levelName[0] != null){
+            this.parent.getController().deleteLevel(levelName[0]);
+        }
     }
 }
 

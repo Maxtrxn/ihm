@@ -30,8 +30,8 @@ public class JsonReader {
         return content.toString();
     }
 
-    public static JSONObject getJsonObjectContent(String filePathFromResources){
-        String jsonContent = readJsonFile("../resources/" + filePathFromResources);
+    public static JSONObject getJsonObjectContent(String filePath){
+        String jsonContent = readJsonFile(filePath);
         
         if(jsonContent == null){
             javafx.application.Platform.exit();
@@ -41,8 +41,8 @@ public class JsonReader {
     }
 
 
-    public static void saveJsonObject(JSONObject object, String filePathFromResources, boolean overwrite) throws JsonReaderException{
-        File level = new File("../resources/" + filePathFromResources);
+    public static void saveJsonObject(JSONObject object, String filePath, boolean overwrite) throws JsonReaderException{
+        File level = new File(filePath);
         if(!overwrite && level.exists()){
             throw new JsonReaderException("Le fichier existe déjà");
         }

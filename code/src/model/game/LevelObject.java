@@ -1,6 +1,8 @@
 package src.model.game;
 
 import javafx.scene.image.Image;
+import src.common.ResourcesPaths;
+
 import org.json.JSONObject;
 
 public abstract class LevelObject {
@@ -14,7 +16,7 @@ public abstract class LevelObject {
 
         JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
         this.name = name;
-        this.texture = new Image("file:../resources/textures/" + levelObjectFolderName + "/" + levelObjectJson.getString("textureFileName"));
+        this.texture = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + levelObjectFolderName + "/" + levelObjectJson.getString("textureFileName"));
 
         // Dimensions initiales basées sur la taille d'origine de la texture
         double scaleFactor = levelObjectJson.getDouble("scaleFactor");

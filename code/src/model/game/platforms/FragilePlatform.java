@@ -1,6 +1,7 @@
 package src.model.game.platforms;
 
 import javafx.scene.image.Image;
+import src.common.ResourcesPaths;
 import src.model.game.Platform;
 import src.model.game.Player;
 import org.json.JSONObject;
@@ -15,7 +16,7 @@ public class FragilePlatform extends Platform {
         super(x, y, "cuivre");
 
         JSONObject platformJson = Platform.platformsJson.getJSONObject("fragile");
-        this.fragileTexture = new Image("file:../resources/textures/platforms/" + platformJson.getString("textureFileName"));
+        this.fragileTexture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + platformJson.getString("textureFileName"));
     }
 
     /**

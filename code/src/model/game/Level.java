@@ -3,6 +3,7 @@ package src.model.game;
 
 import javafx.scene.image.Image;
 import src.common.JsonReader;
+import src.common.ResourcesPaths;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
 import src.model.game.Platform;
@@ -49,13 +50,13 @@ public class Level {
 
     /** Initialise le niveau depuis le JSON correspondant. */
     protected void initialize(String levelName) {
-        JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
+        JSONObject L = JsonReader.getJsonObjectContent(ResourcesPaths.LEVELS_FOLDER + levelName + ".json");
         if (L == null) {
             throw new IllegalStateException("Impossible de charger le JSON pour le niveau : " + levelName);
         }
 
         // 1) Background + dimensions
-        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:../resources/textures/backgrounds/" + L.getString("backgroundImageFileName"));}
+        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourcesPaths.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
         this.levelWidth  = L.getDouble("levelWidth");
         this.levelHeight = L.getDouble("levelHeight");
 
