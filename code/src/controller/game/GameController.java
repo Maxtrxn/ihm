@@ -1,8 +1,7 @@
-// src/controller/GameController.java
+// src/controller/game/GameController.java
 package src.controller.game;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,62 +23,75 @@ import src.model.game.Projectile;
 import src.view.game.GameView;
 
 public class GameController {
-    private static final double GRAVITY           = 1800.0;
-    private static final double SHIP_SCROLL_SPEED = 200.0; // px/s
+    private static final double GRAVITY               = 1800.0;
+    private static final double SHIP_SCROLL_SPEED     = 200.0; // px/s
+    private static final int    MAX_LIVES             = 3;
+    private static final double INVINCIBLE_DURATION   = 1.0;   // seconds
 
-    // Flags de déplacement
+    // Input flags
     private boolean left, right, up, down, jumping, jetpack;
 
-    private Player           player;
-    private List<Platform>   platforms;
-    private List<Enemy>      enemies;
-    private List<Decoration> decorations;
-    private final List<Projectile> projectiles = new ArrayList<>();
-    private final GameView         view;
-    private final GameModel        model;
-    private Level            level;
+    private Player                   player;
+    private List<Platform>           platforms;
+    private List<Enemy>              enemies;
+    private List<Decoration>         decorations;
+    private final List<Projectile>   projectiles = new ArrayList<>();
+    private final GameView           view;
+    private final GameModel          model;
+    private Level                    level;
 
     private double initialPlayerX, initialPlayerY;
-    private Timer jetpackTimer;
+    private Timer  jetpackTimer;
 
-    // Caméra
-    private double cameraX = 0.0, cameraY = 0.0;
+    // Camera
+    private double cameraX = 0, cameraY = 0;
 
-    // Boss fight lock
+    // Boss fight
     private boolean inBossFight = false;
 
-    // Boucle JavaFX
+    // Lives & invincibility
+    private int     lives           = MAX_LIVES;
+    private boolean invincible      = false;
+    private double  invincibleTimer = 0;
+
+    // Main loop
     private AnimationTimer gameLoop;
 
     public GameController(Stage primaryStage) {
-        this.view            = new GameView(this, primaryStage);
-        this.model           = new GameModel(this);
+        this.view  = new GameView(this, primaryStage);
+        this.model = new GameModel(this);
+        updateLivesDisplay();
     }
 
-    public void setPlayer(Player player){
+    /** Sets the player and its respawn point. */
+    public void setPlayer(Player player) {
         this.player = player;
-        this.initialPlayerX  = player.getX();
-        this.initialPlayerY  = player.getY();
+        this.initialPlayerX = player.getX();
+        this.initialPlayerY = player.getY();
     }
-    public void setLevel(Level level){
-        this.level = level;
-        this.platforms = level.getPlatforms();
-        this.enemies = level.getEnemies();
+
+    /** Loads a new level and resets lives. */
+    public void setLevel(Level level) {
+        this.level       = level;
+        this.platforms   = level.getPlatforms();
+        this.enemies     = level.getEnemies();
         this.decorations = level.getDecorations();
+
+        // Reset lives at start of level
+        lives = MAX_LIVES;
+        invincible = false;
+        updateLivesDisplay();
     }
 
-
-    /** Lie les touches aux flags, et gère tirs vs saut. */
+    /** Binds keyboard input to movement flags and actions. */
     public void handleInput() {
-        Scene scene = this.view.getScene();
+        Scene scene = view.getScene();
         scene.setOnKeyPressed(e -> {
             boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
-
             if (e.getCode() == KeyCode.LEFT)  left  = true;
             if (e.getCode() == KeyCode.RIGHT) right = true;
             if (e.getCode() == KeyCode.UP)    up    = true;
             if (e.getCode() == KeyCode.DOWN)  down  = true;
-
             if (e.getCode() == KeyCode.SPACE) {
                 if (isShip) {
                     fireProjectile();
@@ -92,15 +104,12 @@ public class GameController {
                 }
             }
         });
-
         scene.setOnKeyReleased(e -> {
             boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
-
             if (e.getCode() == KeyCode.LEFT)  left  = false;
             if (e.getCode() == KeyCode.RIGHT) right = false;
             if (e.getCode() == KeyCode.UP)    up    = false;
             if (e.getCode() == KeyCode.DOWN)  down  = false;
-
             if (e.getCode() == KeyCode.SPACE && !isShip) {
                 jumping = false;
                 jetpack = false;
@@ -113,16 +122,13 @@ public class GameController {
         });
     }
 
-    /** Démarre la boucle via AnimationTimer. */
+    /** Starts the main game loop (~60 FPS). */
     public void startGameLoop() {
         gameLoop = new AnimationTimer() {
             private long lastTime = 0;
             @Override
             public void handle(long now) {
-                if (lastTime == 0) {
-                    lastTime = now;
-                    return;
-                }
+                if (lastTime == 0) { lastTime = now; return; }
                 double deltaSec = (now - lastTime) / 1_000_000_000.0;
                 update(deltaSec);
                 lastTime = now;
@@ -131,52 +137,56 @@ public class GameController {
         gameLoop.start();
     }
 
-    /** Stoppe proprement la boucle en cours. */
+    /** Stops the game loop. */
     public void stopGameLoop() {
-        if (gameLoop != null) {
-            gameLoop.stop();
-        }
+        if (gameLoop != null) gameLoop.stop();
     }
 
-    /** Itération de la boucle (~60FPS). */
+    /**
+     * Main update:
+     * - decrement invincibility,
+     * - enter boss fight,
+     * - handle player movement or spaceship,
+     * - collisions/enemies with lives,
+     * - camera & render.
+     */
     private void update(double deltaSec) {
+        // Invincibility countdown
+        if (invincible) {
+            invincibleTimer -= deltaSec;
+            if (invincibleTimer <= 0) {
+                invincible = false;
+            }
+        }
+
         boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
-        // 1) Détection de l'entrée en zone de boss (seulement si un boss est encore vivant)
+        // Enter boss fight
         boolean bossAlive = enemies.stream().anyMatch(e -> e instanceof Boss);
-        if (!inBossFight
-            && bossAlive
-            && player.getX() + player.getWidth() >= level.getBossZoneStart()) {
+        if (!inBossFight && bossAlive &&
+            player.getX() + player.getWidth() >= level.getBossZoneStart()) {
             inBossFight = true;
         }
 
-        // 2) Mouvement du joueur / vaisseau
-        double dx    = 0.0;
-        double speed = player.getSpeed() * 1.5; // px/s
+        // Player or spaceship movement
+        double dx = 0;
+        double speed = player.getSpeed() * 1.5;
         if (left)  { dx -= speed * deltaSec; player.setFacingRight(false); }
         if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
         if (isShip) {
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
-
-            // Défilement auto si pas en boss fight
             if (!inBossFight) {
                 cameraX += SHIP_SCROLL_SPEED * deltaSec;
                 cameraX = Math.min(cameraX, level.getLevelWidth() - view.getCanvasWidth());
             }
-
-            // Contrainte du joueur dans la zone visible
-            double minX    = cameraX;
-            double maxXpos = cameraX + view.getCanvasWidth() - player.getWidth();
-            if (player.getX() < minX)    player.setX(minX);
-            if (player.getX() > maxXpos) player.setX(maxXpos);
-
+            constrainPlayerInView();
         } else {
             updatePlatform(dx, deltaSec);
         }
 
-        // 3) Confinement en zone de boss selon les bornes du JSON
+        // Constrain in boss zone
         if (inBossFight) {
             double startX = level.getBossZoneStart();
             double endX   = level.getBossZoneEnd() - player.getWidth();
@@ -184,91 +194,136 @@ public class GameController {
             if (player.getX() > endX)   player.setX(endX);
         }
 
-        // 4) Passage de niveau lorsque le joueur atteint la fin du level
+        // Next level
         if (player.getX() + player.getWidth() >= level.getLevelWidth()) {
             javafx.application.Platform.runLater(model::nextLevel);
         }
 
-        // 5) Sortie du boss fight si le boss est éliminé
+        // Exit boss fight
         if (inBossFight && !bossAlive) {
             inBossFight = false;
         }
 
-        // 6) Mise à jour caméra et rendu
+        // Handle enemies & collisions
+        handleEnemies(deltaSec);
+
+        // Camera & render
         updateCamera(isShip);
         render(isShip);
     }
 
-    /** Update en mode spaceship (déplacement libre). */
+    /**
+     * Met à jour chaque ennemi et gère les collisions :
+     * - Le Boss n'est mis à jour (poursuite + saut) que si inBossFight == true.
+     * - Les autres ennemis sont toujours mis à jour.
+     * - Si le joueur saute sur un ennemi, il le neutralise.
+     * - Si le joueur touche latéralement un ennemi et n'est pas invincible, il perd une vie.
+     */
+    private void handleEnemies(double deltaSec) {
+        List<Enemy> toRemove = new ArrayList<>();
+
+        for (Enemy e : enemies) {
+            // 1) Mise à jour de l'ennemi
+            if (e instanceof Boss) {
+                if (inBossFight) {
+                    ((Boss) e).update(deltaSec, player);
+                }
+                // sinon : le boss reste immobile tant que le joueur n'est pas dans sa zone
+            } else {
+                e.update(deltaSec);
+            }
+
+            // 2) Gestion des collisions
+            if (player.landsOn(e)) {
+                // Le joueur saute sur l'ennemi
+                if (e instanceof Boss) {
+                    Boss boss = (Boss) e;
+                    boss.hit();
+                    if (boss.isDead()) {
+                        toRemove.add(boss);
+                    }
+                } else {
+                    toRemove.add(e);
+                }
+                // Rebond du joueur
+                player.setVelocityY(-600.0);
+
+            } else if (!invincible && player.intersects(e)) {
+                // Collision latérale : perte de vie si pas en invincibilité
+                loseLife();
+            }
+        }
+
+        // 3) Suppression des ennemis neutralisés
+        enemies.removeAll(toRemove);
+    }
+
+    /** Decrements a life, triggers invincibility or game-over reset. */
+    private void loseLife() {
+        lives--;
+        invincible = true;
+        invincibleTimer = INVINCIBLE_DURATION;
+        updateLivesDisplay();
+
+        if (lives == 0) {
+            // Game over for this level: reset lives and respawn
+            lives = MAX_LIVES;
+            updateLivesDisplay();
+            resetPlayerPosition();
+        }
+        // else: remain in place, just invincible
+    }
+
+    /** Refreshes the UI display of lives (except in spaceship). */
+    private void updateLivesDisplay() {
+        // TODO: update your Label or heart icons, e.g.:
+        // livesLabel.setText("Lives: " + lives);
+    }
+
+    /** Ensures the spaceship-view player stays on screen. */
+    private void constrainPlayerInView() {
+        double minX = cameraX;
+        double maxX = cameraX + view.getCanvasWidth() - player.getWidth();
+        if (player.getX() < minX) player.setX(minX);
+        if (player.getX() > maxX) player.setX(maxX);
+    }
+
+    /** Spaceship free movement. */
     private void updateSpaceship(double dx, double deltaSec) {
-        double dy = 0.0;
+        double dy = 0;
         if (up)   dy -= player.getSpeed() * 1.5 * deltaSec;
         if (down) dy += player.getSpeed() * 1.5 * deltaSec;
         player.move(dx, dy);
     }
 
-    /** Met à jour projectiles (mouvement + collisions). */
-    private void updateProjectiles(double deltaSec) {
-        Iterator<Projectile> pit = projectiles.iterator();
-        while (pit.hasNext()) {
-            Projectile p = pit.next();
-            p.update(deltaSec);
-            if (p.isOutOfBounds(level.getLevelWidth())) {
-                pit.remove();
-                continue;
-            }
-            Iterator<Enemy> eit = enemies.iterator();
-            while (eit.hasNext()) {
-                Enemy enemy = eit.next();
-                if (p.intersects(enemy)) {
-                    eit.remove();
-                    pit.remove();
-                    break;
-                }
-            }
-        }
-    }
-
-    /** Tire un projectile (mode spaceship). */
-    private void fireProjectile() {
-        double offsetX = player.isFacingRight() ? player.getWidth() : -10;
-        double px      = player.getX() + offsetX;
-        double py      = player.getY() + player.getHeight() / 2.0;
-        projectiles.add(new Projectile(px, py, player.isFacingRight()));
-    }
-
-    /** Update en mode plateforme (gravité + collisions). */
+    /** Platformer movement: gravity, jump, collisions. */
     private void updatePlatform(double dx, double deltaSec) {
         double oldY = player.getY();
-
         if (jumping && player.canJump() && !jetpack) {
             player.setVelocityY(-603.0);
             player.setOnGround(false);
             player.incrementJumps();
             jumping = false;
         }
-
         if (jetpack && player.isJetpackActive()) {
             player.setVelocityY(-300.0);
         } else {
             player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
-
-        double dy = player.velocityY * deltaSec;
-        player.move(dx, dy);
-
+        player.move(dx, player.velocityY * deltaSec);
         handlePlatformCollisions(oldY);
-        handleEnemies(deltaSec);
 
+        // Fall off bottom = lose life
         if (player.getY() > level.getLevelHeight()) {
-            resetPlayerPosition();
+            loseLife();
         }
     }
 
+    /** Handles collisions with platforms (including fragile). */
     private void handlePlatformCollisions(double oldY) {
         for (Platform p : platforms) {
             if (p instanceof src.model.game.platforms.FragilePlatform) {
-                ((src.model.game.platforms.FragilePlatform) p).resetStep(player);
+                ((src.model.game.platforms.FragilePlatform)p).resetStep(player);
             }
         }
         for (Platform p : platforms) {
@@ -281,88 +336,113 @@ public class GameController {
                 player.setOnGround(true);
                 player.resetJumps();
                 if (p instanceof src.model.game.platforms.FragilePlatform) {
-                    var fp = (src.model.game.platforms.FragilePlatform) p;
+                    var fp = (src.model.game.platforms.FragilePlatform)p;
                     if (!fp.isBroken()) fp.step(player);
                 }
             }
         }
         platforms.removeIf(p ->
             p instanceof src.model.game.platforms.FragilePlatform
-            && ((src.model.game.platforms.FragilePlatform) p).isBroken()
+            && ((src.model.game.platforms.FragilePlatform)p).isBroken()
         );
     }
 
-    private void handleEnemies(double deltaSec) {
-        List<Enemy> toRemove = new ArrayList<>();
-        for (Enemy e : enemies) {
-            e.update(deltaSec);
-            if (player.landsOn(e)) {
-                if (e instanceof Boss) {
-                    Boss boss = (Boss) e;
-                    boss.hit();
-                    if (boss.isDead()) toRemove.add(boss);
-                    player.setVelocityY(-600.0);
-                } else {
-                    toRemove.add(e);
-                    player.setVelocityY(-600.0);
+    /** Updates projectiles: movement and enemy collisions. */
+    private void updateProjectiles(double deltaSec) {
+        var pit = projectiles.iterator();
+        while (pit.hasNext()) {
+            Projectile pr = pit.next();
+            pr.update(deltaSec);
+            if (pr.isOutOfBounds(level.getLevelWidth())) {
+                pit.remove();
+                continue;
+            }
+            var eit = enemies.iterator();
+            while (eit.hasNext()) {
+                Enemy e = eit.next();
+                if (pr.intersects(e)) {
+                    eit.remove();
+                    pit.remove();
+                    break;
                 }
-            } else if (player.intersects(e)) {
-                resetPlayerPosition();
             }
         }
-        enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode, ou la bloque en boss fight. */
+    /** Fires a projectile in spaceship mode. */
+    private void fireProjectile() {
+        double offsetX = player.isFacingRight() ? player.getWidth() : -10;
+        double px      = player.getX() + offsetX;
+        double py      = player.getY() + player.getHeight()/2.0;
+        projectiles.add(new Projectile(px, py, player.isFacingRight()));
+    }
+
+    /** Updates the camera position for platform/boss/ship modes. */
     private void updateCamera(boolean isShip) {
+        double cw     = view.getCanvasWidth();
+        double ch     = view.getCanvasHeight();
+        double levelW = level.getLevelWidth();
+        double levelH = level.getLevelHeight();
+
+        // X-axis
         if (inBossFight) {
-            view.cameraXProperty().set(cameraX);
-            view.cameraYProperty().set(cameraY);
-            return;
-        }
-
-        double cw = view.getCanvasWidth();
-        double ch = view.getCanvasHeight();
-
-        if (!isShip) {
-            double targetX = player.getX() - cw / 2.0;
+            double centerX = (level.getBossZoneStart() + level.getBossZoneEnd())/2.0;
+            cameraX = centerX - cw/2.0;
+        } else if (!isShip) {
+            double targetX = player.getX() - cw/2.0;
             cameraX += 0.1 * (targetX - cameraX);
-            cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
         }
+        cameraX = Math.max(0, Math.min(cameraX, levelW - cw));
 
+        // Y-axis
         if (isShip) {
             cameraY = 0;
-        } else if (ch > level.getLevelHeight()) {
-            cameraY = level.getLevelHeight() - ch;
+        } else if (inBossFight) {
+            Boss boss = enemies.stream()
+                               .filter(e -> e instanceof Boss)
+                               .map(e -> (Boss)e)
+                               .findFirst()
+                               .orElse(null);
+            if (boss != null) {
+                double centerY = boss.getY() + boss.getHeight()/2.0;
+                cameraY = centerY - ch/2.0;
+            } else {
+                cameraY = (levelH - ch)/2.0;
+            }
         } else {
-            double targetY = player.getY() - ch / 2.0;
+            double targetY = player.getY() - ch/2.0;
             cameraY += 0.1 * (targetY - cameraY);
-            cameraY = Math.max(0, Math.min(cameraY, level.getLevelHeight() - ch));
         }
+        if (levelH <= ch) {
+            cameraY = levelH - ch;
+        }
+        double minY = Math.min(0, levelH - ch);
+        double maxY = Math.max(0, levelH - ch);
+        cameraY = Math.max(minY, Math.min(cameraY, maxY));
 
         view.cameraXProperty().set(cameraX);
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine tous les éléments du jeu. */
+    /** Renders all game elements via GameView. */
     private void render(boolean isShip) {
-        List<Image> decoImgs   = new ArrayList<>();
-        List<Double[]> posDeco = new ArrayList<>();
+        List<Image>     decoImgs = new ArrayList<>();
+        List<Double[]>  posDeco  = new ArrayList<>();
         for (Decoration d : decorations) {
             decoImgs.add(d.getTexture());
             posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
 
-        List<Image> platImgs   = new ArrayList<>();
-        List<Double[]> posPl   = new ArrayList<>();
+        List<Image>     platImgs = new ArrayList<>();
+        List<Double[]>  posPl    = new ArrayList<>();
         for (Platform p : platforms) {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
 
         List<Double[]> posProj = new ArrayList<>();
-        for (Projectile p : projectiles) {
-            posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
+        for (Projectile pr : projectiles) {
+            posProj.add(new Double[]{pr.getX(), pr.getY(), pr.getWidth(), pr.getHeight()});
         }
 
         boolean isJumping = !player.onGround;
@@ -380,7 +460,7 @@ public class GameController {
         );
     }
 
-    /** Réinitialise le joueur à sa position de départ. */
+    /** Respawns the player at the start position. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
@@ -394,7 +474,7 @@ public class GameController {
         }
     }
 
-    /** Réinitialise seulement les flags d’état du joueur. */
+    /** Resets only the player's state flags. */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);
@@ -407,7 +487,7 @@ public class GameController {
         }
     }
 
-    /** TimerTask pour activer le jetpack après 500 ms. */
+    /** Activates the jetpack after 500ms of holding SPACE. */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {

@@ -1,9 +1,7 @@
 package src.model.game;
 
-
 import src.common.JsonReader;
 import org.json.JSONObject;
-
 
 public class Enemy {
     private double x, y, width, height, speed;
@@ -36,10 +34,9 @@ public class Enemy {
         return height;
     }
 
-    /** @param deltaSec  temps écoulé (s) */
     /**
- * @param deltaSec  temps écoulé (s) depuis la dernière frame
- */
+     * @param deltaSec  temps écoulé (s) depuis la dernière frame
+     */
     public void update(double deltaSec) {
         double move = speed * deltaSec;
         if (movingRight) {
@@ -51,7 +48,6 @@ public class Enemy {
         }
     }
 
-
     public JSONObject toJSONObject(){
         JSONObject enemyJSON = new JSONObject();
         enemyJSON.put("x", this.x);
@@ -60,7 +56,27 @@ public class Enemy {
         enemyJSON.put("height", this.height);
         enemyJSON.put("patrolStart", this.leftBound);
         enemyJSON.put("patrolEnd", this.rightBound);
-
         return enemyJSON;
+    }
+
+    // --- Nouveaux accesseurs pour permettre à Boss de changer y ---
+    /** Position horizontale de l'ennemi. */
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    /** Position verticale de l'ennemi. */
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public double getSpeed() { 
+        return speed; 
+    }
+    public double getLeftBound() { 
+        return leftBound; 
+    }
+    public double getRightBound() { 
+        return rightBound; 
     }
 }

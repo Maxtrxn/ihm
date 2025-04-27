@@ -78,9 +78,9 @@
 		"y":           426,
 		"width":       150,
 		"height":      150,
-		"speed":         0,
-		"patrolStart":2800,
-		"patrolEnd":  2800,
+		"speed":         1,
+		"patrolStart":2100,
+		"patrolEnd":  3900,
 		"boss":       true
 	  }
 	],
@@ -92,8 +92,8 @@
 	  }
 	],
 	"bossZone": {
-	  "startX": 2600.0,
-	  "endX":   3200.0
+	  "startX": 2100.0,
+	  "endX":   3900.0
 	},
 	"backgroundImageFileName": "background temporaire1.png",
 	"levelWidth":      6000,
