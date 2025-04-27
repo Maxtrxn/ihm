@@ -212,32 +212,49 @@ public class GameController {
         render(isShip);
     }
 
-    /** Enemy collisions and lives management. */
+    /**
+     * Met à jour chaque ennemi et gère les collisions :
+     * - Le Boss n'est mis à jour (poursuite + saut) que si inBossFight == true.
+     * - Les autres ennemis sont toujours mis à jour.
+     * - Si le joueur saute sur un ennemi, il le neutralise.
+     * - Si le joueur touche latéralement un ennemi et n'est pas invincible, il perd une vie.
+     */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
+
         for (Enemy e : enemies) {
+            // 1) Mise à jour de l'ennemi
             if (e instanceof Boss) {
-                ((Boss)e).update(deltaSec, player);
+                if (inBossFight) {
+                    ((Boss) e).update(deltaSec, player);
+                }
+                // sinon : le boss reste immobile tant que le joueur n'est pas dans sa zone
             } else {
                 e.update(deltaSec);
             }
 
-            // Jump on enemy
+            // 2) Gestion des collisions
             if (player.landsOn(e)) {
+                // Le joueur saute sur l'ennemi
                 if (e instanceof Boss) {
-                    Boss boss = (Boss)e;
+                    Boss boss = (Boss) e;
                     boss.hit();
-                    if (boss.isDead()) toRemove.add(boss);
+                    if (boss.isDead()) {
+                        toRemove.add(boss);
+                    }
                 } else {
                     toRemove.add(e);
                 }
+                // Rebond du joueur
                 player.setVelocityY(-600.0);
-            }
-            // Side collision: lose life if not invincible
-            else if (!invincible && player.intersects(e)) {
+
+            } else if (!invincible && player.intersects(e)) {
+                // Collision latérale : perte de vie si pas en invincibilité
                 loseLife();
             }
         }
+
+        // 3) Suppression des ennemis neutralisés
         enemies.removeAll(toRemove);
     }
 
