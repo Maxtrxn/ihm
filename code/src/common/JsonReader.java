@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.util.Scanner;
 import org.json.JSONObject;
 
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 public class JsonReader {
     //Méthode pour lire un fichier JSON
     private static String readJsonFile(String filePath) {

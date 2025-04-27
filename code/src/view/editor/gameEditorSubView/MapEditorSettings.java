@@ -7,7 +7,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import src.view.editor.GameEditorView;
 import javafx.geometry.Pos;
-import src.view.editor.gameEditorSubView.MapEditor;
 
 public class MapEditorSettings extends HBox{
     private GameEditorView parent;
@@ -66,6 +65,7 @@ public class MapEditorSettings extends HBox{
                 gridLinesVisible.setText("Masquer le cadrillage");
             }
         });
+        
         this.getChildren().add(gridLinesVisible);
     }
 }

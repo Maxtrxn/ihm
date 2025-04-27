@@ -55,7 +55,7 @@ public class Level {
         }
 
         // 1) Background + dimensions
-        this.backgroundImage = new Image("file:../resources/textures/" + L.getString("backgroundImageFileName"));
+        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:../resources/textures/backgrounds/" + L.getString("backgroundImageFileName"));}
         this.levelWidth  = L.getDouble("levelWidth");
         this.levelHeight = L.getDouble("levelHeight");
 

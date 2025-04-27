@@ -5,7 +5,7 @@ import src.view.editor.gameEditorSubView.EditorLevelObjectSelector;
 import src.view.editor.gameEditorSubView.MapEditor;
 import src.view.editor.gameEditorSubView.MapEditorSettings;
 import src.controller.editor.GameEditorController;
-
+import src.model.game.Level;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
@@ -48,18 +48,34 @@ public class GameEditorView extends BorderPane{
         scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
         stage.setScene(scene); 
         stage.setMaximized(true);
+        updateLevelName("");
     }
 
     public GameEditorController getController() {return this.controller;}
     public Stage getStage() {return this.stage;}
     
     public void initLevel(String levelName, int cellSize, int nbRows, int nbCols){
+        this.updateLevelName(levelName);
+        this.controller.initLevel(nbCols*cellSize, nbRows*cellSize);
         this.center = new MapEditor(cellSize, nbRows, nbCols, this);
         this.setCenter(center);
         this.bottom = new MapEditorSettings(this);
         this.setBottom(bottom);
+    }
 
-        this.controller.initLevel(levelName, nbCols*cellSize, nbRows*cellSize);
+    
+    public void initLevel(Level level, String levelName){
+        this.updateLevelName(levelName);
+        this.center = new MapEditor(level, this);
+        this.setCenter(center);
+        this.bottom = new MapEditorSettings(this);
+        this.setBottom(bottom);
+    }
+
+
+    public void updateLevelName(String levelName){
+        this.controller.updateLevelName(levelName);
+        this.stage.setTitle("Steampunk Adventure - Éditeur de niveau" + " - " + levelName);
     }
 
 

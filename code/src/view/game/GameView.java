@@ -235,7 +235,22 @@ public class GameView {
             }
         }
 
-        // JOUEUR ou VAISSEAU
+        // 2) Plateformes
+        for (int i = 0; i < platformImages.size(); i++) {
+            Image img = platformImages.get(i);
+            Double[] pos = platformPositions.get(i);
+            double px = pos[0] - cameraX.get();
+            double py = pos[1] - cameraY.get();
+            double pw = pos[2], ph = pos[3];
+            if (img != null) {
+                gc.drawImage(img, px, py, pw, ph);
+            } else {
+                gc.setFill(Color.BLUE);
+                gc.fillRect(px, py, pw, ph);
+            }
+        }
+
+        // 3) JOUEUR ou VAISSEAU
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
@@ -319,20 +334,7 @@ public class GameView {
             }
         }
 
-        // 3) Plateformes
-        for (int i = 0; i < platformImages.size(); i++) {
-            Image img = platformImages.get(i);
-            Double[] pos = platformPositions.get(i);
-            double px = pos[0] - cameraX.get();
-            double py = pos[1] - cameraY.get();
-            double pw = pos[2], ph = pos[3];
-            if (img != null) {
-                gc.drawImage(img, px, py, pw, ph);
-            } else {
-                gc.setFill(Color.BLUE);
-                gc.fillRect(px, py, pw, ph);
-            }
-        }
+        
 
         // 4) Ennemis + boss
         for (Enemy e : enemies) {

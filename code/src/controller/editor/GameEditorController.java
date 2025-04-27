@@ -26,15 +26,21 @@ public class GameEditorController{
 
     public void updateSelectedLevelObjectName(String name) {this.model.setSelectedLevelObjectName(name);}
 
-    public void initLevel(String levelName, double levelWidth, double levelHeight){
+    public void initLevel(double levelWidth, double levelHeight){
         this.model.initLevel(levelWidth, levelHeight);
-        this.model.setLevelName(levelName);
     }
 
+    public void updateLevelName(String levelName){this.model.setLevelName(levelName);}
     public void updateBackground(Image image){this.model.setLevelBackground(image);}
     public void saveLevel(boolean overwrite){this.model.saveLevel(overwrite);}
     public void addPlatform(double x, double y){this.model.addPlatform(x, y);}
     public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
     public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){return;}//A FAIRE -------------------
     public Level getLevel(){return this.model.getLevel();}
+    public void loadLevel(String levelName){
+        this.model.loadLevel(levelName);
+        this.view.initLevel(getLevel(), levelName);
+    }
+
+
 }

@@ -43,11 +43,13 @@ public class GameEditorModel{
     }
 
     
-
-
     public void saveLevel(boolean overwrite){
         JSONObject levelJSON = level.toJSONObject();
 
         JsonReader.saveJsonObject(levelJSON, "levels/" + levelName + ".json", overwrite);
+    }
+
+    public void loadLevel(String levelName){
+        this.level = new Level(null, levelName);
     }
 }
