@@ -10,12 +10,13 @@ import java.util.TimerTask;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
-import src.Game;
 import src.model.game.Boss;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
+import src.model.game.GameModel;
 import src.model.game.Level;
 import src.model.game.Platform;
 import src.model.game.Player;
@@ -29,16 +30,16 @@ public class GameController {
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
 
-    private final Player           player;
-    private final List<Platform>   platforms;
-    private final List<Enemy>      enemies;
-    private final List<Decoration> decorations;
+    private Player           player;
+    private List<Platform>   platforms;
+    private List<Enemy>      enemies;
+    private List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
     private final GameView         view;
-    private final Game             game;
-    private final Level            level;
+    private final GameModel        model;
+    private Level            level;
 
-    private final double initialPlayerX, initialPlayerY;
+    private double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
 
     // Caméra
@@ -50,26 +51,27 @@ public class GameController {
     // Boucle JavaFX
     private AnimationTimer gameLoop;
 
-    public GameController(Player player,
-                          List<Platform> platforms,
-                          List<Enemy> enemies,
-                          List<Decoration> decorations,
-                          GameView view,
-                          Game game,
-                          Level level) {
-        this.player          = player;
-        this.platforms       = platforms;
-        this.enemies         = enemies;
-        this.decorations     = decorations;
-        this.view            = view;
-        this.game            = game;
-        this.level           = level;
+    public GameController(Stage primaryStage) {
+        this.view            = new GameView(this, primaryStage);
+        this.model           = new GameModel(this);
+    }
+
+    public void setPlayer(Player player){
+        this.player = player;
         this.initialPlayerX  = player.getX();
         this.initialPlayerY  = player.getY();
     }
+    public void setLevel(Level level){
+        this.level = level;
+        this.platforms = level.getPlatforms();
+        this.enemies = level.getEnemies();
+        this.decorations = level.getDecorations();
+    }
+
 
     /** Lie les touches aux flags, et gère tirs vs saut. */
-    public void handleInput(Scene scene) {
+    public void handleInput() {
+        Scene scene = this.view.getScene();
         scene.setOnKeyPressed(e -> {
             boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
@@ -184,7 +186,7 @@ public class GameController {
 
         // 4) Passage de niveau lorsque le joueur atteint la fin du level
         if (player.getX() + player.getWidth() >= level.getLevelWidth()) {
-            javafx.application.Platform.runLater(game::nextLevel);
+            javafx.application.Platform.runLater(model::nextLevel);
         }
 
         // 5) Sortie du boss fight si le boss est éliminé

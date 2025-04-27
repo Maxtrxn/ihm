@@ -5,11 +5,15 @@ import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.CacheHint;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
 
@@ -17,9 +21,15 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class GameView {
+    private static final int WIDTH  = 800;
+    private static final int HEIGHT = 600;
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
     private final DoubleProperty cameraY = new SimpleDoubleProperty(0);
     private final GraphicsContext gc;
+    private Pane root;
+    private Scene scene;
+    private Canvas canvas;
+    private GameController controller;
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
@@ -75,9 +85,19 @@ public class GameView {
     private Image spaceshipImage;
     private final double playerOffsetY = 50;
 
-    public GameView(GraphicsContext gc) {
-        this.gc = gc;
-        Canvas canvas = gc.getCanvas();
+    public GameView(GameController controller, Stage primaryStage) {
+        this.controller = controller;
+        root = new Pane();
+        canvas = new Canvas(WIDTH, HEIGHT);
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty());
+        root.getChildren().add(canvas);
+        scene = new Scene(root, WIDTH, HEIGHT);
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
+        primaryStage.setMaximized(true);
+
+        this.gc = canvas.getGraphicsContext2D();
         canvas.setCache(true);
         canvas.setCacheHint(CacheHint.SPEED);
 
@@ -348,5 +368,9 @@ public class GameView {
         this.cachedBackground = null;
         this.cachedWidth  = -1;
         this.cachedHeight = -1;
+    }
+
+    public Scene getScene(){
+        return this.scene;
     }
 }

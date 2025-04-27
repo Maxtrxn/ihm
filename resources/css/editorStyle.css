@@ -1,0 +1,94 @@
+.neon-hbox {
+    -fx-background-color: linear-gradient(to right, #1e1e1e, #2c2c2c, #1e1e1e);
+    -fx-padding: 20;
+    -fx-spacing: 15;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 15, 0.4, 0, 6);
+    -fx-border-color: #ffffff22;
+    -fx-border-width: 1.5;
+}
+
+
+
+
+
+
+.radio-button.neon-radio {
+	
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0.3, 1, 1);
+    -fx-font-size: 16px;
+    -fx-padding: 5 10;
+}
+
+.radio-button.neon-radio .radio {
+    -fx-background-color: transparent;
+    -fx-border-color: #00f5c3;
+    -fx-border-width: 2;
+    -fx-border-radius: 50%;
+    -fx-padding: 3;
+}
+
+.radio-button.neon-radio:selected .radio {
+	-fx-background-color: #008f7a;
+}
+
+.radio-button.neon-radio:selected .radio > .dot {
+	-fx-background-color: #008f7a;
+}
+
+.radio-button.neon-radio:hover .radio {
+    -fx-border-color: #00ffe0;
+    -fx-effect: dropshadow(gaussian, #00ffe088, 6, 0.5, 0, 0);
+}
+
+
+
+
+
+/* Style général du RadioButton Steampunk */
+.radio-button.steampunk-radio {
+    -fx-text-fill: #f7e2c3; /* Texte couleur cuivre */
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 5 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.3, 2, 2); /* Ombre plus nette pour l'aspect "rouillé" */
+}
+
+/* Cercle du RadioButton */
+.radio-button.steampunk-radio .radio {
+    -fx-background-color: transparent;
+    -fx-border-color: #8b5e3c; /* Bord cuivré, couleur métal */
+    -fx-border-width: 3;
+    -fx-border-radius: 50%;
+    -fx-padding: 3;
+}
+
+/* Quand sélectionné, fond métallique cuivré */
+.radio-button.steampunk-radio:selected .radio {
+    -fx-background-color: #f7e2c3;
+}
+
+/* Survol, avec effet lumineux */
+.radio-button.steampunk-radio:hover .radio {
+    -fx-border-color: #c49e6c; /* Bord doré brillant quand on survole */
+    -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0);
+}
+
+/* Cœur du RadioButton quand sélectionné, aspect rouillé cuivré */
+.radio-button.steampunk-radio:selected .radio > .dot {
+    -fx-background-color: #f7e2c3;
+}
+
+
+.steampunk-hbox {
+    -fx-background-color: linear-gradient(to right, #b17f4a, #7f4e2a, #c69c6d);
+    -fx-background-radius: 20;
+    -fx-padding: 20;
+    -fx-spacing: 15;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4); /* Ombre pour effet de métal */
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 3;
+}

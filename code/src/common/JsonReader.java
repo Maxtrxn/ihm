@@ -1,33 +1,47 @@
-// code/src/common/JsonReader.java
 package src.common;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
-
-import javafx.application.Platform;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 import org.json.JSONObject;
 
 public class JsonReader {
-    public static JSONObject getJsonObjectContent(String resourcePath) {
-        try (InputStream in = JsonReader.class
-                 .getClassLoader()
-                 .getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                System.err.println("Ressource introuvable: " + resourcePath);
-                Platform.exit();
-                return null;
+    //Méthode pour lire un fichier JSON
+    private static String readJsonFile(String filePath) {
+        StringBuilder content = new StringBuilder();
+        try {
+            File file = new File(filePath);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                content.append(scanner.nextLine());
             }
-            String json = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
-                            .lines()
-                            .collect(Collectors.joining("\n"));
-            return new JSONObject(json);
-        } catch (Exception e) {
+            scanner.close();
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Platform.exit();
             return null;
+        }
+        return content.toString();
+    }
+
+    public static JSONObject getJsonObjectContent(String filePathFromResources){
+        String jsonContent = readJsonFile("../resources/" + filePathFromResources);
+        
+        if(jsonContent == null){
+            javafx.application.Platform.exit();
+        }   
+        
+        return new JSONObject(jsonContent);
+    }
+
+
+    public static void saveJsonObject(JSONObject object, String filePathFromResources){
+        try (FileWriter file = new FileWriter("../resources/" + filePathFromResources)) {
+            file.write(object.toString(4));
+            file.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

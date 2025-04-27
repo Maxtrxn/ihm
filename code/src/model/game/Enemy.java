@@ -1,5 +1,10 @@
 package src.model.game;
 
+
+import src.common.JsonReader;
+import org.json.JSONObject;
+
+
 public class Enemy {
     private double x, y, width, height, speed;
     private double leftBound, rightBound;
@@ -47,4 +52,15 @@ public class Enemy {
     }
 
 
+    public JSONObject toJSONObject(){
+        JSONObject enemyJSON = new JSONObject();
+        enemyJSON.put("x", this.x);
+        enemyJSON.put("y", this.y);
+        enemyJSON.put("width", this.width);
+        enemyJSON.put("height", this.height);
+        enemyJSON.put("patrolStart", this.leftBound);
+        enemyJSON.put("patrolEnd", this.rightBound);
+
+        return enemyJSON;
+    }
 }

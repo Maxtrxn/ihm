@@ -34,9 +34,9 @@
     "enemies": [],
     "decorations": [
       {
+		"name": "lampadaire1",  
         "x": 1200,
         "y": 36,
-        "image": "file:../textures/lampadaire 1.png"
       }
     ],
     "backgroundImageFileName": "background_level3.png",

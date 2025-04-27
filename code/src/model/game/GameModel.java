@@ -1,5 +1,5 @@
 // src/Game.java
-package src;
+package src.model.game;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class Game extends Application {
+public class GameModel{
     private static final int WIDTH  = 800;
     private static final int HEIGHT = 600;
 
@@ -29,23 +29,11 @@ public class Game extends Application {
     private List<Function<Player, Level>> levelSuppliers;
     private int currentLevelIndex = 0;
 
-    @Override
-    public void start(Stage primaryStage) {
-        this.primaryStage = primaryStage;
+
+    public GameModel(GameController controller){
+        this.controller = controller;
         this.player = new Player(100, 500);
 
-        root = new Pane();
-        canvas = new Canvas(WIDTH, HEIGHT);
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty());
-        root.getChildren().add(canvas);
-        scene = new Scene(root, WIDTH, HEIGHT);
-
-        primaryStage.setTitle("Steampunk Adventure");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(true);
-        primaryStage.setMaximized(true);
-        primaryStage.show();
 
         // Liste des noms de niveaux JSON
         List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5");
@@ -61,27 +49,19 @@ public class Game extends Application {
         loadCurrentLevel();
     }
 
+
     private void loadCurrentLevel() {
         Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
 
-        if (controller != null) {
+        if (currentLevelIndex > 0) {
             controller.stopGameLoop();
         }
 
-        var gc = canvas.getGraphicsContext2D();
-        GameView view = new GameView(gc);
+        controller.setPlayer(player);
+        controller.setLevel(lvl);
 
-        controller = new GameController(
-            player,
-            lvl.getPlatforms(),
-            lvl.getEnemies(),
-            lvl.getDecorations(),
-            view,
-            this,
-            lvl
-        );
 
-        controller.handleInput(scene);
+        controller.handleInput();
         controller.startGameLoop();
     }
 
@@ -97,9 +77,5 @@ public class Game extends Application {
             System.out.println("🎉 Vous avez terminé le jeu !");
             controller.stopGameLoop();
         }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

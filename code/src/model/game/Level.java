@@ -29,13 +29,13 @@ public class Level {
     private double bossZoneStart = Double.NEGATIVE_INFINITY;
     private double bossZoneEnd   = Double.POSITIVE_INFINITY;
 
-    /** Constructeur codé en dur (sans JSON). */
-    public Level(Player player) {
-        this.player      = player;
+    //Constructeur pour initialiser un level pour l'editeur de niveau
+    public Level(double levelWidth, double levelHeight) {
         this.platforms   = new ArrayList<>();
         this.enemies     = new ArrayList<>();
         this.decorations = new ArrayList<>();
-        initialize();
+        this.levelWidth = levelWidth;
+        this.levelHeight = levelHeight;
     }
 
     /** Constructeur JSON : charge "levels/{levelName}.json". */
@@ -47,11 +47,6 @@ public class Level {
         initialize(levelName);
     }
 
-    /** À surcharger pour niveaux codés en dur. */
-    protected void initialize() {
-        // par défaut, rien
-    }
-
     /** Initialise le niveau depuis le JSON correspondant. */
     protected void initialize(String levelName) {
         JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
@@ -60,8 +55,9 @@ public class Level {
         }
 
         // 1) Background + dimensions
-        setBackgroundImage("file:../resources/textures/" + L.getString("backgroundImageFileName"));
-        setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
+        this.backgroundImage = new Image("file:../resources/textures/" + L.getString("backgroundImageFileName"));
+        this.levelWidth  = L.getDouble("levelWidth");
+        this.levelHeight = L.getDouble("levelHeight");
 
         // 2) Plateformes
         JSONArray plats = L.getJSONArray("platforms");
@@ -100,8 +96,7 @@ public class Level {
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
-                Image tex = new Image(d.getString("image"));
-                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), tex));
+                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), d.getString("name")));
             }
         }
 
@@ -127,14 +122,42 @@ public class Level {
     /** Coordonnée X où se termine la zone de boss (infinie si non définie). */
     public double getBossZoneEnd()   { return bossZoneEnd;   }
 
-    // ——— Helpers ———
 
-    protected void setBackgroundImage(String path) {
-        this.backgroundImage = new Image(path);
-    }
+    // ——————————— Setters ———————————
 
-    protected void setLevelDimensions(double w, double h) {
-        this.levelWidth  = w;
-        this.levelHeight = h;
+    public void setBackgroundImage(Image bg) {this.backgroundImage = bg;}
+    public void setLevelWidth(double w) {this.levelWidth = w;}
+    public void setLevelHeight(double h) {this.levelHeight = h;}
+    public void addPlatform(double x, double y, String platformName) {this.platforms.add(new Platform(x, y, platformName));}
+
+
+    // ——————————— Helpers ———————————
+
+    public JSONObject toJSONObject(){
+        JSONObject levelJSON = new JSONObject();
+
+        JSONArray platformsJSON = new JSONArray();
+        for (Platform platform : platforms) {   
+            platformsJSON.put(platform.toJSONObject());
+        }
+        levelJSON.put("platforms", platformsJSON);
+
+        JSONArray enemiesJSON = new JSONArray();
+        for (Enemy enemy : enemies) {   
+            enemiesJSON.put(enemy.toJSONObject());
+        }
+        levelJSON.put("enemies", enemiesJSON);
+
+        JSONArray decorationsJSON = new JSONArray();
+        for (Decoration decoration : decorations) {   
+            decorationsJSON.put(decoration.toJSONObject());
+        }
+        levelJSON.put("enemies", decorationsJSON);
+
+        levelJSON.put("backgroundImage", this.backgroundImage != null ? this.backgroundImage.getUrl() : null);
+        levelJSON.put("levelWidth", this.levelWidth);
+        levelJSON.put("levelHeight", this.levelHeight);
+
+        return levelJSON;
     }
 }

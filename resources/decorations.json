@@ -1,0 +1,18 @@
+{
+  "lampadaire1": {
+    "textureFileName": "lampadaire 1.png",
+	"scaleFactor": 1.0,
+  },
+  "lampadaire2": {
+    "textureFileName": "lampadaire 2.png",
+	"scaleFactor": 1.0,
+  },
+  "lampadaire3": {
+    "textureFileName": "lampadaire 3.png",
+    "scaleFactor": 1.0,
+   },
+   "lampadaire3_dark": {
+    "textureFileName": "lampadaire 3 dark.png",
+    "scaleFactor": 1.0,
+   }
+}
