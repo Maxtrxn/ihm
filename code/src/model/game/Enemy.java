@@ -69,4 +69,14 @@ public class Enemy {
     public void setY(double y) {
         this.y = y;
     }
+
+    public double getSpeed() { 
+        return speed; 
+    }
+    public double getLeftBound() { 
+        return leftBound; 
+    }
+    public double getRightBound() { 
+        return rightBound; 
+    }
 }
