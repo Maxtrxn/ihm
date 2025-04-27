@@ -7,10 +7,13 @@
     "textureFileName": "plateforme cuivre.png",
 	"scaleFactor": 1.0,
   },
+  
   "fragile": {
     "textureFileName": "plateforme cuivre.png",
-	"scaleFactor": 1.0,
+    "crackedTextureFileName": "plateforme_fragile.png",
+    "scaleFactor": 1.0
   },
+
   "brique": {
     "textureFileName": "plateforme brique.png",
     "scaleFactor": 1.0,
