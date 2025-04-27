@@ -14,6 +14,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class Level {
@@ -156,7 +163,38 @@ public class Level {
         }
         levelJSON.put("decorations", decorationsJSON);
 
-        levelJSON.put("backgroundImage", this.backgroundImage != null ? this.backgroundImage.getUrl() : null);
+
+        if(this.backgroundImage == null){
+            levelJSON.put("backgroundImage", "default.png");
+        }else{
+            //On vérifie si le fond de niveau existe déjà dans le dossier des fond
+            //S'il existe c'est que le niveau avait déjà chargé le fond via le dossier
+            //Sinon c'est qu'il a été choisi par l'utilisateur potentiellement dans un
+            //autre dossier, donc il faut le copier dans le dossier des fonds pour 
+            //pouvoir sauvegarder le nom dans le json et le recharger plus tard
+            String backgroundURL = this.backgroundImage.getUrl();
+            String backgroundName = backgroundURL.substring(backgroundURL.lastIndexOf('/') + 1);
+            File backgroundFile = new File(ResourcesPaths.BACKGROUNDS_FOLDER + backgroundName);
+            if(!backgroundFile.exists()){
+                try (InputStream in = URI.create(backgroundURL).toURL().openStream();
+                    OutputStream out = new FileOutputStream(backgroundFile)) {
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            levelJSON.put("backgroundImage", backgroundName);
+        }
+
+
         levelJSON.put("levelWidth", this.levelWidth);
         levelJSON.put("levelHeight", this.levelHeight);
 

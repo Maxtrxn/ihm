@@ -81,8 +81,8 @@ public class GameEditorView extends BorderPane{
 
     public void updateBackground(Image image){
         if(this.center != null){
-            this.center.setMapBackground(image);
             this.controller.updateBackground(image);
+            this.center.showLevel();
         }
     }
 

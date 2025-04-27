@@ -5,15 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -180,24 +174,6 @@ public class MapEditor extends ScrollPane{
         }
     }
 
-    public void setMapBackground(Image image){
-        double newHeight = gridPane.getHeight();
-        double ratio = newHeight / image.getHeight(); 
-        double newWidth = image.getWidth() * ratio;
-        
-        //On la transforme maintenant en BackgroundImage ce qui permet de la faire se répéter horizontalement dans le fond
-        //et on lui donne la nouvelle taille qu'on a calculé avant. 
-        BackgroundImage backgroundImage = new BackgroundImage(
-            image,
-            BackgroundRepeat.REPEAT,
-            BackgroundRepeat.NO_REPEAT,
-            BackgroundPosition.DEFAULT,
-            new BackgroundSize(newWidth,newHeight,false, false,false, false)
-        );
-
-        gridPane.setBackground(new Background(backgroundImage));
-    }
-
 
     public void showOneLayer(int visibleLayer){
         hideAllLayers();
@@ -246,9 +222,17 @@ public class MapEditor extends ScrollPane{
     public void showLevel(){
         Level level = this.parent.getController().getLevel();
 
+        this.backgroundLayer.getChildren().clear();
+        ImageView bg = new ImageView(level.getBackgroundImage());
+        this.backgroundLayer.getChildren().add(bg);
+        bg.setLayoutX(0);
+        bg.setLayoutY(0);
+        
         this.mainLayer.getChildren().clear();
         for (Platform platform : level.getPlatforms()) {
             ImageView temp = new ImageView(platform.getTexture());
+            temp.setFitWidth(platform.getWidth());
+            temp.setFitHeight(platform.getHeight());
             this.mainLayer.getChildren().add(temp);
             temp.setLayoutX(platform.getX());
             temp.setLayoutY(platform.getY());
@@ -257,6 +241,8 @@ public class MapEditor extends ScrollPane{
         this.behindLayer.getChildren().clear();
         for (Decoration decoration : level.getDecorations()) {
             ImageView temp = new ImageView(decoration.getTexture());
+            temp.setFitWidth(decoration.getWidth());
+            temp.setFitHeight(decoration.getHeight());
             this.behindLayer.getChildren().add(temp);
             temp.setLayoutX(decoration.getX());
             temp.setLayoutY(decoration.getY());

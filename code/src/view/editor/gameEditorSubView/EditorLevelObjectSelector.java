@@ -40,7 +40,10 @@ public class EditorLevelObjectSelector extends VBox{
             if(newValue == null || newValue.getTexture() == null){
                 parent.updateSelectedLevelObject(null, null, null);
             }else{
-                parent.updateSelectedLevelObject(newValue.getLevelObjectNameLabel().getText(), newValue.getLevelObjectType(), new ImageView(newValue.getTexture()));
+                ImageView withoutScaleFactor = new ImageView(newValue.getTexture());
+                withoutScaleFactor.setFitWidth(newValue.getTexture().getWidth() * newValue.getTextureScaleFactor());
+                withoutScaleFactor.setFitHeight(newValue.getTexture().getHeight() * newValue.getTextureScaleFactor());
+                parent.updateSelectedLevelObject(newValue.getLevelObjectNameLabel().getText(), newValue.getLevelObjectType(), withoutScaleFactor) ;
             }
         });
 
@@ -93,6 +96,7 @@ public class EditorLevelObjectSelector extends VBox{
 class LevelObjectSelectorItem extends VBox{
     private Label levelObjectNameLabel;
     private Image texture;
+    private double textureScaleFactor;
     private LevelObjectType levelObjectType;
 
 
@@ -127,6 +131,8 @@ class LevelObjectSelectorItem extends VBox{
             default:
                 break;
         }
+
+        this.textureScaleFactor = obj.getDouble("scaleFactor");
         
         ImageView texturePreview = new ImageView(this.texture);
         this.levelObjectNameLabel = new Label(levelObjectName);
@@ -137,6 +143,7 @@ class LevelObjectSelectorItem extends VBox{
     }
 
     public Image getTexture(){return this.texture;}
+    public double getTextureScaleFactor(){return this.textureScaleFactor;};
     public Label getLevelObjectNameLabel(){return this.levelObjectNameLabel;}
     public LevelObjectType getLevelObjectType(){return this.levelObjectType;}
 }
