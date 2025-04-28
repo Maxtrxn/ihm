@@ -1,7 +1,7 @@
 package src.model.game;
 
 import src.common.JsonReader;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 
 import org.json.JSONObject;
 
@@ -9,15 +9,13 @@ import javafx.scene.image.Image;
 
 
 public class Enemy extends LevelObject{
-    protected static JSONObject enemiesJson = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "enemies.json");
-
     private double speed;
     private double leftBound, rightBound;
     private boolean movingRight = true;
 
 
     public Enemy(double x, double y, double speed, double leftBound, double rightBound, String name) {
-        super(x, y, name, enemiesJson, ResourcesPaths.ENEMIES_FOLDER);
+        super(x, y, name, ResourceManager.ENEMIES_JSON, ResourceManager.ENEMIES_FOLDER);
         this.speed = speed;
         this.leftBound = leftBound;
         this.rightBound = rightBound;

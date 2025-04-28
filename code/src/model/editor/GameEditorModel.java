@@ -4,7 +4,7 @@ package src.model.editor;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import src.common.JsonReader;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 import src.controller.editor.GameEditorController;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
@@ -36,6 +36,7 @@ public class GameEditorModel{
     public void setLevelBackground(Image bg){this.level.setBackgroundImage(bg);}
     public Level getLevel(){return this.level;}
     public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
+    public String getLevelName(){return this.levelName;}
 
 
     public void addPlatform(double x, double y){
@@ -59,11 +60,11 @@ public class GameEditorModel{
     public void saveLevel(boolean overwrite){
         JSONObject levelJSON = level.toJSONObject();
 
-        JsonReader.saveJsonObject(levelJSON, ResourcesPaths.LEVELS_FOLDER + levelName + ".json", overwrite);
+        JsonReader.saveJsonObject(levelJSON, ResourceManager.LEVELS_FOLDER + levelName + ".json", overwrite);
     }
 
     public void deleteLevel(String levelName){
-        File levelFile = new File(ResourcesPaths.LEVELS_FOLDER + levelName + ".json");
+        File levelFile = new File(ResourceManager.LEVELS_FOLDER + levelName + ".json");
 
         if (levelFile.exists()) levelFile.delete();
     }

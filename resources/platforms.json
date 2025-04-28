@@ -2,55 +2,68 @@
   "acier": {
     "textureFileName": "plateforme_acier_1.png",
 	"scaleFactor": 0.3,
+	"type": "PLATFORM"
   },
   "cuivre": {
     "textureFileName": "plateforme cuivre.png",
 	"scaleFactor": 1.0,
+	"type": "PLATFORM"
   },
   
   "fragile": {
     "textureFileName": "plateforme cuivre.png",
 	"scaleFactor": 1.0,
+	"type": "FRAGILE_PLATFORM"
   },
 
   "brique": {
     "textureFileName": "plateforme brique.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "brique_sombre": {
     "textureFileName": "plateforme brique sombres.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "sol_brique_sombre": {
     "textureFileName": "sol brique sombre.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "sol_brique_tres_sombre": {
     "textureFileName": "sol brique tres sombre.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "sol_brique_tres_tres_sombre": {
     "textureFileName": "sol brique tres tres sombre.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "murret": {
     "textureFileName": "murret.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "sol": {
     "textureFileName": "sol.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
    "sol_brique": {
     "textureFileName": "sol brique.png",
     "scaleFactor": 1.0,
+	"type": "PLATFORM"
    },
     "sol bronze": {
       "textureFileName": "sol bronze.png",
       "scaleFactor": 1.0,
+	  "type": "PLATFORM"
     },
     "sol pierre": {
       "textureFileName": "sol pierre.png",
       "scaleFactor": 1.0,
+	  "type": "PLATFORM"
     }
 }

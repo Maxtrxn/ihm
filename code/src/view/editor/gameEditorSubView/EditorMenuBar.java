@@ -64,8 +64,17 @@ public class EditorMenuBar extends MenuBar{
         MenuItem collerItem = new MenuItem("Coller");
         editionMenu.getItems().addAll(copierItem, collerItem);
 
+
+        //Création du menu "Niveau"
+        Menu levelMenu = new Menu("Niveau");
+        //Création des éléments que contient "Édition"
+        MenuItem levelPropertyItem = new MenuItem("Propriétés du niveau");
+        MenuItem testLevelItem = new MenuItem("Tester le niveau");
+        testLevelItem.setOnAction(e -> testLevelItemAction());
+        levelMenu.getItems().addAll(levelPropertyItem, testLevelItem);
+
         //On ajoute les menus à la barre
-        this.getMenus().addAll(fichierMenu, parametresMenu, editionMenu);
+        this.getMenus().addAll(fichierMenu, parametresMenu, editionMenu, levelMenu);
     }
 
 
@@ -287,6 +296,26 @@ public class EditorMenuBar extends MenuBar{
         if(levelName[0] != null){
             this.parent.getController().deleteLevel(levelName[0]);
         }
+    }
+
+
+    public void testLevelItemAction(){
+        if(this.parent.getCenter() != null){
+            this.parent.getController().saveLevel(true);
+
+        
+            Stage gameStage = new Stage();
+            gameStage.initModality(Modality.APPLICATION_MODAL);
+            gameStage.setTitle("Test du niveau");
+            this.parent.getController().testLevel(gameStage);
+        }else{
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de le tester");
+            alert.showAndWait();
+            return;
+        } 
     }
 }
 

@@ -63,6 +63,12 @@ public class GameController {
         updateLivesDisplay();
     }
 
+    public GameController(Stage primaryStage, String levelName) {
+        this.view  = new GameView(this, primaryStage);
+        this.model = new GameModel(this, levelName);
+        updateLivesDisplay();
+    }
+
     /** Sets the player and its respawn point. */
     public void setPlayer(Player player) {
         this.player = player;

@@ -24,29 +24,15 @@
             "x": 2800,
             "y": 426,
             "speed": 60
-        },
-        {
-            "patrolEnd": 3220,
-            "patrolStart": 3020,
-            "name": "boss1",
-            "x": 3120,
-            "y": 352,
-            "speed": 20
-        },
-        {
-            "patrolEnd": 2660,
-            "patrolStart": 2460,
-            "name": "boss1",
-            "x": 2560,
-            "y": 352,
-            "speed": 20
         }
     ],
-    "decorations": [{
-        "name": "lampadaire1",
-        "x": 1200,
-        "y": 36
-    }],
+    "decorations": [
+        {
+            "name": "lampadaire1",
+            "x": 1200,
+            "y": 36
+        }
+    ],
     "bossZone": {
         "endX": 3900,
         "startX": 2100

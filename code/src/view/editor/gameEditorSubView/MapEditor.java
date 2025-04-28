@@ -34,7 +34,7 @@ import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
 import src.view.editor.GameEditorView;
-import src.view.editor.GameEditorView.LevelObjectType;
+import src.controller.editor.GameEditorController.LevelObjectType;
 
 public class MapEditor extends ScrollPane{
     private Rectangle[][] rectangles;
@@ -99,6 +99,8 @@ public class MapEditor extends ScrollPane{
         correspondingPane.put(LevelObjectType.PLATFORM, this.mainLayer);
         correspondingPane.put(LevelObjectType.DECORATION, this.behindLayer);
         correspondingPane.put(LevelObjectType.ENEMY, this.mainLayer);
+        correspondingPane.put(LevelObjectType.FRAGILE_PLATFORM, this.mainLayer);
+        correspondingPane.put(LevelObjectType.BOSS, this.mainLayer);
 
         initializeGridPane();
         showLevel();
@@ -164,13 +166,16 @@ public class MapEditor extends ScrollPane{
 
                     if(this.selectedLevelObjectImage != null){
                         this.selectedRectangle = null;
+
                         switch (this.selectedLevelObjectType) {
+                            case LevelObjectType.FRAGILE_PLATFORM:
                             case LevelObjectType.PLATFORM:
                                 this.parent.getController().addPlatform(levelObjectX, levelObjectY);
                                 break;
                             case LevelObjectType.DECORATION:
                                 this.parent.getController().addDecoration(levelObjectX, levelObjectY, false);
                                 break;
+                            case LevelObjectType.BOSS:
                             case LevelObjectType.ENEMY:
                                 handleEnemyPlacement(levelObjectX, levelObjectY);
                                 break;

@@ -11,14 +11,11 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import src.controller.editor.GameEditorController.LevelObjectType;
 
 
 
 public class GameEditorView extends BorderPane{
-    public enum LevelObjectType {
-        PLATFORM, DECORATION, ENEMY, BOSS;
-    }
-
     private final GameEditorController controller;
     private MapEditor center = null;
     private EditorMenuBar top = null;

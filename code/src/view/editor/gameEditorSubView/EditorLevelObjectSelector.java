@@ -8,7 +8,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import src.common.JsonReader;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 import src.view.editor.GameEditorView;
 import javafx.scene.image.Image;
 
@@ -17,7 +17,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.Set;
 
-import src.view.editor.GameEditorView.LevelObjectType;
+import src.controller.editor.GameEditorController.LevelObjectType;
 
 import org.json.JSONObject;
 
@@ -48,31 +48,40 @@ public class EditorLevelObjectSelector extends VBox{
         });
 
         //Chargement des plateformes dans le ListView
-        JSONObject platformsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "platforms.json");
+        JSONObject platformsObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
         levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Plateformes"));
         Set<String> keys = platformsObjects.keySet();
         for (String name : keys) {
-            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, platformsObjects, LevelObjectType.PLATFORM);
+            JSONObject platform = platformsObjects.getJSONObject(name);
+            String typeStr = platform.getString("type");
+            LevelObjectType type = LevelObjectType.valueOf(typeStr);
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, platformsObjects, type);
             levelObjectSelector.getItems().add(temp);
         }
 
         //Chargement des decorations dans le ListView
-        JSONObject decorationsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "decorations.json");
+        JSONObject decorationsObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "decorations.json");
         levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Décorations"));
         keys.clear();
         keys = decorationsObjects.keySet();
         for (String name : keys) {
-            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, decorationsObjects, LevelObjectType.DECORATION);
+            JSONObject decoration = decorationsObjects.getJSONObject(name);
+            String typeStr = decoration.getString("type");
+            LevelObjectType type = LevelObjectType.valueOf(typeStr);
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, decorationsObjects, type);
             levelObjectSelector.getItems().add(temp);
         }
         
         //Chargement des ennemis dans le ListView
-        JSONObject enemiesObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "enemies.json");
+        JSONObject enemiesObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "enemies.json");
         levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Ennemis"));
         keys.clear();
         keys = enemiesObjects.keySet();
         for (String name : keys) {
-            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, enemiesObjects, LevelObjectType.ENEMY);
+            JSONObject enemy = enemiesObjects.getJSONObject(name);
+            String typeStr = enemy.getString("type");
+            LevelObjectType type = LevelObjectType.valueOf(typeStr);
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, enemiesObjects, type);
             levelObjectSelector.getItems().add(temp);
         }
 
@@ -126,14 +135,16 @@ class LevelObjectSelectorItem extends VBox{
         String levelObjectTextureFileName = obj.getString("textureFileName");
 
         switch (levelObjectType) {
-            case GameEditorView.LevelObjectType.PLATFORM:
-                this.texture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + levelObjectTextureFileName);
+            case LevelObjectType.FRAGILE_PLATFORM:
+            case LevelObjectType.PLATFORM:
+                this.texture = new Image("file:" + ResourceManager.PLATFORMS_FOLDER + levelObjectTextureFileName);
                 break;
-            case GameEditorView.LevelObjectType.DECORATION:
-                this.texture = new Image("file:" + ResourcesPaths.DECORATIONS_FOLDER + levelObjectTextureFileName);
+            case LevelObjectType.DECORATION:
+                this.texture = new Image("file:" + ResourceManager.DECORATIONS_FOLDER + levelObjectTextureFileName);
                 break;
-            case GameEditorView.LevelObjectType.ENEMY:
-                this.texture = new Image("file:" + ResourcesPaths.ENEMIES_FOLDER + levelObjectTextureFileName);
+            case LevelObjectType.BOSS:
+            case LevelObjectType.ENEMY:
+                this.texture = new Image("file:" + ResourceManager.ENEMIES_FOLDER + levelObjectTextureFileName);
                 break;
             default:
                 break;

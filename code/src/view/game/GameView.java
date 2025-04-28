@@ -17,7 +17,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
@@ -108,7 +108,7 @@ public class GameView {
 
         try {
             // Engrenage
-            gearSpriteSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "engrenage_animation-Sheet.png");
+            gearSpriteSheet = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "engrenage_animation-Sheet.png");
             if (!gearSpriteSheet.isError()) {
                 gearFrameHeight = (int) gearSpriteSheet.getHeight();
                 gearFrameWidth  = gearFrameHeight;
@@ -118,7 +118,7 @@ public class GameView {
             }
 
             // Joueur Idle
-            playerIdleSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "static wrench-Sheet.png");
+            playerIdleSheet = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "static wrench-Sheet.png");
             if (!playerIdleSheet.isError()) {
                 idleFrameHeight = (int) playerIdleSheet.getHeight();
                 idleFrameWidth  = idleFrameHeight;
@@ -128,7 +128,7 @@ public class GameView {
             }
 
             // Joueur Walk
-            playerWalkSheet = new Image("file:"+ ResourcesPaths.TEXTURES_FOLDER +"sprite sheet wrench walking.png");
+            playerWalkSheet = new Image("file:"+ ResourceManager.TEXTURES_FOLDER +"sprite sheet wrench walking.png");
             if (!playerWalkSheet.isError()) {
                 walkFrameHeight = (int) playerWalkSheet.getHeight();
                 walkFrameWidth  = walkFrameHeight;
@@ -138,7 +138,7 @@ public class GameView {
             }
 
             // Joueur Jump
-            playerJumpSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "jump2 wrench-Sheet.png");
+            playerJumpSheet = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "jump2 wrench-Sheet.png");
             if (!playerJumpSheet.isError()) {
                 jumpFrameHeight = (int) playerJumpSheet.getHeight();
                 jumpFrameWidth  = jumpFrameHeight;
@@ -148,7 +148,7 @@ public class GameView {
             }
 
             // Sprite vaisseau
-            spaceshipImage = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "dirigeable v1.png");
+            spaceshipImage = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "dirigeable v1.png");
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
         }

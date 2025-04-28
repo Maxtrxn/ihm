@@ -5,7 +5,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 import src.model.game.Platform;
 import src.model.game.Player;
 import org.json.JSONObject;
@@ -19,7 +19,7 @@ public class FragilePlatform extends Platform {
     public FragilePlatform(double x, double y, String name){
         super(x, y, name);
 
-        this.fragileTexture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + "fragile_overlay.png");
+        this.fragileTexture = new Image("file:" + ResourceManager.PLATFORMS_FOLDER + "fragile_overlay.png");
 
 
         //Créer une copie modifiable de la texture de base pour pouvoir superposer l'image

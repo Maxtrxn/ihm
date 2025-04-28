@@ -3,12 +3,13 @@ package src.model.game;
 
 import javafx.scene.image.Image;
 import src.common.JsonReader;
-import src.common.ResourcesPaths;
+import src.common.ResourceManager;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
 import src.model.game.Platform;
 import src.model.game.Player;
 import src.model.game.platforms.FragilePlatform;
+import src.controller.editor.GameEditorController.LevelObjectType;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -58,13 +59,13 @@ public class Level {
 
     /** Initialise le niveau depuis le JSON correspondant. */
     protected void initialize(String levelName) {
-        JSONObject L = JsonReader.getJsonObjectContent(ResourcesPaths.LEVELS_FOLDER + levelName + ".json");
+        JSONObject L = JsonReader.getJsonObjectContent(ResourceManager.LEVELS_FOLDER + levelName + ".json");
         if (L == null) {
             throw new IllegalStateException("Impossible de charger le JSON pour le niveau : " + levelName);
         }
 
         // 1) Background + dimensions
-        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourcesPaths.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
+        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourceManager.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
         this.levelWidth  = L.getDouble("levelWidth");
         this.levelHeight = L.getDouble("levelHeight");
 
@@ -75,10 +76,13 @@ public class Level {
             String name = p.getString("name");
             double x     = p.getDouble("x");
             double y     = p.getDouble("y");
-            String type = p.has("type") ? p.getString("type") : null;
-            if ("FragilePlatform".equals(type)) {
+
+            JSONObject platformJSON = ResourceManager.PLATFORMS_JSON.getJSONObject(name);
+            String typeStr = platformJSON.getString("type");
+            LevelObjectType type = LevelObjectType.valueOf(typeStr);
+            if(type == LevelObjectType.FRAGILE_PLATFORM){
                 platforms.add(new FragilePlatform(x, y, name));
-            } else {
+            }else if(type == LevelObjectType.PLATFORM){
                 platforms.add(new Platform(x, y, name));
             }
         }
@@ -93,10 +97,13 @@ public class Level {
             double speed       = e.getDouble("speed");
             double patrolStart = e.getDouble("patrolStart");
             double patrolEnd   = e.getDouble("patrolEnd");
-            String type     = e.getString("type");
-            if ("Boss".equals(type)) {
+
+            JSONObject enemyJSON = ResourceManager.ENEMIES_JSON.getJSONObject(name);
+            String typeStr = enemyJSON.getString("type");
+            LevelObjectType type = LevelObjectType.valueOf(typeStr);
+            if(type == LevelObjectType.BOSS){
                 enemies.add(new Boss(x, y, speed, patrolStart, patrolEnd, name));
-            } else {
+            }else if(type == LevelObjectType.ENEMY){
                 enemies.add(new Enemy(x, y, speed, patrolStart, patrolEnd, name));
             }
         }
@@ -105,7 +112,16 @@ public class Level {
         if (L.has("decorations")) {
             for (Object o : L.getJSONArray("decorations")) {
                 JSONObject d = (JSONObject) o;
-                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), d.getString("name")));
+                double x = d.getDouble("x");
+                double y =  d.getDouble("y");
+                String name = d.getString("name");
+
+                JSONObject decorationJSON = ResourceManager.DECORATIONS_JSON.getJSONObject(name);
+                String typeStr = decorationJSON.getString("type");
+                LevelObjectType type = LevelObjectType.valueOf(typeStr);
+                if(type == LevelObjectType.DECORATION){
+                    decorations.add(new Decoration(x, y, name));
+                }
             }
         }
 
@@ -183,7 +199,7 @@ public class Level {
             //pouvoir sauvegarder le nom dans le json et le recharger plus tard
             String backgroundURL = this.backgroundImage.getUrl();
             String backgroundName = backgroundURL.substring(backgroundURL.lastIndexOf('/') + 1);
-            File backgroundFile = new File(ResourcesPaths.BACKGROUNDS_FOLDER + backgroundName);
+            File backgroundFile = new File(ResourceManager.BACKGROUNDS_FOLDER + backgroundName);
             if(!backgroundFile.exists()){
                 try (InputStream in = URI.create(backgroundURL).toURL().openStream();
                     OutputStream out = new FileOutputStream(backgroundFile)) {

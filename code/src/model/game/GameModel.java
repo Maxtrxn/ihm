@@ -45,6 +45,22 @@ public class GameModel{
         loadCurrentLevel();
     }
 
+    public GameModel(GameController controller, String levelName){
+        this.controller = controller;
+        this.player = new Player(100, 500);
+
+
+        // Liste des noms de niveaux JSON
+        List<String> levelNames = List.of(levelName);
+        levelSuppliers = new ArrayList<>();
+
+        // Instancie Level(player, name) pour chaque JSON
+        for (String name : levelNames) {
+            levelSuppliers.add(p -> new Level(p, name));
+        }
+        loadCurrentLevel();
+    }
+
 
     private void loadCurrentLevel() {
         Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);

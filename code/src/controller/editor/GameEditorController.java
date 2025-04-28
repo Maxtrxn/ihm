@@ -3,6 +3,7 @@ package src.controller.editor;
 
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import src.controller.game.GameController;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
 import src.model.game.LevelObject;
@@ -10,6 +11,9 @@ import src.view.editor.GameEditorView;
 
 
 public class GameEditorController{
+    public enum LevelObjectType {
+        PLATFORM, FRAGILE_PLATFORM, DECORATION, ENEMY, BOSS;
+    }
     private GameEditorModel model = null;
     private GameEditorView view = null;
     
@@ -44,6 +48,10 @@ public class GameEditorController{
     public void loadLevel(String levelName){
         this.model.loadLevel(levelName);
         this.view.initLevel(getLevel(), levelName);
+    }
+
+    public void testLevel(Stage gameStage){
+        new GameController(gameStage, this.model.getLevelName());
     }
 
 
