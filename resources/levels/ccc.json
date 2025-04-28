@@ -1,0 +1,61 @@
+{
+    "levelWidth": 6400,
+    "enemies": [{
+        "patrolEnd": 964,
+        "patrolStart": 764,
+        "name": "enemy1",
+        "x": 864,
+        "y": 544,
+        "speed": 20
+    }],
+    "decorations": [],
+    "backgroundImageFileName": "default.png",
+    "levelHeight": 640,
+    "platforms": [
+        {
+            "name": "sol_brique_sombre",
+            "x": 160,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 320,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 480,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 640,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 800,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 960,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 0,
+            "y": 624
+        },
+        {
+            "name": "fragile",
+            "x": 304,
+            "y": 592
+        },
+        {
+            "name": "brique_sombre",
+            "x": 368,
+            "y": 432
+        }
+    ]
+}

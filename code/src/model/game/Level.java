@@ -223,10 +223,13 @@ public class Level {
         levelJSON.put("levelWidth", this.levelWidth);
         levelJSON.put("levelHeight", this.levelHeight);
 
-        JSONObject bossZoneJSON = new JSONObject();
-        bossZoneJSON.put("startX", this.bossZoneStart);
-        bossZoneJSON.put("endX", this.bossZoneEnd);
-        levelJSON.put("bossZone", bossZoneJSON);
+        //On ajoute la zone de boss dans le json que si il y a des valeurs spécifique.
+        if(this.bossZoneStart != Double.NEGATIVE_INFINITY){
+            JSONObject bossZoneJSON = new JSONObject();
+            bossZoneJSON.put("startX", this.bossZoneStart);
+            bossZoneJSON.put("endX", this.bossZoneEnd);
+            levelJSON.put("bossZone", bossZoneJSON);
+        }
 
         return levelJSON;
     }

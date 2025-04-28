@@ -303,11 +303,11 @@ public class EditorMenuBar extends MenuBar{
         if(this.parent.getCenter() != null){
             this.parent.getController().saveLevel(true);
 
-        
             Stage gameStage = new Stage();
             gameStage.initModality(Modality.APPLICATION_MODAL);
             gameStage.setTitle("Test du niveau");
             this.parent.getController().testLevel(gameStage);
+            gameStage.showAndWait();
         }else{
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Information");
