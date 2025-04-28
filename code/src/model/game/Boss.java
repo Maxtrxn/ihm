@@ -17,9 +17,8 @@ public class Boss extends Enemy {
     private static final int MAX_HITS  = 3;
     private double hitTimer  = 0.0;
 
-    public Boss(double x, double y, double width, double height,
-                double speed, double leftBound, double rightBound) {
-        super(x, y, width, height, speed, leftBound, rightBound);
+    public Boss(double x, double y, double speed, double leftBound, double rightBound, String name) {
+        super(x, y, speed, leftBound, rightBound, name);
         this.groundY   = y;
         this.onGround  = true;
         this.jumpTimer = JUMP_COOLDOWN; // prêt à sauter immédiatement

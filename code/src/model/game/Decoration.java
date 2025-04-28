@@ -12,6 +12,6 @@ public class Decoration extends LevelObject{
 
 
     public Decoration(double x, double y, String name) {
-        super(x, y, name, decorationsJson, "decorations");
+        super(x, y, name, decorationsJson, ResourcesPaths.DECORATIONS_FOLDER);
     }
 }

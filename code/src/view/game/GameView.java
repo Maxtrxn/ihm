@@ -8,7 +8,11 @@ import javafx.scene.CacheHint;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.ColorInput;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -336,25 +340,26 @@ public class GameView {
         }
 
         
-
         // 4) Ennemis + boss
         for (Enemy e : enemies) {
             double ex = e.getX() - cameraX.get();
             double ey = e.getY() - cameraY.get();
             double ew = e.getWidth(), eh = e.getHeight();
-            if (e instanceof Boss && ((Boss) e).isHit()) {
-                gc.setFill(Color.RED);
-            } else {
-                gc.setFill(Color.GREEN);
-            }
-
             Image img = e.getTexture();
-            if(img != null){
+            if (e instanceof Boss && ((Boss) e).isHit()) {
+                ImageView temp = new ImageView(img);
+                Blend blend = new Blend(
+                    BlendMode.HARD_LIGHT,
+                    null,
+                    new ColorInput(0, 0, e.getWidth(), e.getHeight(), Color.color(1.0, 0.0, 0.0, 0.7))
+                );
+                temp.setEffect(blend);
+                WritableImage writableImage = new WritableImage((int) img.getWidth(), (int) img.getHeight());
+                temp.snapshot(null, writableImage);
+                gc.drawImage(writableImage, ex, ey, ew, eh);
+            } else {
                 gc.drawImage(img, ex, ey, ew, eh);
-            }else{
-                gc.fillRect(ex, ey, ew, eh);
             }
-            
         }
 
         // 5) Projectiles (mode vaisseau)

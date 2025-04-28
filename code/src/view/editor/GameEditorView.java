@@ -16,7 +16,7 @@ import javafx.scene.image.ImageView;
 
 public class GameEditorView extends BorderPane{
     public enum LevelObjectType {
-        PLATFORM, DECORATION, ENEMY;
+        PLATFORM, DECORATION, ENEMY, BOSS;
     }
 
     private final GameEditorController controller;

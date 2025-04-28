@@ -13,6 +13,6 @@ public class Platform extends LevelObject{
 
 
     public Platform(double x, double y, String name) {
-        super(x, y, name, platformsJson, "platforms");
+        super(x, y, name, platformsJson, ResourcesPaths.PLATFORMS_FOLDER);
     }
 }

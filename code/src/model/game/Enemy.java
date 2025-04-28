@@ -8,38 +8,17 @@ import org.json.JSONObject;
 import javafx.scene.image.Image;
 
 
-public class Enemy {
+public class Enemy extends LevelObject{
     protected static JSONObject enemiesJson = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "enemies.json");
 
-    private double x, y, width, height, speed;
-    private String name;
-    protected Image texture = null;
+    private double speed;
     private double leftBound, rightBound;
     private boolean movingRight = true;
 
 
     public Enemy(double x, double y, double speed, double leftBound, double rightBound, String name) {
-        this.name = name;
-        this.x = x;
-        this.y = y;
+        super(x, y, name, enemiesJson, ResourcesPaths.ENEMIES_FOLDER);
         this.speed = speed;
-        this.leftBound = leftBound;
-        this.rightBound = rightBound;
-
-        JSONObject enemyJson = enemiesJson.getJSONObject(name);
-        this.texture = new Image("file:" + ResourcesPaths.ENEMIES_FOLDER + enemyJson.getString("textureFileName"));
-        double scaleFactor = enemyJson.getDouble("scaleFactor");
-        this.width = texture.getWidth() * scaleFactor;
-        this.height = texture.getHeight() * scaleFactor;
-    }
-
-
-    public Enemy(double x, double y, double width, double height, double speed, double leftBound, double rightBound) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.speed = speed * 60;
         this.leftBound = leftBound;
         this.rightBound = rightBound;
     }
@@ -79,11 +58,9 @@ public class Enemy {
         }
     }
 
+    @Override
     public JSONObject toJSONObject(){
-        JSONObject enemyJSON = new JSONObject();
-        enemyJSON.put("name", this.name);
-        enemyJSON.put("x", this.x);
-        enemyJSON.put("y", this.y);
+        JSONObject enemyJSON = super.toJSONObject();
         enemyJSON.put("patrolStart", this.leftBound);
         enemyJSON.put("patrolEnd", this.rightBound);
         enemyJSON.put("speed", this.speed);

@@ -1,7 +1,9 @@
 package src.view.editor.gameEditorSubView;
 
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javafx.scene.Scene;
@@ -10,6 +12,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.ColorInput;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -25,6 +31,7 @@ import javafx.stage.Stage;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
 import src.model.game.Level;
+import src.model.game.LevelObject;
 import src.model.game.Platform;
 import src.view.editor.GameEditorView;
 import src.view.editor.GameEditorView.LevelObjectType;
@@ -146,18 +153,17 @@ public class MapEditor extends ScrollPane{
                 rect.setOnMousePressed((MouseEvent e) -> {
                     if(this.selectedRectangle != null) this.selectedRectangle.setFill(this.DEFAULT_COLOR);
                     
+                    Integer col = GridPane.getColumnIndex(rect);
+                    Integer row = GridPane.getRowIndex(rect);
+
+                    int colIndex = (col == null) ? 0 : col;
+                    int rowIndex = (row == null) ? 0 : row;
+
+                    double levelObjectX = colIndex * cellSize;
+                    double levelObjectY = rowIndex * cellSize;
 
                     if(this.selectedLevelObjectImage != null){
                         this.selectedRectangle = null;
-                        Integer col = GridPane.getColumnIndex(rect);
-                        Integer row = GridPane.getRowIndex(rect);
-
-                        int colIndex = (col == null) ? 0 : col;
-                        int rowIndex = (row == null) ? 0 : row;
-
-                        double levelObjectX = colIndex * cellSize;
-                        double levelObjectY = rowIndex * cellSize;
-
                         switch (this.selectedLevelObjectType) {
                             case LevelObjectType.PLATFORM:
                                 this.parent.getController().addPlatform(levelObjectX, levelObjectY);
@@ -171,12 +177,15 @@ public class MapEditor extends ScrollPane{
                             default:
                                 break;
                         }
-                        showLevel();
+                        
                         
                     }else{
+                        //On envoie le centre du rectangle pour les coordonnées de la selection
+                        this.parent.getController().clickSelectLevelObject(levelObjectX + cellSize/2, levelObjectY + cellSize/2);
                         this.selectedRectangle = rect;
                         rect.setFill(this.SELECT_COLOR);
                     }
+                    showLevel();
                 });
                 gridPane.add(rect, j, i);
                 rectangles[i][j] = rect;
@@ -283,32 +292,32 @@ public class MapEditor extends ScrollPane{
         bg.setLayoutY(0);
         
         this.mainLayer.getChildren().clear();
-        for (Platform platform : level.getPlatforms()) {
-            ImageView temp = new ImageView(platform.getTexture());
-            temp.setFitWidth(platform.getWidth());
-            temp.setFitHeight(platform.getHeight());
-            this.mainLayer.getChildren().add(temp);
-            temp.setLayoutX(platform.getX());
-            temp.setLayoutY(platform.getY());
-        }
-
-        for (Enemy enemy : level.getEnemies()) {
-            ImageView temp = new ImageView(enemy.getTexture());
-            temp.setFitWidth(enemy.getWidth());
-            temp.setFitHeight(enemy.getHeight());
-            this.mainLayer.getChildren().add(temp);
-            temp.setLayoutX(enemy.getX());
-            temp.setLayoutY(enemy.getY());
-        }
-
         this.behindLayer.getChildren().clear();
-        for (Decoration decoration : level.getDecorations()) {
-            ImageView temp = new ImageView(decoration.getTexture());
-            temp.setFitWidth(decoration.getWidth());
-            temp.setFitHeight(decoration.getHeight());
-            this.behindLayer.getChildren().add(temp);
-            temp.setLayoutX(decoration.getX());
-            temp.setLayoutY(decoration.getY());
+        this.foregroundLayer.getChildren().clear();
+
+
+        LevelObject clickSelectedLevelObject = this.parent.getController().getClickSelectedLevelObject();
+        for(LevelObject levelObject : level.getLevelObjects()){
+            ImageView temp = new ImageView(levelObject.getTexture());
+            temp.setFitWidth(levelObject.getWidth());
+            temp.setFitHeight(levelObject.getHeight());
+            temp.setLayoutX(levelObject.getX());
+            temp.setLayoutY(levelObject.getY());
+
+            if(levelObject == clickSelectedLevelObject){
+                Blend blend = new Blend(
+                    BlendMode.MULTIPLY,
+                    null,
+                    new ColorInput(0, 0, levelObject.getWidth(), levelObject.getHeight(), Color.color(0.0, 1.0, 0.0, 0.6))
+                );
+                temp.setEffect(blend);
+            }
+
+            if(levelObject instanceof Platform || levelObject instanceof Enemy){
+                this.mainLayer.getChildren().add(temp);
+            }else if(levelObject instanceof Decoration){
+                this.behindLayer.getChildren().add(temp);
+            }
         }
     }
 }

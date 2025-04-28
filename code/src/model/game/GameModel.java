@@ -1,15 +1,11 @@
 // src/Game.java
 package src.model.game;
 
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import src.controller.game.GameController;
-import src.model.game.Level;
-import src.model.game.Player;
-import src.view.game.GameView;
 
 import java.util.ArrayList;
 import java.util.List;

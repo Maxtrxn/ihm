@@ -10,13 +10,13 @@ public abstract class LevelObject {
     protected Image texture;
     protected String name;
 
-    protected LevelObject(double x, double y, String name, JSONObject levelObjectsJson, String levelObjectFolderName) {
+    protected LevelObject(double x, double y, String name, JSONObject levelObjectsJson, String pathToLevelObjectFolder) {
         this.x = x;
         this.y = y;
-
+        
         JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
         this.name = name;
-        this.texture = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + levelObjectFolderName + "/" + levelObjectJson.getString("textureFileName"));
+        this.texture = new Image("file:" + pathToLevelObjectFolder + levelObjectJson.getString("textureFileName"));
 
         // Dimensions initiales basées sur la taille d'origine de la texture
         double scaleFactor = levelObjectJson.getDouble("scaleFactor");

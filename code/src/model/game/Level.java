@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Level {
     // ——— Champs principaux ———
@@ -86,17 +87,15 @@ public class Level {
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
-            String name = e.has("name") ? e.getString("name") : "";
+            String name = e.getString("name");
             double x           = e.getDouble("x");
             double y           = e.getDouble("y");
-            double width       = e.has("width") ? e.getDouble("width") : 0.0;
-            double height      = e.has("height") ? e.getDouble("height") : 0.0;
             double speed       = e.getDouble("speed");
             double patrolStart = e.getDouble("patrolStart");
             double patrolEnd   = e.getDouble("patrolEnd");
-            boolean isBoss     = e.optBoolean("boss", false);
-            if (isBoss) {
-                enemies.add(new src.model.game.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+            String type     = e.getString("type");
+            if ("Boss".equals(type)) {
+                enemies.add(new Boss(x, y, speed, patrolStart, patrolEnd, name));
             } else {
                 enemies.add(new Enemy(x, y, speed, patrolStart, patrolEnd, name));
             }
@@ -126,6 +125,13 @@ public class Level {
     public Image            getBackgroundImage() { return backgroundImage; }
     public double           getLevelWidth()      { return levelWidth;   }
     public double           getLevelHeight()     { return levelHeight;  }
+    public List<LevelObject> getLevelObjects() {
+        List<LevelObject> levelObjects = new ArrayList<>();
+        levelObjects.addAll(this.platforms);
+        levelObjects.addAll(this.decorations);
+        levelObjects.addAll(this.enemies);
+        return levelObjects;
+    }
 
     /** Coordonnée X où commence la zone de boss (infinie si non définie). */
     public double getBossZoneStart() { return bossZoneStart; }
@@ -200,6 +206,11 @@ public class Level {
 
         levelJSON.put("levelWidth", this.levelWidth);
         levelJSON.put("levelHeight", this.levelHeight);
+
+        JSONObject bossZoneJSON = new JSONObject();
+        bossZoneJSON.put("startX", this.bossZoneStart);
+        bossZoneJSON.put("endX", this.bossZoneEnd);
+        levelJSON.put("bossZone", bossZoneJSON);
 
         return levelJSON;
     }
