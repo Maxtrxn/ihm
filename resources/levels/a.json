@@ -53,6 +53,24 @@
             "x": 176,
             "y": 480,
             "type": "FragilePlatform"
+        },
+        {
+            "name": "acier",
+            "x": 800,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "acier",
+            "x": 896,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "acier",
+            "x": 992,
+            "y": 624,
+            "type": "Platform"
         }
     ]
 }
