@@ -1,34 +1,84 @@
-début fichier ./src/common/JsonReader.java
-// code/src/common/JsonReader.java
+début fichier ./src/common/JsonReaderException.java
 package src.common;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
+public class JsonReaderException extends RuntimeException {
+    public JsonReaderException() {
+        super();
+    }
 
-import javafx.application.Platform;
+    public JsonReaderException(String message) {
+        super(message);
+    }
+
+    public JsonReaderException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public JsonReaderException(Throwable cause) {
+        super(cause);
+    }
+}
+fin fichier ./src/common/JsonReaderException.java
+
+
+
+
+
+début fichier ./src/common/JsonReader.java
+package src.common;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 import org.json.JSONObject;
 
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+
 public class JsonReader {
-    public static JSONObject getJsonObjectContent(String resourcePath) {
-        try (InputStream in = JsonReader.class
-                 .getClassLoader()
-                 .getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                System.err.println("Ressource introuvable: " + resourcePath);
-                Platform.exit();
-                return null;
+    //Méthode pour lire un fichier JSON
+    private static String readJsonFile(String filePath) {
+        StringBuilder content = new StringBuilder();
+        try {
+            File file = new File(filePath);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                content.append(scanner.nextLine());
             }
-            String json = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
-                            .lines()
-                            .collect(Collectors.joining("\n"));
-            return new JSONObject(json);
-        } catch (Exception e) {
+            scanner.close();
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Platform.exit();
             return null;
+        }
+        return content.toString();
+    }
+
+    public static JSONObject getJsonObjectContent(String filePath){
+        String jsonContent = readJsonFile(filePath);
+        
+        if(jsonContent == null){
+            javafx.application.Platform.exit();
+        }   
+        
+        return new JSONObject(jsonContent);
+    }
+
+
+    public static void saveJsonObject(JSONObject object, String filePath, boolean overwrite) throws JsonReaderException{
+        File level = new File(filePath);
+        if(!overwrite && level.exists()){
+            throw new JsonReaderException("Le fichier existe déjà");
+        }
+
+        try (FileWriter file = new FileWriter(level)) {
+            file.write(object.toString(4));
+            file.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
@@ -38,9 +88,80 @@ fin fichier ./src/common/JsonReader.java
 
 
 
-début fichier ./src/controller/GameController.java
+début fichier ./src/common/ResourcesPaths.java
+package src.common;
+
+public class ResourcesPaths {
+    public static final String RESOURCE_FOLDER = "../resources/";
+    public static final String LEVELS_FOLDER = RESOURCE_FOLDER + "levels/";
+    public static final String TEXTURES_FOLDER = RESOURCE_FOLDER + "textures/";
+    public static final String PLATFORMS_FOLDER = TEXTURES_FOLDER + "platforms/";
+    public static final String DECORATIONS_FOLDER = TEXTURES_FOLDER + "decorations/";
+    public static final String ENEMIES_FOLDER = TEXTURES_FOLDER + "enemies/";
+    public static final String BACKGROUNDS_FOLDER = TEXTURES_FOLDER + "backgrounds/";
+}
+fin fichier ./src/common/ResourcesPaths.java
+
+
+
+
+
+début fichier ./src/controller/editor/GameEditorController.java
+package src.controller.editor;
+
+
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+import src.model.editor.GameEditorModel;
+import src.model.game.Level;
+import src.view.editor.GameEditorView;
+
+
+public class GameEditorController{
+    private GameEditorModel model = null;
+    private GameEditorView view = null;
+    
+
+    public GameEditorController(Stage stage) {
+        this.model = new GameEditorModel(this);
+        this.view = new GameEditorView(this, stage);
+    }
+
+    public void setModel(GameEditorModel model){this.model = model;}
+    public void setView(GameEditorView view){this.view = view;}
+    public GameEditorModel getModel(){return this.model;}
+    public GameEditorView getView(){return this.view;}
+
+
+    public void updateSelectedLevelObjectName(String name) {this.model.setSelectedLevelObjectName(name);}
+
+    public void initLevel(double levelWidth, double levelHeight){
+        this.model.initLevel(levelWidth, levelHeight);
+    }
+
+    public void updateLevelName(String levelName){this.model.setLevelName(levelName);}
+    public void updateBackground(Image image){this.model.setLevelBackground(image);}
+    public void saveLevel(boolean overwrite){this.model.saveLevel(overwrite);}
+    public void deleteLevel(String levelName){this.model.deleteLevel(levelName);}
+    public void addPlatform(double x, double y){this.model.addPlatform(x, y);}
+    public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
+    public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){return;}//A FAIRE -------------------
+    public Level getLevel(){return this.model.getLevel();}
+    public void loadLevel(String levelName){
+        this.model.loadLevel(levelName);
+        this.view.initLevel(getLevel(), levelName);
+    }
+
+
+}fin fichier ./src/controller/editor/GameEditorController.java
+
+
+
+
+
+début fichier ./src/controller/game/GameController.java
 // src/controller/GameController.java
-package src.controller;
+package src.controller.game;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -51,76 +172,78 @@ import java.util.TimerTask;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
-import src.Game;
-import src.levels.Level;
-import src.levels.SpaceshipLevel;
-import src.model.Player;
-import src.model.Platform;
-import src.model.Enemy;
-import src.model.Boss;
-import src.model.Projectile;
-import src.model.Decoration;
-import src.view.GameView;
+import src.model.game.Boss;
+import src.model.game.Decoration;
+import src.model.game.Enemy;
+import src.model.game.GameModel;
+import src.model.game.Level;
+import src.model.game.Platform;
+import src.model.game.Player;
+import src.model.game.Projectile;
+import src.view.game.GameView;
 
 public class GameController {
-    private static final double GRAVITY = 1800.0;
+    private static final double GRAVITY           = 1800.0;
     private static final double SHIP_SCROLL_SPEED = 200.0; // px/s
 
     // Flags de déplacement
     private boolean left, right, up, down, jumping, jetpack;
 
-    private final Player player;
-    private final List<Platform> platforms;
-    private final List<Enemy> enemies;
-    private final List<Decoration> decorations;
+    private Player           player;
+    private List<Platform>   platforms;
+    private List<Enemy>      enemies;
+    private List<Decoration> decorations;
     private final List<Projectile> projectiles = new ArrayList<>();
-    private final GameView view;
-    private final Game game;
-    private final Level level;
+    private final GameView         view;
+    private final GameModel        model;
+    private Level            level;
 
-    private final double initialPlayerX, initialPlayerY;
+    private double initialPlayerX, initialPlayerY;
     private Timer jetpackTimer;
-
-    // Dimensions “logiques” du niveau
-    private final double levelWidth  = 3000.0;
-    private final double levelHeight = 600.0;
 
     // Caméra
     private double cameraX = 0.0, cameraY = 0.0;
 
+    // Boss fight lock
+    private boolean inBossFight = false;
+
     // Boucle JavaFX
     private AnimationTimer gameLoop;
 
-    public GameController(Player player,
-                          List<Platform> platforms,
-                          List<Enemy> enemies,
-                          List<Decoration> decorations,
-                          GameView view,
-                          Game game,
-                          Level level) {
-        this.player          = player;
-        this.platforms       = platforms;
-        this.enemies         = enemies;
-        this.decorations     = decorations;
-        this.view            = view;
-        this.game            = game;
-        this.level           = level;
+    public GameController(Stage primaryStage) {
+        this.view            = new GameView(this, primaryStage);
+        this.model           = new GameModel(this);
+    }
+
+    public void setPlayer(Player player){
+        this.player = player;
         this.initialPlayerX  = player.getX();
         this.initialPlayerY  = player.getY();
     }
+    public void setLevel(Level level){
+        this.level = level;
+        this.platforms = level.getPlatforms();
+        this.enemies = level.getEnemies();
+        this.decorations = level.getDecorations();
+    }
+
 
     /** Lie les touches aux flags, et gère tirs vs saut. */
-    public void handleInput(Scene scene) {
+    public void handleInput() {
+        Scene scene = this.view.getScene();
         scene.setOnKeyPressed(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = true;
             if (e.getCode() == KeyCode.RIGHT) right = true;
             if (e.getCode() == KeyCode.UP)    up    = true;
             if (e.getCode() == KeyCode.DOWN)  down  = true;
 
             if (e.getCode() == KeyCode.SPACE) {
-                if (level instanceof SpaceshipLevel) {
+                if (isShip) {
                     fireProjectile();
                 } else {
                     jumping = true;
@@ -133,12 +256,14 @@ public class GameController {
         });
 
         scene.setOnKeyReleased(e -> {
+            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+
             if (e.getCode() == KeyCode.LEFT)  left  = false;
             if (e.getCode() == KeyCode.RIGHT) right = false;
             if (e.getCode() == KeyCode.UP)    up    = false;
             if (e.getCode() == KeyCode.DOWN)  down  = false;
 
-            if (e.getCode() == KeyCode.SPACE && !(level instanceof SpaceshipLevel)) {
+            if (e.getCode() == KeyCode.SPACE && !isShip) {
                 jumping = false;
                 jetpack = false;
                 player.setJetpackActive(false);
@@ -177,22 +302,31 @@ public class GameController {
 
     /** Itération de la boucle (~60FPS). */
     private void update(double deltaSec) {
-        boolean isShip = (level instanceof SpaceshipLevel);
+        boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
-        // dx selon input
+        // 1) Détection de l'entrée en zone de boss (seulement si un boss est encore vivant)
+        boolean bossAlive = enemies.stream().anyMatch(e -> e instanceof Boss);
+        if (!inBossFight
+            && bossAlive
+            && player.getX() + player.getWidth() >= level.getBossZoneStart()) {
+            inBossFight = true;
+        }
+
+        // 2) Mouvement du joueur / vaisseau
         double dx    = 0.0;
         double speed = player.getSpeed() * 1.5; // px/s
         if (left)  { dx -= speed * deltaSec; player.setFacingRight(false); }
         if (right) { dx += speed * deltaSec; player.setFacingRight(true); }
 
         if (isShip) {
-            // Mouvement du vaisseau en mode spaceship
             updateSpaceship(dx, deltaSec);
             updateProjectiles(deltaSec);
 
-            // Défilement auto de la caméra
-            cameraX += SHIP_SCROLL_SPEED * deltaSec;
-            cameraX = Math.min(cameraX, levelWidth - view.getCanvasWidth());
+            // Défilement auto si pas en boss fight
+            if (!inBossFight) {
+                cameraX += SHIP_SCROLL_SPEED * deltaSec;
+                cameraX = Math.min(cameraX, level.getLevelWidth() - view.getCanvasWidth());
+            }
 
             // Contrainte du joueur dans la zone visible
             double minX    = cameraX;
@@ -201,16 +335,28 @@ public class GameController {
             if (player.getX() > maxXpos) player.setX(maxXpos);
 
         } else {
-            // Mode plateforme
             updatePlatform(dx, deltaSec);
         }
 
-        // Passage de niveau automatique
-        if (player.getX() > 1600.0) {
-            javafx.application.Platform.runLater(game::nextLevel);
+        // 3) Confinement en zone de boss selon les bornes du JSON
+        if (inBossFight) {
+            double startX = level.getBossZoneStart();
+            double endX   = level.getBossZoneEnd() - player.getWidth();
+            if (player.getX() < startX) player.setX(startX);
+            if (player.getX() > endX)   player.setX(endX);
         }
 
-        // Mise à jour caméra & rendu
+        // 4) Passage de niveau lorsque le joueur atteint la fin du level
+        if (player.getX() + player.getWidth() >= level.getLevelWidth()) {
+            javafx.application.Platform.runLater(model::nextLevel);
+        }
+
+        // 5) Sortie du boss fight si le boss est éliminé
+        if (inBossFight && !bossAlive) {
+            inBossFight = false;
+        }
+
+        // 6) Mise à jour caméra et rendu
         updateCamera(isShip);
         render(isShip);
     }
@@ -229,7 +375,7 @@ public class GameController {
         while (pit.hasNext()) {
             Projectile p = pit.next();
             p.update(deltaSec);
-            if (p.isOutOfBounds(levelWidth)) {
+            if (p.isOutOfBounds(level.getLevelWidth())) {
                 pit.remove();
                 continue;
             }
@@ -248,8 +394,8 @@ public class GameController {
     /** Tire un projectile (mode spaceship). */
     private void fireProjectile() {
         double offsetX = player.isFacingRight() ? player.getWidth() : -10;
-        double px = player.getX() + offsetX;
-        double py = player.getY() + player.getHeight() / 2.0;
+        double px      = player.getX() + offsetX;
+        double py      = player.getY() + player.getHeight() / 2.0;
         projectiles.add(new Projectile(px, py, player.isFacingRight()));
     }
 
@@ -276,54 +422,38 @@ public class GameController {
         handlePlatformCollisions(oldY);
         handleEnemies(deltaSec);
 
-        if (player.getY() > levelHeight) {
+        if (player.getY() > level.getLevelHeight()) {
             resetPlayerPosition();
         }
     }
 
-    /**
-     * Gère les collisions plateformes en s’assurant qu’on vient d’en haut,
-     * puis supprime les plateformes fragiles cassées.
-     */
     private void handlePlatformCollisions(double oldY) {
-        // 1) Reset fragile platforms
         for (Platform p : platforms) {
-            if (p instanceof src.model.platforms.FragilePlatform) {
-                ((src.model.platforms.FragilePlatform) p).resetStep(player);
+            if (p instanceof src.model.game.platforms.FragilePlatform) {
+                ((src.model.game.platforms.FragilePlatform) p).resetStep(player);
             }
         }
-
-        // 2) Gestion de l’atterrissage
         for (Platform p : platforms) {
             double top    = p.getY();
             double botNow = player.getY() + player.getHeight();
-            double botOld = oldY            + player.getHeight();
-
-            if (player.intersects(p)
-                && player.velocityY > 0
-                && botOld <= top) {
+            double botOld = oldY + player.getHeight();
+            if (player.intersects(p) && player.velocityY > 0 && botOld <= top) {
                 player.setY(top - player.getHeight());
                 player.velocityY = 0;
                 player.setOnGround(true);
                 player.resetJumps();
-                if (p instanceof src.model.platforms.FragilePlatform) {
-                    src.model.platforms.FragilePlatform fp =
-                        (src.model.platforms.FragilePlatform) p;
-                    if (!fp.isBroken()) {
-                        fp.step(player);
-                    }
+                if (p instanceof src.model.game.platforms.FragilePlatform) {
+                    var fp = (src.model.game.platforms.FragilePlatform) p;
+                    if (!fp.isBroken()) fp.step(player);
                 }
             }
         }
-
-        // 3) Suppression des plateformes fragiles désormais cassées
         platforms.removeIf(p ->
-            p instanceof src.model.platforms.FragilePlatform
-            && ((src.model.platforms.FragilePlatform) p).isBroken()
+            p instanceof src.model.game.platforms.FragilePlatform
+            && ((src.model.game.platforms.FragilePlatform) p).isBroken()
         );
     }
 
-    /** Gère déplacement & collisions ennemis. */
     private void handleEnemies(double deltaSec) {
         List<Enemy> toRemove = new ArrayList<>();
         for (Enemy e : enemies) {
@@ -332,9 +462,7 @@ public class GameController {
                 if (e instanceof Boss) {
                     Boss boss = (Boss) e;
                     boss.hit();
-                    if (boss.isDead()) {
-                        toRemove.add(boss);
-                    }
+                    if (boss.isDead()) toRemove.add(boss);
                     player.setVelocityY(-600.0);
                 } else {
                     toRemove.add(e);
@@ -347,32 +475,38 @@ public class GameController {
         enemies.removeAll(toRemove);
     }
 
-    /** Met à jour la caméra selon le mode. */
+    /** Met à jour la caméra selon le mode, ou la bloque en boss fight. */
     private void updateCamera(boolean isShip) {
+        if (inBossFight) {
+            view.cameraXProperty().set(cameraX);
+            view.cameraYProperty().set(cameraY);
+            return;
+        }
+
         double cw = view.getCanvasWidth();
         double ch = view.getCanvasHeight();
 
         if (!isShip) {
             double targetX = player.getX() - cw / 2.0;
             cameraX += 0.1 * (targetX - cameraX);
-            cameraX = Math.max(0, Math.min(cameraX, levelWidth - cw));
+            cameraX = Math.max(0, Math.min(cameraX, level.getLevelWidth() - cw));
         }
 
         if (isShip) {
             cameraY = 0;
-        } else if (ch > levelHeight) {
-            cameraY = levelHeight - ch;
+        } else if (ch > level.getLevelHeight()) {
+            cameraY = level.getLevelHeight() - ch;
         } else {
             double targetY = player.getY() - ch / 2.0;
             cameraY += 0.1 * (targetY - cameraY);
-            cameraY = Math.max(0, Math.min(cameraY, levelHeight - ch));
+            cameraY = Math.max(0, Math.min(cameraY, level.getLevelHeight() - ch));
         }
 
         view.cameraXProperty().set(cameraX);
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Dessine tout : décor, plateformes, ennemis, projectiles, joueur/vaisseau. */
+    /** Dessine tous les éléments du jeu. */
     private void render(boolean isShip) {
         List<Image> decoImgs   = new ArrayList<>();
         List<Double[]> posDeco = new ArrayList<>();
@@ -380,12 +514,14 @@ public class GameController {
             decoImgs.add(d.getTexture());
             posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
         }
+
         List<Image> platImgs   = new ArrayList<>();
         List<Double[]> posPl   = new ArrayList<>();
         for (Platform p : platforms) {
             platImgs.add(p.getTexture());
             posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
         }
+
         List<Double[]> posProj = new ArrayList<>();
         for (Projectile p : projectiles) {
             posProj.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
@@ -406,11 +542,11 @@ public class GameController {
         );
     }
 
-    /** Remet le joueur en position et état initiaux. */
+    /** Réinitialise le joueur à sa position de départ. */
     private void resetPlayerPosition() {
         player.setX(initialPlayerX);
         player.setY(initialPlayerY);
-        player.velocityY    = 0;
+        player.velocityY = 0;
         player.setOnGround(true);
         player.resetJumps();
         player.setJetpackActive(false);
@@ -420,7 +556,7 @@ public class GameController {
         }
     }
 
-    /** Réinitialise uniquement les flags (sans arrêter la boucle). */
+    /** Réinitialise seulement les flags d’état du joueur. */
     public void resetPlayerState() {
         left = right = up = down = jumping = jetpack = false;
         player.setJetpackActive(false);
@@ -433,7 +569,7 @@ public class GameController {
         }
     }
 
-    /** TimerTask interne pour activer le jetpack après 500 ms. */
+    /** TimerTask pour activer le jetpack après 500 ms. */
     private class JetpackTask extends TimerTask {
         @Override
         public void run() {
@@ -441,284 +577,146 @@ public class GameController {
             player.setJetpackActive(true);
         }
     }
-}fin fichier ./src/controller/GameController.java
+}
+fin fichier ./src/controller/game/GameController.java
 
 
 
 
 
-début fichier ./src/Game.java
-// src/Game.java
+début fichier ./src/controller/MainMenuController.java
+package src.controller;
+
+import javafx.stage.Stage;
+import src.controller.editor.GameEditorController;
+import src.controller.game.GameController;
+import src.view.MainMenuView;
+
+public class MainMenuController {
+    MainMenuView view;
+
+    public MainMenuController(Stage primaryStage){
+        this.view = new MainMenuView(this, primaryStage);
+    }
+
+    public void startGame(Stage primaryStage){
+        new GameController(primaryStage);
+    }
+
+
+    public void startEditor(Stage primaryStage){
+        new GameEditorController(primaryStage);
+    }
+}
+fin fichier ./src/controller/MainMenuController.java
+
+
+
+
+
+début fichier ./src/Main.java
 package src;
 
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import src.controller.MainMenuController;
 
-import src.controller.GameController;
-import src.levels.Level;
-import src.levels.SpaceshipLevel;
-import src.model.Player;
-import src.view.GameView;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 
-public class Game extends Application {
-    private static final int WIDTH  = 800;
-    private static final int HEIGHT = 600;
-
-    private Stage primaryStage;
-    private Scene scene;
-    private Pane root;
-    private Canvas canvas;
-    private Player player;
-    private GameController controller;
-
-    private List<Function<Player, Level>> levelSuppliers;
-    private int currentLevelIndex = 0;
-
-    @Override
-    public void start(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-        this.player = new Player(100, 500);
-
-        root = new Pane();
-        canvas = new Canvas(WIDTH, HEIGHT);
-        canvas.widthProperty().bind(root.widthProperty());
-        canvas.heightProperty().bind(root.heightProperty());
-        root.getChildren().add(canvas);
-        scene = new Scene(root, WIDTH, HEIGHT);
-
-        primaryStage.setTitle("Steampunk Adventure");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(true);
-        primaryStage.setMaximized(true);
-        primaryStage.show();
-
-        // Liste des noms de niveaux JSON
-        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5");
-        levelSuppliers = new ArrayList<>();
-
-        // Instancie Level(player, name) pour chaque JSON
-        levelNames.forEach(name ->
-            levelSuppliers.add(p -> new Level(p, name))
-        );
-        // Insère le niveau vaisseau après le premier
-        levelSuppliers.add(1, SpaceshipLevel::new);
-
-        loadCurrentLevel();
-    }
-
-    private void loadCurrentLevel() {
-        Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
-
-        if (controller != null) {
-            controller.stopGameLoop();
-        }
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        GameView view = new GameView(gc);
-
-        controller = new GameController(
-            player,
-            lvl.getPlatforms(),
-            lvl.getEnemies(),
-            lvl.getDecorations(),
-            view,
-            this,
-            lvl
-        );
-
-        controller.handleInput(scene);
-        controller.startGameLoop();
-    }
-
-    public void nextLevel() {
-        controller.resetPlayerState();
-        player.setX(100);
-        player.setY(500);
-
-        if (currentLevelIndex < levelSuppliers.size() - 1) {
-            currentLevelIndex++;
-            loadCurrentLevel();
-        } else {
-            System.out.println("🎉 Vous avez terminé le jeu !");
-            controller.stopGameLoop();
-        }
-    }
-
+public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-}
-fin fichier ./src/Game.java
-
-
-
-
-
-début fichier ./src/levels/Level.java
-// src/levels/Level.java
-package src.levels;
-
-import javafx.scene.image.Image;
-import src.common.JsonReader;
-import src.model.Platform;
-import src.model.Enemy;
-import src.model.Boss;
-import src.model.Decoration;
-import src.model.Player;
-import src.model.platforms.FragilePlatform;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.List;
-import java.util.ArrayList;
-
-public class Level {
-    protected List<Platform>   platforms;
-    protected List<Enemy>      enemies;
-    protected List<Decoration> decorations;
-    protected Player           player;
-    protected Image            backgroundImage;
-    protected double           levelWidth;
-    protected double           levelHeight;
-
-    /** Constructeur codé en dur */
-    public Level(Player player) {
-        this.player      = player;
-        this.platforms   = new ArrayList<>();
-        this.enemies     = new ArrayList<>();
-        this.decorations = new ArrayList<>();
-        initialize();
-    }
-
-    /** Constructeur JSON */
-    public Level(Player player, String levelName) {
-        this.player      = player;
-        this.platforms   = new ArrayList<>();
-        this.enemies     = new ArrayList<>();
-        this.decorations = new ArrayList<>();
-        initialize(levelName);
-    }
-
-    /** À surcharger si code en dur */
-    protected void initialize() {
-        // vide par défaut
-    }
-
-    /** Initialise depuis JSON */
-    protected void initialize(String levelName) {
-        JSONObject L = JsonReader.getJsonObjectContent("levels/" + levelName + ".json");
-
-        // 1) background + dimensions
-        setBackgroundImage(L.getString("backgroundImage"));
-        setLevelDimensions(L.getDouble("levelWidth"), L.getDouble("levelHeight"));
-
-        // 2) plateformes
-        JSONArray plats = L.getJSONArray("platforms");
-        for (int i = 0; i < plats.length(); i++) {
-            JSONObject p = plats.getJSONObject(i);
-            String name = p.getString("name");
-            double x     = p.getDouble("x");
-            double y     = p.getDouble("y");
-            if ("fragile".equals(name)) {
-                platforms.add(new FragilePlatform(x, y));
-            } else {
-                platforms.add(new Platform(x, y, name));
-            }
-        }
-
-        // 3) ennemis + boss
-        JSONArray ens = L.getJSONArray("enemies");
-        for (int i = 0; i < ens.length(); i++) {
-            JSONObject e = ens.getJSONObject(i);
-            double x           = e.getDouble("x");
-            double y           = e.getDouble("y");
-            double width       = e.getDouble("width");
-            double height      = e.getDouble("height");
-            double speed       = e.getDouble("speed");
-            double patrolStart = e.getDouble("patrolStart");
-            double patrolEnd   = e.getDouble("patrolEnd");
-            if (e.optBoolean("boss", false)) {
-                enemies.add(new Boss(x, y, width, height, speed, patrolStart, patrolEnd));
-            } else {
-                enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
-            }
-        }
-
-        // 4) décorations
-        if (L.has("decorations")) {
-            for (Object o : L.getJSONArray("decorations")) {
-                JSONObject d = (JSONObject) o;
-                Image tex = new Image(d.getString("image"));
-                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), tex));
-            }
-        }
-    }
-
-    // ——————————— Getters ———————————
-
-    public List<Platform>   getPlatforms()       { return platforms;    }
-    public List<Enemy>      getEnemies()         { return enemies;      }
-    public List<Decoration> getDecorations()     { return decorations;  }
-    public Image            getBackgroundImage() { return backgroundImage; }
-    public double           getLevelWidth()      { return levelWidth;   }
-    public double           getLevelHeight()     { return levelHeight;  }
-
-    // ——————————— Helpers ———————————
-
-    protected void setBackgroundImage(String path) {
-        this.backgroundImage = new Image(path);
-    }
-
-    protected void setLevelDimensions(double w, double h) {
-        this.levelWidth  = w;
-        this.levelHeight = h;
-    }
-}
-fin fichier ./src/levels/Level.java
-
-
-
-
-
-début fichier ./src/levels/SpaceshipLevel.java
-package src.levels;
-
-import src.model.Player;
-import java.util.ArrayList;
-
-public class SpaceshipLevel extends Level {
-
-    public SpaceshipLevel(Player player) {
-        super(player);
-    }
 
     @Override
-    protected void initialize() {
-        // Pas de background (fond noir)
-        // setBackgroundImage("file:../textures/black_background.png"); // si vous le souhaitez
+    public void start(Stage primaryStage) {
+        new MainMenuController(primaryStage);
+        
 
-        // Aucune plateforme ni ennemi
-        this.platforms = new ArrayList<>();
-        this.enemies   = new ArrayList<>();
+
+        primaryStage.setTitle("Steampunk Adventure");
+        primaryStage.show();
+    }
+}fin fichier ./src/Main.java
+
+
+
+
+
+début fichier ./src/model/editor/GameEditorModel.java
+package src.model.editor;
+
+
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import src.common.JsonReader;
+import src.common.ResourcesPaths;
+import src.controller.editor.GameEditorController;
+import src.model.game.Level;
+
+import java.io.File;
+
+import org.json.JSONObject;
+
+
+public class GameEditorModel{
+    private final GameEditorController controller;
+    private Level level = null;
+    private String levelName = null;
+    private String selectedLevelObjectName = null;
+
+
+    public GameEditorModel(GameEditorController controller){
+        this.controller = controller;
+        this.controller.setModel(this);
+    }
+
+    public void setLevelName(String levelName){this.levelName = levelName;}
+    public void setSelectedLevelObjectName(String name){this.selectedLevelObjectName = name;}
+    public void initLevel(double levelWidth, double levelHeight){this.level = new Level(levelWidth, levelHeight);}
+    public void setLevelBackground(Image bg){this.level.setBackgroundImage(bg);}
+    public Level getLevel(){return this.level;}
+    
+
+    public void addPlatform(double x, double y){
+        this.level.addPlatform(x, y, selectedLevelObjectName);
+    }
+    
+
+    //Booléen foreground pour savoir si on ajoute la décoration au premier au à l'arrière plan
+    public void addDecoration(double x, double y, boolean foreground){
+        if(foreground){
+            this.level.addDecoration(x, y, selectedLevelObjectName);
+        }else{
+            this.level.addDecoration(x, y, selectedLevelObjectName);
+        }
+    }
+
+    
+    public void saveLevel(boolean overwrite){
+        JSONObject levelJSON = level.toJSONObject();
+
+        JsonReader.saveJsonObject(levelJSON, ResourcesPaths.LEVELS_FOLDER + levelName + ".json", overwrite);
+    }
+
+    public void deleteLevel(String levelName){
+        File levelFile = new File(ResourcesPaths.LEVELS_FOLDER + levelName + ".json");
+
+        if (levelFile.exists()) levelFile.delete();
+    }
+
+    public void loadLevel(String levelName){
+        this.level = new Level(null, levelName);
     }
 }
-fin fichier ./src/levels/SpaceshipLevel.java
+fin fichier ./src/model/editor/GameEditorModel.java
 
 
 
 
 
-début fichier ./src/model/Boss.java
-package src.model;
+début fichier ./src/model/game/Boss.java
+package src.model.game;
 
 public class Boss extends Enemy {
     private int hits = 0;
@@ -754,43 +752,43 @@ public class Boss extends Enemy {
         return hitTimer > 0;
     }
 }
-fin fichier ./src/model/Boss.java
+fin fichier ./src/model/game/Boss.java
 
 
 
 
 
-début fichier ./src/model/Decoration.java
-package src.model;
+début fichier ./src/model/game/Decoration.java
+package src.model.game;
 
 import javafx.scene.image.Image;
+import src.common.JsonReader;
+import src.common.ResourcesPaths;
 
-public class Decoration {
-    private double x, y, width, height;
-    private Image texture;
+import org.json.JSONObject;
 
-    public Decoration(double x, double y, Image texture) {
-        this.x = x;
-        this.y = y;
-        this.texture = texture;
-        this.width = texture.getWidth();
-        this.height = texture.getHeight();
+
+public class Decoration extends LevelObject{
+    private static JSONObject decorationsJson = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "decorations.json");
+
+
+    public Decoration(double x, double y, String name) {
+        super(x, y, name, decorationsJson, "decorations");
     }
-
-    public double getX()      { return x; }
-    public double getY()      { return y; }
-    public double getWidth()  { return width; }
-    public double getHeight() { return height; }
-    public Image getTexture() { return texture; }
 }
-fin fichier ./src/model/Decoration.java
+fin fichier ./src/model/game/Decoration.java
 
 
 
 
 
-début fichier ./src/model/Enemy.java
-package src.model;
+début fichier ./src/model/game/Enemy.java
+package src.model.game;
+
+
+import src.common.JsonReader;
+import org.json.JSONObject;
+
 
 public class Enemy {
     private double x, y, width, height, speed;
@@ -839,44 +837,344 @@ public class Enemy {
     }
 
 
-}fin fichier ./src/model/Enemy.java
+    public JSONObject toJSONObject(){
+        JSONObject enemyJSON = new JSONObject();
+        enemyJSON.put("x", this.x);
+        enemyJSON.put("y", this.y);
+        enemyJSON.put("width", this.width);
+        enemyJSON.put("height", this.height);
+        enemyJSON.put("patrolStart", this.leftBound);
+        enemyJSON.put("patrolEnd", this.rightBound);
+
+        return enemyJSON;
+    }
+}fin fichier ./src/model/game/Enemy.java
 
 
 
 
 
-début fichier ./src/model/Platform.java
-package src.model;
+début fichier ./src/model/game/GameModel.java
+// src/Game.java
+package src.model.game;
 
-import javafx.scene.image.Image;
-import src.common.JsonReader;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import src.controller.game.GameController;
+import src.model.game.Level;
+import src.model.game.Player;
+import src.view.game.GameView;
 
-import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
-public class Platform {
-    protected static JSONObject platformsJson = JsonReader.getJsonObjectContent("platforms.json");
-    protected double x, y, width, height;
-    protected Image texture;
+public class GameModel{
+    private static final int WIDTH  = 800;
+    private static final int HEIGHT = 600;
 
-    public Platform(double x, double y, Image texture) {
-        this.x = x;
-        this.y = y;
-        this.texture = texture;
+    private Stage primaryStage;
+    private Scene scene;
+    private Pane root;
+    private Canvas canvas;
+    private Player player;
+    private GameController controller;
 
-        // Dimensions initiales basées sur la taille d'origine de la texture
-        this.width = texture.getWidth();
-        this.height = texture.getHeight();
+    private List<Function<Player, Level>> levelSuppliers;
+    private int currentLevelIndex = 0;
+
+
+    public GameModel(GameController controller){
+        this.controller = controller;
+        this.player = new Player(100, 500);
+
+
+        // Liste des noms de niveaux JSON
+        List<String> levelNames = List.of("babba", "level1", "level2", "level3", "level4", "level5");
+        levelSuppliers = new ArrayList<>();
+
+        // Instancie Level(player, name) pour chaque JSON
+        for (String name : levelNames) {
+            levelSuppliers.add(p -> new Level(p, name));
+        }
+        // Insère le niveau vaisseau (spaceship.json) après le premier
+        levelSuppliers.add(1, p -> new Level(p, "spaceship"));
+
+        loadCurrentLevel();
     }
 
 
-    public Platform(double x, double y, String platformName) {
-        JSONObject platformJson = platformsJson.getJSONObject(platformName);
+    private void loadCurrentLevel() {
+        Level lvl = levelSuppliers.get(currentLevelIndex).apply(player);
+
+        if (currentLevelIndex > 0) {
+            controller.stopGameLoop();
+        }
+
+        controller.setPlayer(player);
+        controller.setLevel(lvl);
+
+
+        controller.handleInput();
+        controller.startGameLoop();
+    }
+
+    public void nextLevel() {
+        controller.resetPlayerState();
+        player.setX(100);
+        player.setY(500);
+
+        if (currentLevelIndex < levelSuppliers.size() - 1) {
+            currentLevelIndex++;
+            loadCurrentLevel();
+        } else {
+            System.out.println("🎉 Vous avez terminé le jeu !");
+            controller.stopGameLoop();
+        }
+    }
+}
+fin fichier ./src/model/game/GameModel.java
+
+
+
+
+
+début fichier ./src/model/game/Level.java
+// src/levels/Level.java
+package src.model.game;
+
+import javafx.scene.image.Image;
+import src.common.JsonReader;
+import src.common.ResourcesPaths;
+import src.model.game.Decoration;
+import src.model.game.Enemy;
+import src.model.game.Platform;
+import src.model.game.Player;
+import src.model.game.platforms.FragilePlatform;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+
+public class Level {
+    // ——— Champs principaux ———
+    protected List<Platform>   platforms;
+    protected List<Enemy>      enemies;
+    protected List<Decoration> decorations;
+    protected Player           player;
+    protected Image            backgroundImage;
+    protected double           levelWidth;
+    protected double           levelHeight;
+
+    // ——— Zone de boss (optionnelle) ———
+    private double bossZoneStart = Double.NEGATIVE_INFINITY;
+    private double bossZoneEnd   = Double.POSITIVE_INFINITY;
+
+    //Constructeur pour initialiser un level pour l'editeur de niveau
+    public Level(double levelWidth, double levelHeight) {
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
+        this.levelWidth = levelWidth;
+        this.levelHeight = levelHeight;
+    }
+
+    /** Constructeur JSON : charge "levels/{levelName}.json". */
+    public Level(Player player, String levelName) {
+        this.player      = player;
+        this.platforms   = new ArrayList<>();
+        this.enemies     = new ArrayList<>();
+        this.decorations = new ArrayList<>();
+        initialize(levelName);
+    }
+
+    /** Initialise le niveau depuis le JSON correspondant. */
+    protected void initialize(String levelName) {
+        JSONObject L = JsonReader.getJsonObjectContent(ResourcesPaths.LEVELS_FOLDER + levelName + ".json");
+        if (L == null) {
+            throw new IllegalStateException("Impossible de charger le JSON pour le niveau : " + levelName);
+        }
+
+        // 1) Background + dimensions
+        if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourcesPaths.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
+        this.levelWidth  = L.getDouble("levelWidth");
+        this.levelHeight = L.getDouble("levelHeight");
+
+        // 2) Plateformes
+        JSONArray plats = L.getJSONArray("platforms");
+        for (int i = 0; i < plats.length(); i++) {
+            JSONObject p = plats.getJSONObject(i);
+            String name = p.getString("name");
+            double x     = p.getDouble("x");
+            double y     = p.getDouble("y");
+            if ("fragile".equals(name)) {
+                platforms.add(new FragilePlatform(x, y));
+            } else {
+                platforms.add(new Platform(x, y, name));
+            }
+        }
+
+        // 3) Ennemis + boss
+        JSONArray ens = L.getJSONArray("enemies");
+        for (int i = 0; i < ens.length(); i++) {
+            JSONObject e = ens.getJSONObject(i);
+            double x           = e.getDouble("x");
+            double y           = e.getDouble("y");
+            double width       = e.getDouble("width");
+            double height      = e.getDouble("height");
+            double speed       = e.getDouble("speed");
+            double patrolStart = e.getDouble("patrolStart");
+            double patrolEnd   = e.getDouble("patrolEnd");
+            boolean isBoss     = e.optBoolean("boss", false);
+            if (isBoss) {
+                enemies.add(new src.model.game.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
+            } else {
+                enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
+            }
+        }
+
+        // 4) Décorations (optionnel)
+        if (L.has("decorations")) {
+            for (Object o : L.getJSONArray("decorations")) {
+                JSONObject d = (JSONObject) o;
+                decorations.add(new Decoration(d.getDouble("x"), d.getDouble("y"), d.getString("name")));
+            }
+        }
+
+        // 5) Zone de boss (optionnel)
+        if (L.has("bossZone")) {
+            JSONObject bz = L.getJSONObject("bossZone");
+            bossZoneStart = bz.getDouble("startX");
+            bossZoneEnd   = bz.getDouble("endX");
+        }
+    }
+
+    // ——— Getters ———
+
+    public List<Platform>   getPlatforms()       { return platforms;    }
+    public List<Enemy>      getEnemies()         { return enemies;      }
+    public List<Decoration> getDecorations()     { return decorations;  }
+    public Image            getBackgroundImage() { return backgroundImage; }
+    public double           getLevelWidth()      { return levelWidth;   }
+    public double           getLevelHeight()     { return levelHeight;  }
+
+    /** Coordonnée X où commence la zone de boss (infinie si non définie). */
+    public double getBossZoneStart() { return bossZoneStart; }
+    /** Coordonnée X où se termine la zone de boss (infinie si non définie). */
+    public double getBossZoneEnd()   { return bossZoneEnd;   }
+
+
+    // ——————————— Setters ———————————
+
+    public void setBackgroundImage(Image bg) {this.backgroundImage = bg;}
+    public void setLevelWidth(double w) {this.levelWidth = w;}
+    public void setLevelHeight(double h) {this.levelHeight = h;}
+    public void addPlatform(double x, double y, String platformName) {this.platforms.add(new Platform(x, y, platformName));}
+    public void addDecoration(double x, double y, String decorationName) {this.decorations.add(new Decoration(x, y, decorationName));}
+
+
+    // ——————————— Helpers ———————————
+
+    public JSONObject toJSONObject(){
+        JSONObject levelJSON = new JSONObject();
+
+        JSONArray platformsJSON = new JSONArray();
+        for (Platform platform : platforms) {   
+            platformsJSON.put(platform.toJSONObject());
+        }
+        levelJSON.put("platforms", platformsJSON);
+
+        JSONArray enemiesJSON = new JSONArray();
+        for (Enemy enemy : enemies) {   
+            enemiesJSON.put(enemy.toJSONObject());
+        }
+        levelJSON.put("enemies", enemiesJSON);
+
+        JSONArray decorationsJSON = new JSONArray();
+        for (Decoration decoration : decorations) {   
+            decorationsJSON.put(decoration.toJSONObject());
+        }
+        levelJSON.put("decorations", decorationsJSON);
+
+
+        if(this.backgroundImage == null){
+            levelJSON.put("backgroundImage", "default.png");
+        }else{
+            //On vérifie si le fond de niveau existe déjà dans le dossier des fond
+            //S'il existe c'est que le niveau avait déjà chargé le fond via le dossier
+            //Sinon c'est qu'il a été choisi par l'utilisateur potentiellement dans un
+            //autre dossier, donc il faut le copier dans le dossier des fonds pour 
+            //pouvoir sauvegarder le nom dans le json et le recharger plus tard
+            String backgroundURL = this.backgroundImage.getUrl();
+            String backgroundName = backgroundURL.substring(backgroundURL.lastIndexOf('/') + 1);
+            File backgroundFile = new File(ResourcesPaths.BACKGROUNDS_FOLDER + backgroundName);
+            if(!backgroundFile.exists()){
+                try (InputStream in = URI.create(backgroundURL).toURL().openStream();
+                    OutputStream out = new FileOutputStream(backgroundFile)) {
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            levelJSON.put("backgroundImage", backgroundName);
+        }
+
+
+        levelJSON.put("levelWidth", this.levelWidth);
+        levelJSON.put("levelHeight", this.levelHeight);
+
+        return levelJSON;
+    }
+}
+fin fichier ./src/model/game/Level.java
+
+
+
+
+
+début fichier ./src/model/game/LevelObject.java
+package src.model.game;
+
+import javafx.scene.image.Image;
+import src.common.ResourcesPaths;
+
+import org.json.JSONObject;
+
+public abstract class LevelObject {
+    protected double x, y, width, height;
+    protected Image texture;
+    protected String name;
+
+    protected LevelObject(double x, double y, String name, JSONObject levelObjectsJson, String levelObjectFolderName) {
         this.x = x;
         this.y = y;
-        this.texture = new Image(platformJson.getString("texture"));
+
+        JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
+        this.name = name;
+        this.texture = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + levelObjectFolderName + "/" + levelObjectJson.getString("textureFileName"));
 
         // Dimensions initiales basées sur la taille d'origine de la texture
-        double scaleFactor = platformJson.getDouble("scaleFactor");
+        double scaleFactor = levelObjectJson.getDouble("scaleFactor");
         this.width = texture.getWidth() * scaleFactor;
         this.height = texture.getHeight() * scaleFactor;
     }
@@ -886,19 +1184,55 @@ public class Platform {
     public double getWidth()  { return width; }
     public double getHeight() { return height; }
     public Image getTexture() { return texture; }
+    public String getName() { return name; }
+
+    public JSONObject toJSONObject(){
+        JSONObject obj = new JSONObject();
+        obj.put("name", this.name);
+        obj.put("x", this.x);
+        obj.put("y", this.y);
+        return obj;
+    }
 }
-fin fichier ./src/model/Platform.java
+fin fichier ./src/model/game/LevelObject.java
 
 
 
 
 
-début fichier ./src/model/platforms/FragilePlatform.java
-package src.model.platforms;
+début fichier ./src/model/game/Platform.java
+package src.model.game;
 
 import javafx.scene.image.Image;
-import src.model.Platform;
-import src.model.Player;
+import src.common.JsonReader;
+import src.common.ResourcesPaths;
+
+import java.util.ResourceBundle;
+
+import org.json.JSONObject;
+
+public class Platform extends LevelObject{
+    protected static JSONObject platformsJson = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "platforms.json");
+
+
+    public Platform(double x, double y, String name) {
+        super(x, y, name, platformsJson, "platforms");
+    }
+}
+fin fichier ./src/model/game/Platform.java
+
+
+
+
+
+début fichier ./src/model/game/platforms/FragilePlatform.java
+package src.model.game.platforms;
+
+import javafx.scene.image.Image;
+import src.common.ResourcesPaths;
+import src.model.game.Platform;
+import src.model.game.Player;
+import org.json.JSONObject;
 
 public class FragilePlatform extends Platform {
     private int steps = 0;
@@ -907,8 +1241,10 @@ public class FragilePlatform extends Platform {
     private boolean playerWasOn = false;
 
     public FragilePlatform(double x, double y) {
-        super(x, y, new Image("file:../textures/plateforme cuivre.png"));
-        this.fragileTexture = new Image("file:../textures/plateforme_fragile.png");
+        super(x, y, "cuivre");
+
+        JSONObject platformJson = Platform.platformsJson.getJSONObject("fragile");
+        this.fragileTexture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + platformJson.getString("textureFileName"));
     }
 
     /**
@@ -945,14 +1281,14 @@ public class FragilePlatform extends Platform {
         }
     }
 }
-fin fichier ./src/model/platforms/FragilePlatform.java
+fin fichier ./src/model/game/platforms/FragilePlatform.java
 
 
 
 
 
-début fichier ./src/model/Player.java
-package src.model;
+début fichier ./src/model/game/Player.java
+package src.model.game;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -1050,14 +1386,14 @@ public class Player {
         this.facingRight = facingRight;
     }
 }
-fin fichier ./src/model/Player.java
+fin fichier ./src/model/game/Player.java
 
 
 
 
 
-début fichier ./src/model/Projectile.java
-package src.model;
+début fichier ./src/model/game/Projectile.java
+package src.model.game;
 
 /**
  * Un projectile tiré par le vaisseau.
@@ -1101,7 +1437,7 @@ public class Projectile {
     public double getWidth()  { return WIDTH; }
     public double getHeight() { return HEIGHT; }
 }
-fin fichier ./src/model/Projectile.java
+fin fichier ./src/model/game/Projectile.java
 
 
 
@@ -1208,30 +1544,939 @@ fin fichier ./src/test/SpaceshipTest.java
 
 
 
-début fichier ./src/view/GameView.java
+début fichier ./src/view/editor/gameEditorSubView/EditorLevelObjectSelector.java
+package src.view.editor.gameEditorSubView;
+
+import javafx.event.EventHandler;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
+import src.common.JsonReader;
+import src.common.ResourcesPaths;
+import src.view.editor.GameEditorView;
+import javafx.scene.image.Image;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+import java.util.Set;
+
+import src.view.editor.GameEditorView.LevelObjectType;
+
+import org.json.JSONObject;
+
+
+public class EditorLevelObjectSelector extends VBox{
+    private GameEditorView parent;
+    
+    public EditorLevelObjectSelector(GameEditorView parent){
+        super();
+        this.parent = parent;
+        initializePlatformSelector();
+        
+    }
+
+
+    public void initializePlatformSelector(){
+        ListView<LevelObjectSelectorItem> platformSelector = new ListView<>();
+        // Gestion de la sélection
+        platformSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+            if(newValue == null || newValue.getTexture() == null){
+                parent.updateSelectedLevelObject(null, null, null);
+            }else{
+                ImageView withoutScaleFactor = new ImageView(newValue.getTexture());
+                withoutScaleFactor.setFitWidth(newValue.getTexture().getWidth() * newValue.getTextureScaleFactor());
+                withoutScaleFactor.setFitHeight(newValue.getTexture().getHeight() * newValue.getTextureScaleFactor());
+                parent.updateSelectedLevelObject(newValue.getLevelObjectNameLabel().getText(), newValue.getLevelObjectType(), withoutScaleFactor) ;
+            }
+        });
+
+        //Chargement des plateformes dans le ListView
+        JSONObject platformsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "platforms.json");
+        platformSelector.getItems().add(new LevelObjectSelectorItem("Plateformes"));
+        Set<String> keys = platformsObjects.keySet();
+        for (String name : keys) {
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, platformsObjects, LevelObjectType.PLATFORM);
+            platformSelector.getItems().add(temp);
+        }
+
+        //Chargement des decorations dans le ListView
+        JSONObject decorationsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "decorations.json");
+        platformSelector.getItems().add(new LevelObjectSelectorItem("Décorations"));
+        keys.clear();
+        keys = decorationsObjects.keySet();
+        for (String name : keys) {
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, decorationsObjects, LevelObjectType.DECORATION);
+            platformSelector.getItems().add(temp);
+        }
+        
+        //Chargement des ennemis dans le ListView
+        platformSelector.getItems().add(new LevelObjectSelectorItem("Ennemis"));
+
+
+        platformSelector.setPrefWidth(200);
+
+        Button retractButton = new Button("<");
+        //Gestion de la rétraction du sélecteur de plateformes
+        retractButton.setOnAction(e -> {
+            if (platformSelector.isVisible()) {
+                this.setPrefWidth(retractButton.getWidth());
+                platformSelector.setVisible(false);
+                retractButton.setText(">");
+            } else{
+                this.setPrefWidth(platformSelector.getPrefWidth());
+                platformSelector.setVisible(true);
+                retractButton.setText("<");
+            }
+        });
+        Button unselectButton = new Button("Désélectioner");
+        //Gestion de la déselection de plateforme dans le sélecteur
+        unselectButton.setOnAction(e -> {platformSelector.getSelectionModel().clearSelection();});
+        this.getChildren().addAll(retractButton, platformSelector, unselectButton);
+    }
+}
+
+
+class LevelObjectSelectorItem extends VBox{
+    private Label levelObjectNameLabel;
+    private Image texture;
+    private double textureScaleFactor;
+    private LevelObjectType levelObjectType;
+
+
+    //Pour faire un séparateur
+    public LevelObjectSelectorItem(String levelObjectName){
+        super();
+
+        this.levelObjectNameLabel = new Label(levelObjectName);
+        this.levelObjectNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        this.getChildren().add(this.levelObjectNameLabel);
+        this.setStyle("-fx-background-color: black; -fx-pref-height: 2px;");
+        this.texture = null;
+    }
+
+    //Pour faire un élément 
+    public LevelObjectSelectorItem(String levelObjectName, JSONObject objects, LevelObjectType levelObjectType){
+        super();
+
+        JSONObject obj = objects.getJSONObject(levelObjectName);
+        String levelObjectTextureFileName = obj.getString("textureFileName");
+
+        switch (levelObjectType) {
+            case GameEditorView.LevelObjectType.PLATFORM:
+                this.texture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + levelObjectTextureFileName);
+                break;
+            case GameEditorView.LevelObjectType.DECORATION:
+                this.texture = new Image("file:" + ResourcesPaths.DECORATIONS_FOLDER + levelObjectTextureFileName);
+                break;
+            case GameEditorView.LevelObjectType.ENEMY:
+                this.texture = new Image("file:" + ResourcesPaths.ENEMIES_FOLDER + levelObjectTextureFileName);
+                break;
+            default:
+                break;
+        }
+
+        this.textureScaleFactor = obj.getDouble("scaleFactor");
+        
+        ImageView texturePreview = new ImageView(this.texture);
+        this.levelObjectNameLabel = new Label(levelObjectName);
+        texturePreview.setFitWidth(this.texture.getWidth() / 4);
+        texturePreview.setFitHeight(this.texture.getHeight() / 4);
+        this.getChildren().addAll(this.levelObjectNameLabel, texturePreview);
+        this.levelObjectType = levelObjectType;
+    }
+
+    public Image getTexture(){return this.texture;}
+    public double getTextureScaleFactor(){return this.textureScaleFactor;};
+    public Label getLevelObjectNameLabel(){return this.levelObjectNameLabel;}
+    public LevelObjectType getLevelObjectType(){return this.levelObjectType;}
+}fin fichier ./src/view/editor/gameEditorSubView/EditorLevelObjectSelector.java
+
+
+
+
+
+début fichier ./src/view/editor/gameEditorSubView/EditorMenuBar.java
+package src.view.editor.gameEditorSubView;
+
+import java.io.File;
+import java.util.Optional;
+
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import src.common.JsonReaderException;
+import src.view.editor.GameEditorView;
+
+public class EditorMenuBar extends MenuBar{
+    private GameEditorView parent;
+
+    public EditorMenuBar(GameEditorView parent){
+        this.parent = parent;
+
+        //Création du menu "Fichier"
+        Menu fichierMenu = new Menu("Fichier");
+        //Création des éléments que contient "Fichier"
+        MenuItem newLevelItem = new MenuItem("Nouveau");
+        newLevelItem.setOnAction(e -> newLevelItemAction());
+        MenuItem openLevelItem = new MenuItem("Charger un niveau");
+        openLevelItem.setOnAction(event -> openLevelItemAction());
+        MenuItem deleteLevelItem = new MenuItem("Supprimer un niveau");
+        deleteLevelItem.setOnAction(event -> deleteLevelItemAction());
+        MenuItem choseBackgroundItem = new MenuItem("Choisir une image de fond");
+        choseBackgroundItem.setOnAction(event -> choseBackgroundItemAction());
+        MenuItem saveLevelItem = new MenuItem("Enregistrer");
+        saveLevelItem.setOnAction(event -> saveLevelItemAction());
+        MenuItem changeLevelNameItem = new MenuItem("Changer le nom du niveau");
+        changeLevelNameItem.setOnAction(event -> changeLevelNameItemAction());
+        MenuItem quitItem = new MenuItem("Quitter l'éditeur");
+        quitItem.setOnAction(event -> Platform.exit());
+        fichierMenu.getItems().addAll(newLevelItem, openLevelItem, saveLevelItem, deleteLevelItem, choseBackgroundItem, changeLevelNameItem, new SeparatorMenuItem(), quitItem);
+
+        //Création du menu "Paramètres"
+        Menu parametresMenu = new Menu("Paramètres");
+        //Création des éléments que contient "Paramètres"
+        MenuItem preferencesItem = new MenuItem("Préférences");
+        parametresMenu.getItems().add(preferencesItem);
+
+        //Création du menu "Édition"
+        Menu editionMenu = new Menu("Édition");
+        //Création des éléments que contient "Édition"
+        MenuItem copierItem = new MenuItem("Copier");
+        MenuItem collerItem = new MenuItem("Coller");
+        editionMenu.getItems().addAll(copierItem, collerItem);
+
+        //On ajoute les menus à la barre
+        this.getMenus().addAll(fichierMenu, parametresMenu, editionMenu);
+    }
+
+
+    private void choseBackgroundItemAction(){
+        //On créer un sélecteur de fichier
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Sélectionner une image");
+
+        //On ajoute un filtre au sélecteur de fichier pour n'avoir que des images
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp")
+        );
+
+
+        //On ouvre la fenêtre du sélecteur de fichier
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if(selectedFile != null){
+            //On transforme le fichier choisi en instance d'Image et on calcule sa nouvelle hauteur pour qu'elle soit la
+            //même que celle de la fentre du niveau (GridPane) en calculant aussi proportionnellement sa largeur 
+            Image image = new Image(selectedFile.toURI().toString());
+            
+            parent.updateBackground(image);
+        }
+    }
+
+
+    private void newLevelItemAction(){
+        Stage newWindow = new Stage();
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+
+
+        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        TextField levelName = new TextField();
+
+        Label cellSizeLabel = new Label("Sélectionnez la taille des cases de l'éditeur (16-128) :");
+        Spinner<Integer> cellSizeSelection = new Spinner<>(16, 128, 16, 8);
+        cellSizeSelection.setEditable(true);
+
+        Label nbRowsLabel = new Label("Sélectionnez le nombre de ligne pour la grille (1-10000) :");
+        Spinner<Integer> nbRows = new Spinner<>(1, 10000, 40, 1);
+        nbRows.setEditable(true);
+
+        Label nbColsLabel = new Label("Sélectionnez le nombre de colonne pour la grille (1-10000) :");
+        Spinner<Integer> nbCols = new Spinner<>(1, 10000, 400, 1);
+        nbCols.setEditable(true);
+
+
+        HBox buttons = new HBox();
+        Button createButton = new Button("Créer");
+        createButton.setOnAction(e -> {
+            this.parent.initLevel(levelName.getText(), cellSizeSelection.getValue(), nbRows.getValue(), nbCols.getValue());
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+
+        VBox layout = new VBox(10, levelNameLabel, levelName, cellSizeLabel, cellSizeSelection, nbRowsLabel, nbRows, nbColsLabel, nbCols, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        Scene scene = new Scene(layout, 300, 400);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Paramètres du niveau");
+        newWindow.showAndWait();
+    }
+
+    private void saveLevelItemAction(){
+        Alert alert;
+        try {
+            this.parent.getController().saveLevel(false);
+            alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText("L'enregistrement a réussi !");
+            alert.setContentText("Le niveau est dans Jeu/resources/levels");
+        } catch (Exception e) {
+            if(e instanceof JsonReaderException){
+                alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Choix de confirmation");
+                alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+                alert.setContentText("Ce nom de niveau existe déjà, voulez vous le remplacer ?");
+            }else{
+                alert = new Alert(AlertType.INFORMATION);
+                alert.setContentText("Il y a eu une erreur lors de l'enregistrement");
+            }
+            alert.setHeaderText("L'enregistrement a échoué !");
+        }
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent()) {
+            if (result.get() == ButtonType.YES) {
+                this.parent.getController().saveLevel(true);
+            }
+        }
+    }
+
+
+    private void openLevelItemAction(){
+        final String[] levelName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez un niveau à charger");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File("../resources/levels/");
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName.substring(0, fileName.lastIndexOf('.')));
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            levelName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(levelName[0] != null){
+            this.parent.getController().loadLevel(levelName[0]);
+        }
+    }
+
+
+    private void changeLevelNameItemAction(){
+        if(this.parent.getCenter() == null){
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le nom à sauvegarder");
+            alert.showAndWait();
+            return;
+        }
+
+        Stage newWindow = new Stage();
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+
+
+        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        TextField levelName = new TextField();
+
+        HBox buttons = new HBox();
+        Button createButton = new Button("Changer");
+        createButton.setOnAction(e -> {
+            this.parent.updateLevelName(levelName.getText());
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+
+        VBox layout = new VBox(10, levelNameLabel, levelName, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        Scene scene = new Scene(layout, 300, 200);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Changement du nom de niveau pour la sauvegarde");
+        newWindow.showAndWait();
+    }
+
+
+
+    private void deleteLevelItemAction(){
+        final String[] levelName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez un niveau à supprimer");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File("../resources/levels/");
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName.substring(0, fileName.lastIndexOf('.')));
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            levelName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(levelName[0] != null){
+            this.parent.getController().deleteLevel(levelName[0]);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+fin fichier ./src/view/editor/gameEditorSubView/EditorMenuBar.java
+
+
+
+
+
+début fichier ./src/view/editor/gameEditorSubView/MapEditor.java
+package src.view.editor.gameEditorSubView;
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import src.model.game.Decoration;
+import src.model.game.Level;
+import src.model.game.Platform;
+import src.view.editor.GameEditorView;
+import src.view.editor.GameEditorView.LevelObjectType;
+
+public class MapEditor extends ScrollPane{
+    private Rectangle[][] rectangles;
+    private StackPane layers;
+    private Pane backgroundLayer;
+    private Pane behindLayer;
+    private Pane mainLayer;
+    private Pane foregroundLayer;
+    private GridPane gridPane;
+    private int gridPaneNbRows;
+    private int gridPaneNbCols;
+    private int cellSize;
+    private final Color DEFAULT_COLOR = Color.rgb(255, 255, 255, 0.0); //Couleur de base d'une case : blanc pour l'instant mais transparent après
+    private final Color HOVER_COLOR = Color.rgb(0, 0, 255, 0.3); //Couleur de la case sélectionnée : bleu translucide
+    private final Color SELECT_COLOR = Color.rgb(0, 255, 0, 0.3); //Couleur de la case sélectionnée : rouge translucide
+    private ImageView selectedLevelObjectImage = null;
+    private LevelObjectType selectedLevelObjectType;
+    private Rectangle selectedRectangle = null;
+    private GameEditorView parent = null;
+    private Map<LevelObjectType, Pane> correspondingPane;
+    
+
+    //Pour le chargement d'un niveau
+    public MapEditor(Level level, GameEditorView parent){
+        this(16, (int)level.getLevelHeight() / 16, (int)level.getLevelWidth() / 16, parent);
+    }
+
+
+    //Pour la création d'un nouveau niveau
+    public MapEditor(int cellSize, int gridPaneNbRows, int gridPaneNbCols, GameEditorView parent){
+        super();
+        
+        this.gridPaneNbRows = gridPaneNbRows;
+        this.gridPaneNbCols = gridPaneNbCols;
+        this.cellSize = cellSize;
+        this.rectangles = new Rectangle[gridPaneNbRows][gridPaneNbCols];
+        this.parent = parent;
+
+        this.addEventFilter(ScrollEvent.ANY, event -> {
+            //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
+            //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
+            //le scroll soit horizontal.
+
+            if (event.getDeltaY() != 0) {
+                //Si la molette défile verticalement, on défile horizontalement
+                this.setHvalue(this.getHvalue() - (event.getDeltaY() / 1000));
+            }
+            event.consume();
+        });
+
+
+        this.layers = new StackPane();
+        this.backgroundLayer = new Pane();
+        this.behindLayer = new Pane();
+        this.mainLayer = new Pane();
+        this.foregroundLayer = new Pane();
+        this.gridPane = new GridPane();
+        this.layers.getChildren().addAll(backgroundLayer, behindLayer, mainLayer, foregroundLayer, gridPane);
+        this.setContent(this.layers);
+
+        this.correspondingPane = new HashMap<>();
+        correspondingPane.put(LevelObjectType.PLATFORM, this.mainLayer);
+        correspondingPane.put(LevelObjectType.DECORATION, this.behindLayer);
+        correspondingPane.put(LevelObjectType.ENEMY, this.mainLayer);
+
+        initializeGridPane();
+        showLevel();
+    }
+
+
+    public void setSelectedLevelObjectImage(ImageView selectedLevelObjectImage, LevelObjectType selectedLevelObjectType){
+        if(this.selectedLevelObjectType != null) this.correspondingPane.get(this.selectedLevelObjectType).getChildren().remove(this.selectedLevelObjectImage);
+        
+        this.selectedLevelObjectImage = selectedLevelObjectImage;
+        this.selectedLevelObjectImage.setOpacity(0.5);
+        this.selectedLevelObjectType = selectedLevelObjectType;
+    }
+
+
+    private void initializeGridPane(){
+        //gridPane.setStyle("-fx-grid-lines-visible: true;");
+        gridPane.setGridLinesVisible(true);
+        for (int i = 0; i < gridPaneNbRows; i++) {
+            for (int j = 0; j < gridPaneNbCols; j++) {
+                Rectangle rect = new Rectangle(this.cellSize, this.cellSize);
+                rect.setFill(this.DEFAULT_COLOR);
+                rect.setOnMouseEntered((MouseEvent e) -> {
+                    if(this.selectedLevelObjectImage == null){
+                        if(rect.getFill() != this.SELECT_COLOR){
+                            rect.setFill(this.HOVER_COLOR);
+                        }
+                    }else{
+                        Integer col = GridPane.getColumnIndex(rect);
+                        Integer row = GridPane.getRowIndex(rect);
+
+                        int colIndex = (col == null) ? 0 : col;
+                        int rowIndex = (row == null) ? 0 : row;
+
+                        this.correspondingPane.get(this.selectedLevelObjectType).getChildren().add(this.selectedLevelObjectImage);
+                        this.selectedLevelObjectImage.setLayoutX(colIndex * cellSize);
+                        this.selectedLevelObjectImage.setLayoutY(rowIndex * cellSize);  
+                    }
+                    
+                });
+                rect.setOnMouseExited((MouseEvent e) -> {
+                    if(this.selectedLevelObjectImage == null){
+                        if(rect.getFill() != this.SELECT_COLOR){
+                            rect.setFill(this.DEFAULT_COLOR);
+                        }
+                    }else{
+                        this.correspondingPane.get(this.selectedLevelObjectType).getChildren().remove(this.selectedLevelObjectImage);
+                    }
+                });
+
+                //Ajout de la gestion du clique de la souris dans le grid pane
+                rect.setOnMousePressed((MouseEvent e) -> {
+                    if(this.selectedRectangle != null) this.selectedRectangle.setFill(this.DEFAULT_COLOR);
+                    
+
+                    if(this.selectedLevelObjectImage != null){
+                        this.selectedRectangle = null;
+                        Integer col = GridPane.getColumnIndex(rect);
+                        Integer row = GridPane.getRowIndex(rect);
+
+                        int colIndex = (col == null) ? 0 : col;
+                        int rowIndex = (row == null) ? 0 : row;
+
+                        double levelObjectX = colIndex * cellSize;
+                        double levelObjectY = rowIndex * cellSize;
+
+                        switch (this.selectedLevelObjectType) {
+                            case LevelObjectType.PLATFORM:
+                                this.parent.getController().addPlatform(levelObjectX, levelObjectY);
+                                break;
+                            case LevelObjectType.DECORATION:
+                                this.parent.getController().addDecoration(levelObjectX, levelObjectY, false);
+                                break;
+                            case LevelObjectType.ENEMY:
+                                this.parent.getController().addEnemy(levelObjectX, levelObjectY, 0, 0, 0);
+                                break;
+                            default:
+                                break;
+                        }
+                        showLevel();
+                        
+                    }else{
+                        this.selectedRectangle = rect;
+                        rect.setFill(this.SELECT_COLOR);
+                    }
+                });
+                gridPane.add(rect, j, i);
+                rectangles[i][j] = rect;
+            }
+        }
+    }
+
+
+    public void showOneLayer(int visibleLayer){
+        hideAllLayers();
+        switch (visibleLayer) {
+            case 0: //Montrer que la couche du fond de niveau
+                this.backgroundLayer.setVisible(true);
+                break;
+            case 1: //Montrer que la couche derrière la principale
+                this.behindLayer.setVisible(true);
+                break;
+            case 2: //Montrer que la couche principale
+                this.mainLayer.setVisible(true);
+                break;
+            case 3: //Montrer que la couche devant la principale
+                this.foregroundLayer.setVisible(true);
+                break;
+            default:
+                showAllLayers();
+                break;
+        }
+    }
+
+    public void showAllLayers(){
+        this.backgroundLayer.setVisible(true);
+        this.behindLayer.setVisible(true);
+        this.mainLayer.setVisible(true);
+        this.foregroundLayer.setVisible(true);
+    }
+
+    public void hideAllLayers(){
+        this.backgroundLayer.setVisible(false);
+        this.behindLayer.setVisible(false);
+        this.mainLayer.setVisible(false);
+        this.foregroundLayer.setVisible(false);
+    }
+
+    public void showGridLines(){
+        gridPane.setGridLinesVisible(true);
+    }
+
+    public void hideGridLines(){
+        gridPane.setGridLinesVisible(false);
+    }
+
+
+    public void showLevel(){
+        Level level = this.parent.getController().getLevel();
+
+        this.backgroundLayer.getChildren().clear();
+        ImageView bg = new ImageView(level.getBackgroundImage());
+        this.backgroundLayer.getChildren().add(bg);
+        bg.setLayoutX(0);
+        bg.setLayoutY(0);
+        
+        this.mainLayer.getChildren().clear();
+        for (Platform platform : level.getPlatforms()) {
+            ImageView temp = new ImageView(platform.getTexture());
+            temp.setFitWidth(platform.getWidth());
+            temp.setFitHeight(platform.getHeight());
+            this.mainLayer.getChildren().add(temp);
+            temp.setLayoutX(platform.getX());
+            temp.setLayoutY(platform.getY());
+        }
+
+        this.behindLayer.getChildren().clear();
+        for (Decoration decoration : level.getDecorations()) {
+            ImageView temp = new ImageView(decoration.getTexture());
+            temp.setFitWidth(decoration.getWidth());
+            temp.setFitHeight(decoration.getHeight());
+            this.behindLayer.getChildren().add(temp);
+            temp.setLayoutX(decoration.getX());
+            temp.setLayoutY(decoration.getY());
+        }
+    }
+}
+fin fichier ./src/view/editor/gameEditorSubView/MapEditor.java
+
+
+
+
+
+début fichier ./src/view/editor/gameEditorSubView/MapEditorSettings.java
+package src.view.editor.gameEditorSubView;
+
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import src.view.editor.GameEditorView;
+import javafx.geometry.Pos;
+
+public class MapEditorSettings extends HBox{
+    private GameEditorView parent;
+    private VBox shownLayerSelection;
+
+    public MapEditorSettings(GameEditorView parent){
+        super(10);
+        this.setAlignment(Pos.CENTER);
+        this.getStyleClass().add("steampunk-hbox");
+
+        this.parent = parent;
+        this.shownLayerSelection = new VBox();
+        this.getChildren().add(this.shownLayerSelection);
+
+        ToggleGroup rbGroup = new ToggleGroup();
+        for (int i = 0; i <= 4; i++) {
+            String rbText;
+            switch (i) {
+                case 0:
+                    rbText = "Afficher seulement la couche du fond d'écran";
+                    break;
+                case 1:
+                    rbText = "Afficher seulement la couche derrière la principale";
+                    break;
+                case 2:
+                    rbText = "Afficher seulement la couche principale";
+                    break;
+                case 3:
+                    rbText = "Afficher seulement la couche devant la principale";
+                    break;
+                default:
+                    rbText = "Afficher toutes les couches";
+                    break;
+            }
+            RadioButton rb = new RadioButton(rbText);
+            rb.getStyleClass().add("steampunk-radio");
+            rb.setToggleGroup(rbGroup);
+            rb.setUserData(i); // associe la valeur 0-4
+            this.shownLayerSelection.getChildren().add(rb);
+        }
+
+        // Mise à jour du label lorsqu'une sélection change
+        rbGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null) {
+                this.parent.updateVisibleLayer((int)newToggle.getUserData());
+            }
+        });
+
+        ToggleButton gridLinesVisible = new ToggleButton("Masquer le cadrillage");
+        gridLinesVisible.setOnAction(e -> {
+            if (gridLinesVisible.isSelected()) {
+                ((MapEditor)this.parent.getCenter()).hideGridLines();
+                gridLinesVisible.setText("Afficher le cadrillage");
+            } else {
+                ((MapEditor)this.parent.getCenter()).showGridLines();
+                gridLinesVisible.setText("Masquer le cadrillage");
+            }
+        });
+        
+        this.getChildren().add(gridLinesVisible);
+    }
+}
+fin fichier ./src/view/editor/gameEditorSubView/MapEditorSettings.java
+
+
+
+
+
+début fichier ./src/view/editor/GameEditorView.java
+package src.view.editor;
+
+import src.view.editor.gameEditorSubView.EditorMenuBar;
+import src.view.editor.gameEditorSubView.EditorLevelObjectSelector;
+import src.view.editor.gameEditorSubView.MapEditor;
+import src.view.editor.gameEditorSubView.MapEditorSettings;
+import src.controller.editor.GameEditorController;
+import src.model.game.Level;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+
+
+public class GameEditorView extends BorderPane{
+    public enum LevelObjectType {
+        PLATFORM, DECORATION, ENEMY;
+    }
+
+    private final GameEditorController controller;
+    private MapEditor center = null;
+    private EditorMenuBar top = null;
+    private EditorLevelObjectSelector left = null;
+    private MapEditorSettings bottom = null;
+    private Stage stage;
+
+
+    public GameEditorView(GameEditorController controller, Stage stage) {
+        super();
+        this.controller = controller;
+        this.controller.setView(this);
+        this.stage = stage;
+        
+
+        //La racine est un BorderPane qui contient :
+        // -Un menu en haut pour diverses fonctionnalités
+        // -La selection des plateformes à gauche grâce à un ListView (A VOIR)------------------------------------------------------------------------
+        // -L'affichage du niveau dans l'éditeur au centre grâce à un ScrollPane
+
+        
+        this.top = new EditorMenuBar(this);
+        this.setTop(top);
+        this.left = new EditorLevelObjectSelector(this);
+        this.setLeft(left);
+        Scene scene = new Scene(this);
+        scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
+        stage.setScene(scene); 
+        stage.setMaximized(true);
+        updateLevelName("");
+    }
+
+    public GameEditorController getController() {return this.controller;}
+    public Stage getStage() {return this.stage;}
+    
+    public void initLevel(String levelName, int cellSize, int nbRows, int nbCols){
+        this.updateLevelName(levelName);
+        this.controller.initLevel(nbCols*cellSize, nbRows*cellSize);
+        this.center = new MapEditor(cellSize, nbRows, nbCols, this);
+        this.setCenter(center);
+        this.bottom = new MapEditorSettings(this);
+        this.setBottom(bottom);
+    }
+
+    
+    public void initLevel(Level level, String levelName){
+        this.updateLevelName(levelName);
+        this.center = new MapEditor(level, this);
+        this.setCenter(center);
+        this.bottom = new MapEditorSettings(this);
+        this.setBottom(bottom);
+    }
+
+
+    public void updateLevelName(String levelName){
+        this.controller.updateLevelName(levelName);
+        this.stage.setTitle("Steampunk Adventure - Éditeur de niveau" + " - " + levelName);
+    }
+
+
+    public void updateBackground(Image image){
+        if(this.center != null){
+            this.controller.updateBackground(image);
+            this.center.showLevel();
+        }
+    }
+
+    public void updateSelectedLevelObject(String name, LevelObjectType levelObjectType, ImageView selectedLevelObjectImage){
+        if(this.center != null){
+            this.center.setSelectedLevelObjectImage(selectedLevelObjectImage, levelObjectType);
+            this.controller.updateSelectedLevelObjectName(name);
+        }
+    }
+
+    public void updateVisibleLayer(int visibleLayer){
+        if(this.center != null){
+            this.center.showOneLayer(visibleLayer);
+        }
+    }
+
+
+}
+fin fichier ./src/view/editor/GameEditorView.java
+
+
+
+
+
+début fichier ./src/view/game/GameView.java
 // src/view/GameView.java
-package src.view;
+package src.view.game;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.CacheHint;
+import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import src.common.ResourcesPaths;
+import src.controller.game.GameController;
+import src.model.game.Boss;
+import src.model.game.Enemy;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import src.model.Enemy;
-import src.model.Boss;
-
 public class GameView {
+    private static final int WIDTH  = 800;
+    private static final int HEIGHT = 600;
     private final DoubleProperty cameraX = new SimpleDoubleProperty(0);
     private final DoubleProperty cameraY = new SimpleDoubleProperty(0);
     private final GraphicsContext gc;
+    private Pane root;
+    private Scene scene;
+    private Canvas canvas;
+    private GameController controller;
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
@@ -1287,15 +2532,25 @@ public class GameView {
     private Image spaceshipImage;
     private final double playerOffsetY = 50;
 
-    public GameView(GraphicsContext gc) {
-        this.gc = gc;
-        Canvas canvas = gc.getCanvas();
+    public GameView(GameController controller, Stage primaryStage) {
+        this.controller = controller;
+        root = new Pane();
+        canvas = new Canvas(WIDTH, HEIGHT);
+        canvas.widthProperty().bind(root.widthProperty());
+        canvas.heightProperty().bind(root.heightProperty());
+        root.getChildren().add(canvas);
+        scene = new Scene(root, WIDTH, HEIGHT);
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
+        primaryStage.setMaximized(true);
+
+        this.gc = canvas.getGraphicsContext2D();
         canvas.setCache(true);
         canvas.setCacheHint(CacheHint.SPEED);
 
         try {
             // Engrenage
-            gearSpriteSheet = new Image("file:../textures/engrenage_animation-Sheet.png");
+            gearSpriteSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "engrenage_animation-Sheet.png");
             if (!gearSpriteSheet.isError()) {
                 gearFrameHeight = (int) gearSpriteSheet.getHeight();
                 gearFrameWidth  = gearFrameHeight;
@@ -1305,7 +2560,7 @@ public class GameView {
             }
 
             // Joueur Idle
-            playerIdleSheet = new Image("file:../textures/static wrench-Sheet.png");
+            playerIdleSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "static wrench-Sheet.png");
             if (!playerIdleSheet.isError()) {
                 idleFrameHeight = (int) playerIdleSheet.getHeight();
                 idleFrameWidth  = idleFrameHeight;
@@ -1315,7 +2570,7 @@ public class GameView {
             }
 
             // Joueur Walk
-            playerWalkSheet = new Image("file:../textures/sprite sheet wrench walking.png");
+            playerWalkSheet = new Image("file:"+ ResourcesPaths.TEXTURES_FOLDER +"sprite sheet wrench walking.png");
             if (!playerWalkSheet.isError()) {
                 walkFrameHeight = (int) playerWalkSheet.getHeight();
                 walkFrameWidth  = walkFrameHeight;
@@ -1325,7 +2580,7 @@ public class GameView {
             }
 
             // Joueur Jump
-            playerJumpSheet = new Image("file:../textures/jump2 wrench-Sheet.png");
+            playerJumpSheet = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "jump2 wrench-Sheet.png");
             if (!playerJumpSheet.isError()) {
                 jumpFrameHeight = (int) playerJumpSheet.getHeight();
                 jumpFrameWidth  = jumpFrameHeight;
@@ -1335,7 +2590,7 @@ public class GameView {
             }
 
             // Sprite vaisseau
-            spaceshipImage = new Image("file:../textures/dirigeable v1.png");
+            spaceshipImage = new Image("file:" + ResourcesPaths.TEXTURES_FOLDER + "dirigeable v1.png");
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
         }
@@ -1427,7 +2682,22 @@ public class GameView {
             }
         }
 
-        // JOUEUR ou VAISSEAU
+        // 2) Plateformes
+        for (int i = 0; i < platformImages.size(); i++) {
+            Image img = platformImages.get(i);
+            Double[] pos = platformPositions.get(i);
+            double px = pos[0] - cameraX.get();
+            double py = pos[1] - cameraY.get();
+            double pw = pos[2], ph = pos[3];
+            if (img != null) {
+                gc.drawImage(img, px, py, pw, ph);
+            } else {
+                gc.setFill(Color.BLUE);
+                gc.fillRect(px, py, pw, ph);
+            }
+        }
+
+        // 3) JOUEUR ou VAISSEAU
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
@@ -1511,20 +2781,7 @@ public class GameView {
             }
         }
 
-        // 3) Plateformes
-        for (int i = 0; i < platformImages.size(); i++) {
-            Image img = platformImages.get(i);
-            Double[] pos = platformPositions.get(i);
-            double px = pos[0] - cameraX.get();
-            double py = pos[1] - cameraY.get();
-            double pw = pos[2], ph = pos[3];
-            if (img != null) {
-                gc.drawImage(img, px, py, pw, ph);
-            } else {
-                gc.setFill(Color.BLUE);
-                gc.fillRect(px, py, pw, ph);
-            }
-        }
+        
 
         // 4) Ennemis + boss
         for (Enemy e : enemies) {
@@ -1561,8 +2818,52 @@ public class GameView {
         this.cachedWidth  = -1;
         this.cachedHeight = -1;
     }
+
+    public Scene getScene(){
+        return this.scene;
+    }
 }
-fin fichier ./src/view/GameView.java
+fin fichier ./src/view/game/GameView.java
+
+
+
+
+
+début fichier ./src/view/MainMenuView.java
+package src.view;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import src.controller.MainMenuController;
+
+public class MainMenuView extends VBox {
+    private final int SCENE_WIDTH = 800, SCENE_HEIGHT = 600; 
+    MainMenuController controller;
+
+    public MainMenuView(MainMenuController controller, Stage primaryStage){
+        super(10);
+        this.setAlignment(Pos.CENTER);
+
+        primaryStage.setScene(new Scene(this, SCENE_WIDTH, SCENE_HEIGHT));
+
+        this.controller = controller;
+
+        Button game = new Button("Lancer le jeu");
+        game.setOnAction(e -> {this.controller.startGame(primaryStage);});
+
+        Button editor = new Button("Lancer l'éditeur de niveau");
+        editor.setOnAction(e -> {this.controller.startEditor(primaryStage);});
+
+        this.getChildren().addAll(game, editor);
+
+
+    }
+}
+fin fichier ./src/view/MainMenuView.java
 
 
 

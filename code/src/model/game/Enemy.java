@@ -1,6 +1,5 @@
 package src.model.game;
 
-
 import src.common.JsonReader;
 import src.common.ResourcesPaths;
 
@@ -67,8 +66,8 @@ public class Enemy {
 
     /** @param deltaSec  temps écoulé (s) */
     /**
- * @param deltaSec  temps écoulé (s) depuis la dernière frame
- */
+     * @param deltaSec  temps écoulé (s) depuis la dernière frame
+     */
     public void update(double deltaSec) {
         double move = speed * deltaSec;
         if (movingRight) {
@@ -80,7 +79,6 @@ public class Enemy {
         }
     }
 
-
     public JSONObject toJSONObject(){
         JSONObject enemyJSON = new JSONObject();
         enemyJSON.put("name", this.name);
@@ -91,5 +89,26 @@ public class Enemy {
         enemyJSON.put("speed", this.speed);
 
         return enemyJSON;
+    }
+
+    // --- Nouveaux accesseurs pour permettre à Boss de changer y ---
+    /** Position horizontale de l'ennemi. */
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    /** Position verticale de l'ennemi. */
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public double getSpeed() { 
+        return speed; 
+    }
+    public double getLeftBound() { 
+        return leftBound; 
+    }
+    public double getRightBound() { 
+        return rightBound; 
     }
 }
