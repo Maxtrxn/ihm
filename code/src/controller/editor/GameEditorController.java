@@ -36,7 +36,7 @@ public class GameEditorController{
     public void deleteLevel(String levelName){this.model.deleteLevel(levelName);}
     public void addPlatform(double x, double y){this.model.addPlatform(x, y);}
     public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
-    public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){return;}//A FAIRE -------------------
+    public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){this.model.addEnemy(x, y, leftBound, rightBound, speed);}
     public Level getLevel(){return this.model.getLevel();}
     public void loadLevel(String levelName){
         this.model.loadLevel(levelName);

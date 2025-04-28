@@ -28,67 +28,74 @@ public class EditorLevelObjectSelector extends VBox{
     public EditorLevelObjectSelector(GameEditorView parent){
         super();
         this.parent = parent;
-        initializePlatformSelector();
+        initializeLevelObjectSelector();
         
     }
 
 
-    public void initializePlatformSelector(){
-        ListView<LevelObjectSelectorItem> platformSelector = new ListView<>();
+    public void initializeLevelObjectSelector(){
+        ListView<LevelObjectSelectorItem> levelObjectSelector = new ListView<>();
         // Gestion de la sélection
-        platformSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
+        levelObjectSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
             if(newValue == null || newValue.getTexture() == null){
                 parent.updateSelectedLevelObject(null, null, null);
             }else{
-                ImageView withoutScaleFactor = new ImageView(newValue.getTexture());
-                withoutScaleFactor.setFitWidth(newValue.getTexture().getWidth() * newValue.getTextureScaleFactor());
-                withoutScaleFactor.setFitHeight(newValue.getTexture().getHeight() * newValue.getTextureScaleFactor());
-                parent.updateSelectedLevelObject(newValue.getLevelObjectNameLabel().getText(), newValue.getLevelObjectType(), withoutScaleFactor) ;
+                ImageView withScaleFactor = new ImageView(newValue.getTexture());
+                withScaleFactor.setFitWidth(newValue.getTexture().getWidth() * newValue.getTextureScaleFactor());
+                withScaleFactor.setFitHeight(newValue.getTexture().getHeight() * newValue.getTextureScaleFactor());
+                parent.updateSelectedLevelObject(newValue.getLevelObjectNameLabel().getText(), newValue.getLevelObjectType(), withScaleFactor) ;
             }
         });
 
         //Chargement des plateformes dans le ListView
         JSONObject platformsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "platforms.json");
-        platformSelector.getItems().add(new LevelObjectSelectorItem("Plateformes"));
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Plateformes"));
         Set<String> keys = platformsObjects.keySet();
         for (String name : keys) {
             LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, platformsObjects, LevelObjectType.PLATFORM);
-            platformSelector.getItems().add(temp);
+            levelObjectSelector.getItems().add(temp);
         }
 
         //Chargement des decorations dans le ListView
         JSONObject decorationsObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "decorations.json");
-        platformSelector.getItems().add(new LevelObjectSelectorItem("Décorations"));
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Décorations"));
         keys.clear();
         keys = decorationsObjects.keySet();
         for (String name : keys) {
             LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, decorationsObjects, LevelObjectType.DECORATION);
-            platformSelector.getItems().add(temp);
+            levelObjectSelector.getItems().add(temp);
         }
         
         //Chargement des ennemis dans le ListView
-        platformSelector.getItems().add(new LevelObjectSelectorItem("Ennemis"));
+        JSONObject enemiesObjects = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "enemies.json");
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Ennemis"));
+        keys.clear();
+        keys = enemiesObjects.keySet();
+        for (String name : keys) {
+            LevelObjectSelectorItem temp = new LevelObjectSelectorItem(name, enemiesObjects, LevelObjectType.ENEMY);
+            levelObjectSelector.getItems().add(temp);
+        }
 
 
-        platformSelector.setPrefWidth(200);
+        levelObjectSelector.setPrefWidth(200);
 
         Button retractButton = new Button("<");
         //Gestion de la rétraction du sélecteur de plateformes
         retractButton.setOnAction(e -> {
-            if (platformSelector.isVisible()) {
+            if (levelObjectSelector.isVisible()) {
                 this.setPrefWidth(retractButton.getWidth());
-                platformSelector.setVisible(false);
+                levelObjectSelector.setVisible(false);
                 retractButton.setText(">");
             } else{
-                this.setPrefWidth(platformSelector.getPrefWidth());
-                platformSelector.setVisible(true);
+                this.setPrefWidth(levelObjectSelector.getPrefWidth());
+                levelObjectSelector.setVisible(true);
                 retractButton.setText("<");
             }
         });
         Button unselectButton = new Button("Désélectioner");
         //Gestion de la déselection de plateforme dans le sélecteur
-        unselectButton.setOnAction(e -> {platformSelector.getSelectionModel().clearSelection();});
-        this.getChildren().addAll(retractButton, platformSelector, unselectButton);
+        unselectButton.setOnAction(e -> {levelObjectSelector.getSelectionModel().clearSelection();});
+        this.getChildren().addAll(retractButton, levelObjectSelector, unselectButton);
     }
 }
 

@@ -36,6 +36,8 @@ public abstract class LevelObject {
         obj.put("name", this.name);
         obj.put("x", this.x);
         obj.put("y", this.y);
+        obj.put("type", this.getClass().getSimpleName());
+        
         return obj;
     }
 }

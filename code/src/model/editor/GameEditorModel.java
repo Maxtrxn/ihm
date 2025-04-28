@@ -46,6 +46,9 @@ public class GameEditorModel{
         }
     }
 
+    public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){
+        this.level.addEnemy(x, y, speed, leftBound, rightBound, this.selectedLevelObjectName);
+    }
     
     public void saveLevel(boolean overwrite){
         JSONObject levelJSON = level.toJSONObject();

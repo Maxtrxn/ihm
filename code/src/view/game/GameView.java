@@ -347,7 +347,14 @@ public class GameView {
             } else {
                 gc.setFill(Color.GREEN);
             }
-            gc.fillRect(ex, ey, ew, eh);
+
+            Image img = e.getTexture();
+            if(img != null){
+                gc.drawImage(img, ex, ey, ew, eh);
+            }else{
+                gc.fillRect(ex, ey, ew, eh);
+            }
+            
         }
 
         // 5) Projectiles (mode vaisseau)

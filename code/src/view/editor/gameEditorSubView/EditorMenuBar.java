@@ -70,6 +70,15 @@ public class EditorMenuBar extends MenuBar{
 
 
     private void choseBackgroundItemAction(){
+        if(this.parent.getCenter() == null){
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le fond de niveau");
+            alert.showAndWait();
+            return;
+        }
+
         //On créer un sélecteur de fichier
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Sélectionner une image");
@@ -206,6 +215,7 @@ public class EditorMenuBar extends MenuBar{
         if(this.parent.getCenter() == null){
             Alert alert = new Alert(AlertType.INFORMATION);
             alert.setTitle("Information");
+            alert.setHeaderText(null);
             alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le nom à sauvegarder");
             alert.showAndWait();
             return;

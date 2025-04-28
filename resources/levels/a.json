@@ -1,0 +1,58 @@
+{
+    "levelWidth": 6400,
+    "enemies": [{
+        "patrolEnd": 708,
+        "patrolStart": 508,
+        "name": "enemy1",
+        "x": 608,
+        "y": 400,
+        "speed": 120
+    }],
+    "decorations": [],
+    "backgroundImageFileName": "magical-crystal-cave_995875-5073.jpg",
+    "levelHeight": 640,
+    "platforms": [
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 0,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 160,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 320,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 480,
+            "y": 624,
+            "type": "Platform"
+        },
+        {
+            "name": "sol_brique_tres_sombre",
+            "x": 640,
+            "y": 624,
+            "type": "FragilePlatform"
+        },
+        {
+            "name": "cuivre",
+            "x": 160,
+            "y": 384,
+            "type": "FragilePlatform"
+        },
+        {
+            "name": "cuivre",
+            "x": 176,
+            "y": 480,
+            "type": "FragilePlatform"
+        }
+    ]
+}

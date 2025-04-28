@@ -1,0 +1,6 @@
+{
+  "enemy1": {
+    "textureFileName": "enemy1.png",
+	"scaleFactor": 1.5,
+  }
+}

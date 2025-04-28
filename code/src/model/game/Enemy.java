@@ -2,13 +2,38 @@ package src.model.game;
 
 
 import src.common.JsonReader;
+import src.common.ResourcesPaths;
+
 import org.json.JSONObject;
+
+import javafx.scene.image.Image;
 
 
 public class Enemy {
+    protected static JSONObject enemiesJson = JsonReader.getJsonObjectContent(ResourcesPaths.RESOURCE_FOLDER + "enemies.json");
+
     private double x, y, width, height, speed;
+    private String name;
+    protected Image texture = null;
     private double leftBound, rightBound;
     private boolean movingRight = true;
+
+
+    public Enemy(double x, double y, double speed, double leftBound, double rightBound, String name) {
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.speed = speed;
+        this.leftBound = leftBound;
+        this.rightBound = rightBound;
+
+        JSONObject enemyJson = enemiesJson.getJSONObject(name);
+        this.texture = new Image("file:" + ResourcesPaths.ENEMIES_FOLDER + enemyJson.getString("textureFileName"));
+        double scaleFactor = enemyJson.getDouble("scaleFactor");
+        this.width = texture.getWidth() * scaleFactor;
+        this.height = texture.getHeight() * scaleFactor;
+    }
+
 
     public Enemy(double x, double y, double width, double height, double speed, double leftBound, double rightBound) {
         this.x = x;
@@ -36,6 +61,10 @@ public class Enemy {
         return height;
     }
 
+    public Image getTexture() {
+        return this.texture;
+    }
+
     /** @param deltaSec  temps écoulé (s) */
     /**
  * @param deltaSec  temps écoulé (s) depuis la dernière frame
@@ -54,12 +83,12 @@ public class Enemy {
 
     public JSONObject toJSONObject(){
         JSONObject enemyJSON = new JSONObject();
+        enemyJSON.put("name", this.name);
         enemyJSON.put("x", this.x);
         enemyJSON.put("y", this.y);
-        enemyJSON.put("width", this.width);
-        enemyJSON.put("height", this.height);
         enemyJSON.put("patrolStart", this.leftBound);
         enemyJSON.put("patrolEnd", this.rightBound);
+        enemyJSON.put("speed", this.speed);
 
         return enemyJSON;
     }

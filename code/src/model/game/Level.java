@@ -74,8 +74,9 @@ public class Level {
             String name = p.getString("name");
             double x     = p.getDouble("x");
             double y     = p.getDouble("y");
-            if ("fragile".equals(name)) {
-                platforms.add(new FragilePlatform(x, y));
+            String type = p.has("type") ? p.getString("type") : null;
+            if ("FragilePlatform".equals(type)) {
+                platforms.add(new FragilePlatform(x, y, name));
             } else {
                 platforms.add(new Platform(x, y, name));
             }
@@ -85,10 +86,11 @@ public class Level {
         JSONArray ens = L.getJSONArray("enemies");
         for (int i = 0; i < ens.length(); i++) {
             JSONObject e = ens.getJSONObject(i);
+            String name = e.has("name") ? e.getString("name") : "";
             double x           = e.getDouble("x");
             double y           = e.getDouble("y");
-            double width       = e.getDouble("width");
-            double height      = e.getDouble("height");
+            double width       = e.has("width") ? e.getDouble("width") : 0.0;
+            double height      = e.has("height") ? e.getDouble("height") : 0.0;
             double speed       = e.getDouble("speed");
             double patrolStart = e.getDouble("patrolStart");
             double patrolEnd   = e.getDouble("patrolEnd");
@@ -96,7 +98,7 @@ public class Level {
             if (isBoss) {
                 enemies.add(new src.model.game.Boss(x, y, width, height, speed, patrolStart, patrolEnd));
             } else {
-                enemies.add(new Enemy(x, y, width, height, speed, patrolStart, patrolEnd));
+                enemies.add(new Enemy(x, y, speed, patrolStart, patrolEnd, name));
             }
         }
 
@@ -138,6 +140,7 @@ public class Level {
     public void setLevelHeight(double h) {this.levelHeight = h;}
     public void addPlatform(double x, double y, String platformName) {this.platforms.add(new Platform(x, y, platformName));}
     public void addDecoration(double x, double y, String decorationName) {this.decorations.add(new Decoration(x, y, decorationName));}
+    public void addEnemy(double x, double y, double speed, double leftBound, double rightBound, String name){this.enemies.add(new Enemy(x, y, speed, leftBound, rightBound, name));}
 
 
     // ——————————— Helpers ———————————
@@ -165,7 +168,7 @@ public class Level {
 
 
         if(this.backgroundImage == null){
-            levelJSON.put("backgroundImage", "default.png");
+            levelJSON.put("backgroundImageFileName", "default.png");
         }else{
             //On vérifie si le fond de niveau existe déjà dans le dossier des fond
             //S'il existe c'est que le niveau avait déjà chargé le fond via le dossier
@@ -191,7 +194,7 @@ public class Level {
                 }
             }
 
-            levelJSON.put("backgroundImage", backgroundName);
+            levelJSON.put("backgroundImageFileName", backgroundName);
         }
 
 

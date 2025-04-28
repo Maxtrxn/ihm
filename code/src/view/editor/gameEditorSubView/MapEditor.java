@@ -4,16 +4,26 @@ package src.view.editor.gameEditorSubView;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import src.model.game.Decoration;
+import src.model.game.Enemy;
 import src.model.game.Level;
 import src.model.game.Platform;
 import src.view.editor.GameEditorView;
@@ -89,10 +99,10 @@ public class MapEditor extends ScrollPane{
 
 
     public void setSelectedLevelObjectImage(ImageView selectedLevelObjectImage, LevelObjectType selectedLevelObjectType){
+        this.selectedLevelObjectImage = selectedLevelObjectImage;
+        if(this.selectedLevelObjectImage != null) this.selectedLevelObjectImage.setOpacity(0.5);
         if(this.selectedLevelObjectType != null) this.correspondingPane.get(this.selectedLevelObjectType).getChildren().remove(this.selectedLevelObjectImage);
         
-        this.selectedLevelObjectImage = selectedLevelObjectImage;
-        this.selectedLevelObjectImage.setOpacity(0.5);
         this.selectedLevelObjectType = selectedLevelObjectType;
     }
 
@@ -156,7 +166,7 @@ public class MapEditor extends ScrollPane{
                                 this.parent.getController().addDecoration(levelObjectX, levelObjectY, false);
                                 break;
                             case LevelObjectType.ENEMY:
-                                this.parent.getController().addEnemy(levelObjectX, levelObjectY, 0, 0, 0);
+                                handleEnemyPlacement(levelObjectX, levelObjectY);
                                 break;
                             default:
                                 break;
@@ -172,6 +182,50 @@ public class MapEditor extends ScrollPane{
                 rectangles[i][j] = rect;
             }
         }
+    }
+
+
+    public void handleEnemyPlacement(double levelObjectX, double levelObjectY){
+        Stage newWindow = new Stage();
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+
+        Label leftPatrolDistanceLabel = new Label("Distance de la patrouille vers la gauche (en pixel) :");
+        Spinner<Integer> leftPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
+        leftPatrolDistanceSelection.setEditable(true);
+
+        Label rightPatrolDistanceLabel = new Label("Distance de la patrouille vers la droite (en pixel) :");
+        Spinner<Integer> rightPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
+        rightPatrolDistanceSelection.setEditable(true);
+
+        Label speedLabel = new Label("Vitesse de l'ennemi :");
+        Spinner<Integer> speedSelection = new Spinner<>(0, 20, 2, 1);
+        speedSelection.setEditable(true);
+
+        HBox buttons = new HBox();
+        Button createButton = new Button("Confirmer");
+        createButton.setOnAction(e -> {
+            double leftBound = leftPatrolDistanceSelection.getValue();
+            double rightBound = rightPatrolDistanceSelection.getValue();
+            double speed = speedSelection.getValue();
+            this.parent.getController().addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+
+        VBox layout = new VBox(10, leftPatrolDistanceLabel, leftPatrolDistanceSelection, rightPatrolDistanceLabel,
+        rightPatrolDistanceSelection, speedLabel, speedSelection, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        Scene scene = new Scene(layout, 300, 400);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Paramètres de l'ennemi");
+        newWindow.showAndWait();
     }
 
 
@@ -236,6 +290,15 @@ public class MapEditor extends ScrollPane{
             this.mainLayer.getChildren().add(temp);
             temp.setLayoutX(platform.getX());
             temp.setLayoutY(platform.getY());
+        }
+
+        for (Enemy enemy : level.getEnemies()) {
+            ImageView temp = new ImageView(enemy.getTexture());
+            temp.setFitWidth(enemy.getWidth());
+            temp.setFitHeight(enemy.getHeight());
+            this.mainLayer.getChildren().add(temp);
+            temp.setLayoutX(enemy.getX());
+            temp.setLayoutY(enemy.getY());
         }
 
         this.behindLayer.getChildren().clear();

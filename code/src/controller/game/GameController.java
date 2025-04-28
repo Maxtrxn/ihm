@@ -75,10 +75,10 @@ public class GameController {
         scene.setOnKeyPressed(e -> {
             boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
-            if (e.getCode() == KeyCode.LEFT)  left  = true;
-            if (e.getCode() == KeyCode.RIGHT) right = true;
-            if (e.getCode() == KeyCode.UP)    up    = true;
-            if (e.getCode() == KeyCode.DOWN)  down  = true;
+            if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.Q)  left  = true;
+            if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) right = true;
+            if (e.getCode() == KeyCode.UP || e.getCode() == KeyCode.Z)    up    = true;
+            if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.S)  down  = true;
 
             if (e.getCode() == KeyCode.SPACE) {
                 if (isShip) {
@@ -96,10 +96,10 @@ public class GameController {
         scene.setOnKeyReleased(e -> {
             boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
 
-            if (e.getCode() == KeyCode.LEFT)  left  = false;
-            if (e.getCode() == KeyCode.RIGHT) right = false;
-            if (e.getCode() == KeyCode.UP)    up    = false;
-            if (e.getCode() == KeyCode.DOWN)  down  = false;
+            if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.Q)  left  = false;
+            if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) right = false;
+            if (e.getCode() == KeyCode.UP || e.getCode() == KeyCode.Z)    up    = false;
+            if (e.getCode() == KeyCode.DOWN || e.getCode() == KeyCode.S)  down  = false;
 
             if (e.getCode() == KeyCode.SPACE && !isShip) {
                 jumping = false;

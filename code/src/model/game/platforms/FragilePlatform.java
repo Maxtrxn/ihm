@@ -1,6 +1,10 @@
 package src.model.game.platforms;
 
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import src.common.ResourcesPaths;
 import src.model.game.Platform;
 import src.model.game.Player;
@@ -12,11 +16,36 @@ public class FragilePlatform extends Platform {
     private Image fragileTexture;
     private boolean playerWasOn = false;
 
-    public FragilePlatform(double x, double y) {
-        super(x, y, "cuivre");
+    public FragilePlatform(double x, double y, String name){
+        super(x, y, name);
 
-        JSONObject platformJson = Platform.platformsJson.getJSONObject("fragile");
-        this.fragileTexture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + platformJson.getString("textureFileName"));
+        this.fragileTexture = new Image("file:" + ResourcesPaths.PLATFORMS_FOLDER + "fragile_overlay.png");
+
+
+        //Créer une copie modifiable de la texture de base pour pouvoir superposer l'image
+        //"fragile" par dessus.
+        WritableImage resultImage = new WritableImage((int) this.texture.getWidth(), (int) this.texture.getHeight());
+        PixelReader baseReader = this.texture.getPixelReader();
+        PixelReader overlayReader = this.fragileTexture.getPixelReader();
+        PixelWriter writer = resultImage.getPixelWriter();
+
+        for (int y_ = 0; y_ < this.texture.getHeight(); y_++) {
+            for (int x_ = 0; x_ < this.texture.getWidth(); x_++) {
+                //Lire les couleurs
+                javafx.scene.paint.Color baseColor = baseReader.getColor(x_, y_);
+                //On répète l'image "fragile" si l'image de base était plus grande grâce au modulo
+                javafx.scene.paint.Color overlayColor = overlayReader.getColor((int)(x_%this.fragileTexture.getWidth()), (int)(y_%this.fragileTexture.getHeight()));
+
+                //Mélanger les couleurs (simple alpha blending)
+                double alpha = overlayColor.getOpacity();
+                javafx.scene.paint.Color blendedColor = baseColor.interpolate(overlayColor, alpha);
+
+                //Ecrire dans l'image résultante
+                writer.setColor(x_, y_, blendedColor);
+            }
+        }
+
+        this.fragileTexture = resultImage;
     }
 
     /**
