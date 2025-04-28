@@ -6,7 +6,7 @@
         "name": "enemy1",
         "x": 608,
         "y": 400,
-        "speed": 120
+        "speed": 2
     }],
     "decorations": [],
     "backgroundImageFileName": "magical-crystal-cave_995875-5073.jpg",
