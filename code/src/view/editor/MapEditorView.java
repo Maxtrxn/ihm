@@ -1,9 +1,6 @@
-package src.view.editor.gameEditorSubView;
+package src.view.editor;
 
-
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javafx.scene.Scene;
@@ -11,10 +8,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
 import javafx.scene.effect.Blend;
 import javafx.scene.effect.BlendMode;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.ColorInput;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -28,15 +23,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import src.controller.editor.GameEditorController.LevelObjectType;
+import src.controller.editor.MapEditorController;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
 import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
-import src.view.editor.GameEditorView;
-import src.controller.editor.GameEditorController.LevelObjectType;
 
-public class MapEditor extends ScrollPane{
+public class MapEditorView extends ScrollPane{
+    private MapEditorController controller;
     private Rectangle[][] rectangles;
     private StackPane layers;
     private Pane backgroundLayer;
@@ -53,26 +49,16 @@ public class MapEditor extends ScrollPane{
     private ImageView selectedLevelObjectImage = null;
     private LevelObjectType selectedLevelObjectType;
     private Rectangle selectedRectangle = null;
-    private GameEditorView parent = null;
     private Map<LevelObjectType, Pane> correspondingPane;
-    
+    private LevelObject clickSelectedLevelObject = null;
 
-    //Pour le chargement d'un niveau
-    public MapEditor(Level level, GameEditorView parent){
-        this(16, (int)level.getLevelHeight() / 16, (int)level.getLevelWidth() / 16, parent);
-    }
-
-
-    //Pour la création d'un nouveau niveau
-    public MapEditor(int cellSize, int gridPaneNbRows, int gridPaneNbCols, GameEditorView parent){
-        super();
+    public MapEditorView(MapEditorController controller, Level level){
+        this.controller = controller;
+        this.cellSize = 16;
+        this.gridPaneNbRows = (int)level.getLevelHeight() / this.cellSize;
+        this.gridPaneNbCols = (int)level.getLevelWidth() / this.cellSize;
+        this.rectangles = new Rectangle[this.gridPaneNbRows][this.gridPaneNbCols];
         
-        this.gridPaneNbRows = gridPaneNbRows;
-        this.gridPaneNbCols = gridPaneNbCols;
-        this.cellSize = cellSize;
-        this.rectangles = new Rectangle[gridPaneNbRows][gridPaneNbCols];
-        this.parent = parent;
-
         this.addEventFilter(ScrollEvent.ANY, event -> {
             //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
             //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
@@ -84,7 +70,6 @@ public class MapEditor extends ScrollPane{
             }
             event.consume();
         });
-
 
         this.layers = new StackPane();
         this.backgroundLayer = new Pane();
@@ -103,17 +88,9 @@ public class MapEditor extends ScrollPane{
         correspondingPane.put(LevelObjectType.BOSS, this.mainLayer);
 
         initializeGridPane();
-        showLevel();
+        showLevel(level);
     }
 
-
-    public void setSelectedLevelObjectImage(ImageView selectedLevelObjectImage, LevelObjectType selectedLevelObjectType){
-        this.selectedLevelObjectImage = selectedLevelObjectImage;
-        if(this.selectedLevelObjectImage != null) this.selectedLevelObjectImage.setOpacity(0.5);
-        if(this.selectedLevelObjectType != null) this.correspondingPane.get(this.selectedLevelObjectType).getChildren().remove(this.selectedLevelObjectImage);
-        
-        this.selectedLevelObjectType = selectedLevelObjectType;
-    }
 
 
     private void initializeGridPane(){
@@ -170,10 +147,10 @@ public class MapEditor extends ScrollPane{
                         switch (this.selectedLevelObjectType) {
                             case LevelObjectType.FRAGILE_PLATFORM:
                             case LevelObjectType.PLATFORM:
-                                this.parent.getController().addPlatform(levelObjectX, levelObjectY);
+                                this.controller.addPlatform(levelObjectX, levelObjectY);
                                 break;
                             case LevelObjectType.DECORATION:
-                                this.parent.getController().addDecoration(levelObjectX, levelObjectY, false);
+                                this.controller.addDecoration(levelObjectX, levelObjectY, false);
                                 break;
                             case LevelObjectType.BOSS:
                             case LevelObjectType.ENEMY:
@@ -186,17 +163,17 @@ public class MapEditor extends ScrollPane{
                         
                     }else{
                         //On envoie le centre du rectangle pour les coordonnées de la selection
-                        //this.parent.getController().clickSelectLevelObject(levelObjectX + cellSize/2, levelObjectY + cellSize/2);
+                        this.clickSelectedLevelObject = this.controller.clickSelectLevelObject(levelObjectX + cellSize/2, levelObjectY + cellSize/2);
                         this.selectedRectangle = rect;
                         rect.setFill(this.SELECT_COLOR);
                     }
-                    showLevel();
                 });
                 gridPane.add(rect, j, i);
                 rectangles[i][j] = rect;
             }
         }
     }
+
 
 
     public void handleEnemyPlacement(double levelObjectX, double levelObjectY){
@@ -221,7 +198,7 @@ public class MapEditor extends ScrollPane{
             double leftBound = leftPatrolDistanceSelection.getValue();
             double rightBound = rightPatrolDistanceSelection.getValue();
             double speed = speedSelection.getValue();
-            this.parent.getController().addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
+            this.controller.addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
             newWindow.close();
         });
         Button cancelButton = new Button("Annuler");
@@ -243,52 +220,8 @@ public class MapEditor extends ScrollPane{
     }
 
 
-    public void showOneLayer(int visibleLayer){
-        hideAllLayers();
-        switch (visibleLayer) {
-            case 0: //Montrer que la couche du fond de niveau
-                this.backgroundLayer.setVisible(true);
-                break;
-            case 1: //Montrer que la couche derrière la principale
-                this.behindLayer.setVisible(true);
-                break;
-            case 2: //Montrer que la couche principale
-                this.mainLayer.setVisible(true);
-                break;
-            case 3: //Montrer que la couche devant la principale
-                this.foregroundLayer.setVisible(true);
-                break;
-            default:
-                showAllLayers();
-                break;
-        }
-    }
 
-    public void showAllLayers(){
-        this.backgroundLayer.setVisible(true);
-        this.behindLayer.setVisible(true);
-        this.mainLayer.setVisible(true);
-        this.foregroundLayer.setVisible(true);
-    }
-
-    public void hideAllLayers(){
-        this.backgroundLayer.setVisible(false);
-        this.behindLayer.setVisible(false);
-        this.mainLayer.setVisible(false);
-        this.foregroundLayer.setVisible(false);
-    }
-
-    public void showGridLines(){
-        gridPane.setGridLinesVisible(true);
-    }
-
-    public void hideGridLines(){
-        gridPane.setGridLinesVisible(false);
-    }
-
-
-    public void showLevel(){
-        Level level = this.parent.getController().getLevel();
+    public void showLevel(Level level){
 
         this.backgroundLayer.getChildren().clear();
         ImageView bg = new ImageView(level.getBackgroundImage());
@@ -300,8 +233,6 @@ public class MapEditor extends ScrollPane{
         this.behindLayer.getChildren().clear();
         this.foregroundLayer.getChildren().clear();
 
-
-        LevelObject clickSelectedLevelObject = null; //this.parent.getController().getClickSelectedLevelObject();
         for(LevelObject levelObject : level.getLevelObjects()){
             ImageView temp = new ImageView(levelObject.getTexture());
             temp.setFitWidth(levelObject.getWidth());
@@ -309,7 +240,7 @@ public class MapEditor extends ScrollPane{
             temp.setLayoutX(levelObject.getX());
             temp.setLayoutY(levelObject.getY());
 
-            if(levelObject == clickSelectedLevelObject){
+            if(levelObject == this.clickSelectedLevelObject){
                 Blend blend = new Blend(
                     BlendMode.MULTIPLY,
                     null,

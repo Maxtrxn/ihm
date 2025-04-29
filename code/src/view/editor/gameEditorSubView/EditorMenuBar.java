@@ -55,7 +55,6 @@ public class EditorMenuBar extends MenuBar{
         Menu parametresMenu = new Menu("Paramètres");
         //Création des éléments que contient "Paramètres"
         MenuItem preferencesItem = new MenuItem("Préférences");
-        preferencesItem.setOnAction(event -> preferencesItemAction());
         parametresMenu.getItems().add(preferencesItem);
 
         //Création du menu "Édition"

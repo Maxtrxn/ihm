@@ -1,0 +1,282 @@
+package src.controller.editor;
+
+import java.io.File;
+import java.util.Optional;
+
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import src.common.ResourceManager;
+import src.controller.game.GameController;
+import src.model.editor.GameEditorModel;
+import src.view.editor.EditorMenuBarView;
+
+public class EditorMenuBarController {
+    private GameEditorModel model;
+    private EditorMenuBarView view;
+
+    public EditorMenuBarController(GameEditorModel model){
+        this.model = model;
+        this.view = new EditorMenuBarView(this);
+
+        this.view.getMenuItem(null);
+    }
+
+    public EditorMenuBarView getEditorMenuBarView(){
+        return this.view;
+    }
+
+
+    // --- File Menu Items ---
+
+    public void handleFileNewLevel(){
+        Stage newWindow = new Stage();
+
+        //Les champs input
+        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        TextField levelName = new TextField();
+
+        Label cellSizeLabel = new Label("Sélectionnez la taille des cases de l'éditeur (16-128) :");
+        Spinner<Integer> cellSizeSelection = new Spinner<>(16, 128, 16, 8);
+        cellSizeSelection.setEditable(true);
+
+        Label nbRowsLabel = new Label("Sélectionnez le nombre de ligne pour la grille (1-10000) :");
+        Spinner<Integer> nbRows = new Spinner<>(1, 10000, 40, 1);
+        nbRows.setEditable(true);
+
+        Label nbColsLabel = new Label("Sélectionnez le nombre de colonne pour la grille (1-10000) :");
+        Spinner<Integer> nbCols = new Spinner<>(1, 10000, 400, 1);
+        nbCols.setEditable(true);
+
+        //Les boutons
+        HBox buttons = new HBox();
+        Button createButton = new Button("Créer");
+        createButton.setOnAction(e -> {
+            this.model.initLevel(levelName.getText(), cellSizeSelection.getValue() * nbCols.getValue(), cellSizeSelection.getValue() * nbRows.getValue());
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        //Paramètres de la fenêtre
+        VBox layout = new VBox(10, levelNameLabel, levelName, cellSizeLabel, cellSizeSelection, nbRowsLabel, nbRows, nbColsLabel, nbCols, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+        Scene scene = new Scene(layout, 300, 400);
+
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Paramètres du niveau");
+        newWindow.showAndWait();
+    }
+
+    public void handleFileOpenLevel(){
+        final String[] levelName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez un niveau à charger");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File("../resources/levels/");
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName.substring(0, fileName.lastIndexOf('.')));
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            levelName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(levelName[0] != null){
+            this.model.loadLevel(levelName[0]);
+        }
+    }
+
+    public void handleFileSaveLevel(){
+        Alert alert;
+        if(this.model.saveLevel(false)){ //Si le fichier existe déjà
+            alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText("L'enregistrement a réussi !");
+            alert.setContentText("Le niveau est dans Jeu/resources/levels");
+            alert.showAndWait();
+        }else{
+            alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Choix de confirmation");
+            alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+            alert.setContentText("Ce nom de niveau existe déjà, voulez vous le remplacer ?");
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent()) {
+                if (result.get() == ButtonType.YES) {
+                    this.model.saveLevel(true);
+                }
+            }  
+        }
+    }
+
+    public void handleFileDeleteLevel(){
+        final String[] levelName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez un niveau à supprimer");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File(ResourceManager.LEVELS_FOLDER);
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName.substring(0, fileName.lastIndexOf('.')));
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            levelName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(levelName[0] != null){
+            this.model.deleteLevel(levelName[0]);
+        }
+    }
+
+    public void handleFileQuit(){
+        Platform.exit();
+    }
+
+    
+
+
+
+    // --- Level Menu Items ---
+
+    public void handleLevelChangeLevelName(){
+        if(this.model.getLevel() == null){
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le nom à sauvegarder");
+            alert.showAndWait();
+            return;
+        }
+
+        Stage newWindow = new Stage();
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+
+
+        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        TextField levelName = new TextField();
+
+        HBox buttons = new HBox();
+        Button createButton = new Button("Changer");
+        createButton.setOnAction(e -> {
+            this.model.setLevelName(levelName.getText());
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+
+        VBox layout = new VBox(10, levelNameLabel, levelName, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        Scene scene = new Scene(layout, 300, 200);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Changement du nom de niveau pour la sauvegarde");
+        newWindow.showAndWait();
+    }
+
+    public void handleLevelChangeLevelBackground(){
+        if(this.model.getLevel() == null){
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le fond de niveau");
+            alert.showAndWait();
+            return;
+        }
+
+        //On créer un sélecteur de fichier
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Sélectionner une image");
+
+        //On ajoute un filtre au sélecteur de fichier pour n'avoir que des images
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp")
+        );
+
+
+        //On ouvre la fenêtre du sélecteur de fichier
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if(selectedFile != null){
+            //On transforme le fichier choisi en instance d'Image et on calcule sa nouvelle hauteur pour qu'elle soit la
+            //même que celle de la fentre du niveau (GridPane) en calculant aussi proportionnellement sa largeur 
+            Image image = new Image(selectedFile.toURI().toString());
+            
+            this.model.setLevelBackground(image);
+        }
+    }
+
+    public void handleLevelTestLevel(){
+        if(this.model.getLevel() != null){
+            this.model.saveLevel(true);
+
+            Stage gameStage = new Stage();
+            gameStage.initModality(Modality.APPLICATION_MODAL);
+            gameStage.setTitle("Test du niveau");
+            new GameController(gameStage, this.model.getLevelName());
+            gameStage.showAndWait();
+        }else{
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Information");
+            alert.setHeaderText(null);
+            alert.setContentText("Veuillez choisir ou créer un niveau avant de le tester");
+            alert.showAndWait();
+            return;
+        } 
+    }
+}

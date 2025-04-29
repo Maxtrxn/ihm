@@ -41,10 +41,10 @@ public class JsonReader {
     }
 
 
-    public static void saveJsonObject(JSONObject object, String filePath, boolean overwrite) throws JsonReaderException{
+    public static boolean saveJsonObject(JSONObject object, String filePath, boolean overwrite) throws JsonReaderException{
         File level = new File(filePath);
         if(!overwrite && level.exists()){
-            throw new JsonReaderException("Le fichier existe déjà");
+            return false;
         }
 
         try (FileWriter file = new FileWriter(level)) {
@@ -52,6 +52,8 @@ public class JsonReader {
             file.flush();
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
+        return true;
     }
 }

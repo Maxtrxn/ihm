@@ -53,7 +53,7 @@ public class GameEditorView extends BorderPane{
     
     public void initLevel(String levelName, int cellSize, int nbRows, int nbCols){
         this.updateLevelName(levelName);
-        this.controller.initLevel(nbCols*cellSize, nbRows*cellSize);
+        //this.controller.initLevel(nbCols*cellSize, nbRows*cellSize);
         this.center = new MapEditor(cellSize, nbRows, nbCols, this);
         this.setCenter(center);
         this.bottom = new MapEditorSettings(this);
