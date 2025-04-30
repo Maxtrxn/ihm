@@ -1,52 +1,3 @@
-.neon-hbox {
-    -fx-background-color: linear-gradient(to right, #1e1e1e, #2c2c2c, #1e1e1e);
-    -fx-padding: 20;
-    -fx-spacing: 15;
-    -fx-alignment: center;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 15, 0.4, 0, 6);
-    -fx-border-color: #ffffff22;
-    -fx-border-width: 1.5;
-}
-
-
-
-
-
-
-.radio-button.neon-radio {
-	
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 2, 0.3, 1, 1);
-    -fx-font-size: 16px;
-    -fx-padding: 5 10;
-}
-
-.radio-button.neon-radio .radio {
-    -fx-background-color: transparent;
-    -fx-border-color: #00f5c3;
-    -fx-border-width: 2;
-    -fx-border-radius: 50%;
-    -fx-padding: 3;
-}
-
-.radio-button.neon-radio:selected .radio {
-	-fx-background-color: #008f7a;
-}
-
-.radio-button.neon-radio:selected .radio > .dot {
-	-fx-background-color: #008f7a;
-}
-
-.radio-button.neon-radio:hover .radio {
-    -fx-border-color: #00ffe0;
-    -fx-effect: dropshadow(gaussian, #00ffe088, 6, 0.5, 0, 0);
-}
-
-
-
-
-
 /* Style général du RadioButton Steampunk */
 .radio-button.steampunk-radio {
     -fx-text-fill: #f7e2c3; /* Texte couleur cuivre */
@@ -82,13 +33,204 @@
 }
 
 
-.steampunk-hbox {
-    -fx-background-color: linear-gradient(to right, #b17f4a, #7f4e2a, #c69c6d);
-    -fx-background-radius: 20;
+
+.steampunk-box {
+	-fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e);
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.3, 0, 2);
+    /*-fx-background-color: linear-gradient(to right, #b17f4a, #7f4e2a, #c69c6d);*/
     -fx-padding: 20;
     -fx-spacing: 15;
-    -fx-alignment: center;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4); /* Ombre pour effet de métal */
+    /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4);*/ /* Ombre pour effet de métal */
     -fx-border-color: #8b5e3c;
     -fx-border-width: 3;
 }
+
+
+
+/* Style général du ToggleButton Steampunk */
+.toggle-button.steampunk-toggle {
+    -fx-background-color: linear-gradient(to bottom, #8b5e3c, #5a3a1e);
+    -fx-text-fill: #f7e2c3; /* Texte couleur cuivre */
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 8 16;
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 3;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.3, 2, 2); /* Ombre pour effet de profondeur */
+    -fx-cursor: hand;
+}
+
+/* Style lorsque le ToggleButton est sélectionné */
+.toggle-button.steampunk-toggle:selected {
+    -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
+    -fx-text-fill: #2e1b0e; /* Texte plus foncé pour contraste */
+    -fx-border-color: #c49e6c;
+    -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0); /* Effet lumineux */
+}
+
+/* Style au survol du ToggleButton */
+.toggle-button.steampunk-toggle:hover {
+    -fx-border-color: #c49e6c;
+    -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0);
+}
+
+
+
+/* Style général du Button Steampunk */
+.button {
+    -fx-background-color: linear-gradient(to bottom, #8b5e3c, #5a3a1e); /* Fond cuivré */
+    -fx-text-fill: #f7e2c3; /* Texte couleur cuivre clair */
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 8 16;
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.3, 2, 2); /* Effet d'ombre métallique */
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease;
+}
+
+/* Style au survol du bouton */
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #a56d3f, #754222);
+    -fx-border-color: #c49e6c; /* Reflet doré au survol */
+    -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0);
+}
+
+/* Style quand on clique (pression) */
+.button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #5a3a1e, #3e2819);
+    -fx-text-fill: #d1b187;
+    -fx-translate-y: 1; /* Léger effet de pression */
+}
+
+
+
+/* ListView steampunk général */
+.list-view.steampunk-list {
+    -fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e); /* Fond sombre et chaud */
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 3;
+    -fx-background-insets: 0;
+    -fx-control-inner-background: transparent;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4);
+}
+
+/* Cellules uniquement si elles sont dans une ListView avec classe steampunk-list */
+.list-view.steampunk-list .list-cell {
+    -fx-text-fill: #f7e2c3;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 12;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.list-view.steampunk-list .list-cell:filled:selected,
+.list-view.steampunk-list .list-cell:filled:selected:hover {
+    -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
+    -fx-text-fill: #2e1b0e;
+    -fx-effect: dropshadow(gaussian, #c49e6c, 4, 0.3, 0, 0);
+}
+
+.list-view.steampunk-list .list-cell:hover {
+    -fx-background-color: rgba(196, 158, 108, 0.2);
+    -fx-cursor: hand;
+}
+
+
+
+
+/* ScrollBar générale */
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: #3a2415; /* Fond sombre et métallique */
+    -fx-padding: 2;
+}
+
+/* Track (fond de la barre) */
+.scroll-bar .track {
+    -fx-background-color: #5a3a1e;
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 1;
+    -fx-background-insets: 0;
+}
+
+/* Thumb (curseur qu'on déplace) */
+.scroll-bar .thumb {
+    -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 3, 0.3, 0, 0);
+}
+
+/* Survol du thumb */
+.scroll-bar .thumb:hover {
+    -fx-background-color: linear-gradient(to bottom, #e0c08a, #a56d3f);
+    -fx-cursor: hand;
+}
+
+/* Boutons haut/bas ou gauche/droite */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #5a3a1e;
+    -fx-background-radius: 3;
+    -fx-padding: 4;
+}
+
+/* Flèches (symboles sur les boutons) */
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #f7e2c3; /* couleur cuivre claire */
+}
+
+
+
+
+
+/* MenuBar steampunk */
+.menu-bar.steampunk-menubar,
+.menu-bar.steampunk-menubar .context-menu {
+    -fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e);
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.3, 0, 2);
+    -fx-border-color: #8b5e3c;
+    -fx-border-width: 3 0 3 0;
+    -fx-padding: 5 10;
+}
+
+.menu-bar.steampunk-menubar .label {
+    -fx-text-fill: #f7e2c3;
+}
+
+.menu-bar.steampunk-menubar .menu .label {
+	-fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.menu-bar.steampunk-menubar .menu-item .label {
+	-fx-font-weight: normal;
+    -fx-font-size: 14px;
+}
+
+.menu-bar.steampunk-menubar .menu:hover,
+.menu-bar.steampunk-menubar .menu:showing,
+.menu-bar.steampunk-menubar .menu-item:focused,
+.menu-bar.steampunk-menubar .menu-item:hover {
+    -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
+    -fx-text-fill: #2e1b0e;
+    -fx-cursor: hand;
+}
+
+
+
+.label.steampunk-label {
+	-fx-font-weight: bold;
+    -fx-text-fill: #f7e2c3;
+	-fx-font-size: 16px;
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.3, 2, 2);
+}
+
+
