@@ -21,6 +21,7 @@ public class EditorLevelObjectSelectorView {
     public EditorLevelObjectSelectorView(EditorLevelObjectSelectorController controller){
         this.controller = controller;
         this.region = new VBox();
+        this.region.getStyleClass().add("steampunk-box");
 
         initializeLevelObjectSelector();
     }
@@ -31,7 +32,8 @@ public class EditorLevelObjectSelectorView {
 
     public void initializeLevelObjectSelector(){
         ListView<LevelObjectSelectorItem> levelObjectSelector = new ListView<>();
-        // Gestion de la sélection
+        levelObjectSelector.getStyleClass().add("steampunk-list");
+        //Gestion de la sélection
         levelObjectSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
             if(newValue == null){
                 this.controller.handleSelectedLevelObjectChange(null);
@@ -94,7 +96,7 @@ public class EditorLevelObjectSelectorView {
                 retractButton.setText("<");
             }
         });
-        Button unselectButton = new Button("Désélectioner");
+        Button unselectButton = new Button("Désélectionner");
         //Gestion de la déselection de plateforme dans le sélecteur
         unselectButton.setOnAction(e -> {levelObjectSelector.getSelectionModel().clearSelection();});
         this.region.getChildren().addAll(retractButton, levelObjectSelector, unselectButton);

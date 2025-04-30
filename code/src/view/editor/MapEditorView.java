@@ -8,13 +8,23 @@ import java.util.Map;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.effect.Blend;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.ColorInput;
@@ -25,6 +35,8 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -40,6 +52,7 @@ import src.model.game.Enemy;
 import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
+
 import org.json.JSONObject;
 
 public class MapEditorView{
@@ -62,15 +75,11 @@ public class MapEditorView{
     private ImageView selectedLevelObjectImage = null;
     private ObjectProperty<ImageView> clickSelectedLevelObjectImage = null;
     private Pane selectedLevelObjectImageCorrespondingPane = null;
-    private LevelObjectType selectedLevelObjectType;
-    private Rectangle selectedRectangle = null;
     
 
     public MapEditorView(MapEditorController controller, Level level){
         this.controller = controller;
         this.cellSize = defaultCellSize;
-        this.gridPaneNbRows = (int)level.getLevelHeight() / this.cellSize;
-        this.gridPaneNbCols = (int)level.getLevelWidth() / this.cellSize;
         this.mainRegion = new ScrollPane();
         this.settingsRegion = new HBox();
         this.layers = new StackPane();
@@ -79,6 +88,7 @@ public class MapEditorView{
         this.mainLayer = new Pane();
         this.foregroundLayer = new Pane();
         this.gridPane = new GridPane();
+        this.gridPane.setGridLinesVisible(true);
         this.layers.getChildren().addAll(backgroundLayer, behindLayer, mainLayer, foregroundLayer, gridPane);
         this.mainRegion.setContent(this.layers);
         
@@ -86,18 +96,23 @@ public class MapEditorView{
         this.clickSelectedLevelObjectImage.addListener((observable, oldValue, newValue) -> {if (oldValue != null) oldValue.setEffect(null);});
 
 
-        initMainRegion();
-        initSettingsRegion();
+        this.gridPaneNbRows = (int)level.getLevelHeight() / this.cellSize;
+        this.gridPaneNbCols = (int)level.getLevelWidth() / this.cellSize;
 
-        
+        initMainRegion();
         initGridPane();
+        initSettingsRegion();
         showLevel(level);
     }
 
     public ScrollPane getMainRegion(){return this.mainRegion;}
     public HBox getSettingsRegion(){return this.settingsRegion;}
 
+
+
+
     private void initMainRegion(){
+        this.mainRegion.getStyleClass().add("steampunk-box");
         this.mainRegion.addEventFilter(ScrollEvent.ANY, event -> {
             //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
             //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
@@ -111,9 +126,103 @@ public class MapEditorView{
         });
     }
 
-    private void initSettingsRegion(){
 
+
+
+    private void initSettingsRegion(){
+        this.settingsRegion.setSpacing(10);
+        this.settingsRegion.setAlignment(Pos.CENTER);
+        this.settingsRegion.getStyleClass().add("steampunk-box");
+
+
+        VBox shownLayerSelection = new VBox();
+        ToggleGroup rbGroup = new ToggleGroup();
+        for (int i = 0; i <= 4; i++) {
+            String rbText;
+            switch (i) {
+                case 0:
+                    rbText = "Afficher seulement la couche du fond d'écran";
+                    break;
+                case 1:
+                    rbText = "Afficher seulement la couche derrière la principale";
+                    break;
+                case 2:
+                    rbText = "Afficher seulement la couche principale";
+                    break;
+                case 3:
+                    rbText = "Afficher seulement la couche devant la principale";
+                    break;
+                default:
+                    rbText = "Afficher toutes les couches";
+                    break;
+            }
+            RadioButton rb = new RadioButton(rbText);
+            rb.getStyleClass().add("steampunk-radio");
+            rb.setToggleGroup(rbGroup);
+            rb.setUserData(i); // associe la valeur 0-4
+            shownLayerSelection.getChildren().add(rb);
+        }
+        // Mise à jour du label lorsqu'une sélection change
+        rbGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (newToggle != null) {
+                if((int)newToggle.getUserData() == 4){
+                    for (Node layer : this.layers.getChildren()) {
+                        if(!(layer instanceof GridPane)) layer.setVisible(true);
+                    }
+                }else{
+                    for (Node layer : this.layers.getChildren()) {
+                        if(!(layer instanceof GridPane)) layer.setVisible(false);
+                    }
+                    this.layers.getChildren().get((int)newToggle.getUserData()).setVisible(true);
+                }
+            }
+        });
+
+        //Le toggle bouton pour masque le cadrillage
+        ToggleButton gridLinesVisible = new ToggleButton("Masquer le cadrillage");
+        gridLinesVisible.getStyleClass().add("steampunk-toggle");
+        gridLinesVisible.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+            gridLinesVisible.setText(isNowSelected ? "Afficher le cadrillage" : "Masquer le cadrillage");
+            gridPane.setGridLinesVisible(!isNowSelected);
+        });
+
+        //La region pour selectionner la taille des cellules
+        VBox changeCellSizeRegion = new VBox(10);
+        changeCellSizeRegion.setAlignment(Pos.CENTER);
+        HBox.setHgrow(changeCellSizeRegion, Priority.ALWAYS);
+        Label currCellSizeLabel = new Label("Taille des cellules du cadrillage : "+ this.cellSize);
+        currCellSizeLabel.getStyleClass().add("steampunk-label");
+        
+        Spinner<Integer> spinner = new Spinner<>();
+        ObservableList<Integer> values = FXCollections.observableArrayList(16, 32, 64, 128);
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.ListSpinnerValueFactory<>(values);
+        spinner.setValueFactory(valueFactory);
+        spinner.getValueFactory().setValue(16);
+        spinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            this.cellSize = newVal;
+            initGridPane();
+        });
+        changeCellSizeRegion.getChildren().addAll(currCellSizeLabel, spinner);
+
+
+        Region spacer = new Region();
+        Region spacer2 = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox.setHgrow(spacer2, Priority.ALWAYS);
+
+        
+
+
+        
+
+        //On ajoute tout à la region des settings
+        this.settingsRegion.getChildren().addAll(shownLayerSelection, spacer, changeCellSizeRegion, spacer2, gridLinesVisible);        
     }
+
+
+
+
+
 
     public void updateSelectedLevelObjectImage(String levelObjectName){
         if(levelObjectName == null){
@@ -144,13 +253,26 @@ public class MapEditorView{
         this.selectedLevelObjectImage.setFitWidth(this.selectedLevelObjectImage.getImage().getWidth() * scaleFactor);
     }
 
+    
+
     private void initGridPane(){
-        this.gridPane.setGridLinesVisible(true);
+        if(this.gridPane.getHeight() > 0){ 
+            //On prend la taille du gridpane comme étant la taille du level actuellement chargé.
+            //Si la hauteur ou la largeur était à 0, ça veut dire que c'est la première initialisation
+            //du gridpane et il n'a pas encore été affiché donc pas de taille. Mais dans ce cas,
+            //les nombres de lignes et colonnes ont été initialisé dans le constructeur
+            this.gridPaneNbRows = (int)(this.gridPane.getHeight() / this.cellSize);
+            this.gridPaneNbCols = (int)(this.gridPane.getWidth() / this.cellSize);
+        }
+        this.gridPane.getChildren().clear();
+        
+        
         for (int i = 0; i < this.gridPaneNbRows; i++) {
             for (int j = 0; j < this.gridPaneNbCols; j++) {
                 Rectangle rect = new Rectangle(this.cellSize, this.cellSize);
                 rect.setFill(this.DEFAULT_COLOR);
                 this.gridPane.add(rect, j, i);
+                
 
                 //Ajout de la gestion du déplacement de la souris dans le gridpane
                 rect.setOnMouseEntered((MouseEvent e) -> {
@@ -183,52 +305,12 @@ public class MapEditorView{
                 });
             }
         }
+
+
+        this.gridPane.setGridLinesVisible(!this.gridPane.isGridLinesVisible());
+        this.gridPane.setGridLinesVisible(!this.gridPane.isGridLinesVisible()); 
     }
 
-
-
-    public void handleEnemyPlacement(double levelObjectX, double levelObjectY){
-        Stage newWindow = new Stage();
-        newWindow.initModality(Modality.APPLICATION_MODAL);
-
-        Label leftPatrolDistanceLabel = new Label("Distance de la patrouille vers la gauche (en pixel) :");
-        Spinner<Integer> leftPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
-        leftPatrolDistanceSelection.setEditable(true);
-
-        Label rightPatrolDistanceLabel = new Label("Distance de la patrouille vers la droite (en pixel) :");
-        Spinner<Integer> rightPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
-        rightPatrolDistanceSelection.setEditable(true);
-
-        Label speedLabel = new Label("Vitesse de l'ennemi :");
-        Spinner<Integer> speedSelection = new Spinner<>(0, 20, 2, 1);
-        speedSelection.setEditable(true);
-
-        HBox buttons = new HBox();
-        Button createButton = new Button("Confirmer");
-        createButton.setOnAction(e -> {
-            double leftBound = leftPatrolDistanceSelection.getValue();
-            double rightBound = rightPatrolDistanceSelection.getValue();
-            double speed = speedSelection.getValue();
-            this.controller.addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
-            newWindow.close();
-        });
-        Button cancelButton = new Button("Annuler");
-        cancelButton.setOnAction(e -> {
-            newWindow.close();
-        });
-        buttons.getChildren().addAll(createButton, cancelButton);
-        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
-
-
-        VBox layout = new VBox(10, leftPatrolDistanceLabel, leftPatrolDistanceSelection, rightPatrolDistanceLabel,
-        rightPatrolDistanceSelection, speedLabel, speedSelection, buttons);
-        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
-
-        Scene scene = new Scene(layout, 300, 400);
-        newWindow.setScene(scene);
-        newWindow.setTitle("Paramètres de l'ennemi");
-        newWindow.showAndWait();
-    }
 
 
     public void updateClickSelectedLevelObject(LevelObject levelObject){
@@ -289,8 +371,6 @@ public class MapEditorView{
             }else if(levelObject instanceof Enemy){
                 //Si c'est un enemy on affiche en plus les limites de sa patrouille
                 Enemy tempEnemy = ((Enemy)levelObject);
-                double patrolXStart = tempEnemy.getLeftBound() - tempEnemy.getX();
-                double patrolXEnd = tempEnemy.getRightBound() + tempEnemy.getY();
 
                 Line ligne = new Line(tempEnemy.getLeftBound(), tempEnemy.getY(), tempEnemy.getRightBound(), tempEnemy.getY());
                 ligne.setStroke(Color.RED);

@@ -15,7 +15,9 @@ public class MainMenuView extends VBox {
         super(10);
         this.setAlignment(Pos.CENTER);
 
-        primaryStage.setScene(new Scene(this, SCENE_WIDTH, SCENE_HEIGHT));
+        Scene scene = new Scene(this, SCENE_WIDTH, SCENE_HEIGHT);
+        scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
+        primaryStage.setScene(scene);
 
         this.controller = controller;
 

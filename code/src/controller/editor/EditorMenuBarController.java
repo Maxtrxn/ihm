@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.Optional;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -12,6 +14,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
@@ -49,23 +52,32 @@ public class EditorMenuBarController {
         Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
         TextField levelName = new TextField();
 
-        Label cellSizeLabel = new Label("Sélectionnez la taille des cases de l'éditeur (16-128) :");
-        Spinner<Integer> cellSizeSelection = new Spinner<>(16, 128, 16, 8);
-        cellSizeSelection.setEditable(true);
 
-        Label nbRowsLabel = new Label("Sélectionnez le nombre de ligne pour la grille (1-10000) :");
-        Spinner<Integer> nbRows = new Spinner<>(1, 10000, 40, 1);
-        nbRows.setEditable(true);
+        Label levelHeightLabel = new Label("Sélectionnez la hauteur du niveau en pixel (128-1280 avec pas de 128) :");
+        Spinner<Integer> levelHeight = new Spinner<>(128, 1280, 640, 128);
+        levelHeight.setEditable(true);
+        levelHeight.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if ((newValue - 128) % 128 != 0) {
+                int correctedValue = ((newValue - 128) / 128) * 128 + 128;
+                levelHeight.getValueFactory().setValue(correctedValue);
+            }
+        });
 
-        Label nbColsLabel = new Label("Sélectionnez le nombre de colonne pour la grille (1-10000) :");
-        Spinner<Integer> nbCols = new Spinner<>(1, 10000, 400, 1);
-        nbCols.setEditable(true);
+        Label levelWidthLabel = new Label("Sélectionnez la largeur du niveau en pixel (128-12800 avec pas de 128) :");
+        Spinner<Integer> levelWidth = new Spinner<>(128, 12800, 6400, 128);
+        levelWidth.setEditable(true);
+        levelWidth.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if ((newValue - 128) % 128 != 0) {
+                int correctedValue = ((newValue - 128) / 128) * 128 + 128;
+                levelWidth.getValueFactory().setValue(correctedValue);
+            }
+        });
 
         //Les boutons
-        HBox buttons = new HBox();
+        HBox buttons = new HBox(10);
         Button createButton = new Button("Créer");
         createButton.setOnAction(e -> {
-            this.model.initLevel(levelName.getText(), cellSizeSelection.getValue() * nbCols.getValue(), cellSizeSelection.getValue() * nbRows.getValue());
+            this.model.initLevel(levelName.getText(), levelWidth.getValue(), levelHeight.getValue());
             newWindow.close();
         });
         Button cancelButton = new Button("Annuler");
@@ -76,9 +88,9 @@ public class EditorMenuBarController {
         buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
 
         //Paramètres de la fenêtre
-        VBox layout = new VBox(10, levelNameLabel, levelName, cellSizeLabel, cellSizeSelection, nbRowsLabel, nbRows, nbColsLabel, nbCols, buttons);
+        VBox layout = new VBox(10, levelNameLabel, levelName, levelHeightLabel, levelHeight, levelWidthLabel, levelWidth, buttons);
         layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
-        Scene scene = new Scene(layout, 300, 400);
+        Scene scene = new Scene(layout, 450, 400);
 
         newWindow.initModality(Modality.APPLICATION_MODAL);
         newWindow.setScene(scene);
@@ -93,7 +105,7 @@ public class EditorMenuBarController {
         window.setTitle("Sélectionnez un niveau à charger");
 
         ListView<String> listView = new ListView<>();
-        File directory = new File("../resources/levels/");
+        File directory = new File(ResourceManager.LEVELS_FOLDER);
         if (directory.exists() && directory.isDirectory()) {
             for (File file : directory.listFiles()) {
                 if (file.isFile()) {

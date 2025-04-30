@@ -58,12 +58,7 @@ public class GameEditorModel{
     }
     public void setClickSelectedLevelObject(LevelObject levelObject){this.clickSelectedLevelObject = levelObject;}
     public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
-    public void initLevel(String levelName, double levelWidth, double levelHeight){
-        Level lastLevel = this.level;
-        this.setLevelName(levelName);
-        this.level = new Level(levelWidth, levelHeight);
-        this.support.firePropertyChange("initLevel", lastLevel, this.level);
-    }
+    
     public void setLevelBackground(Image bg){
         this.level.setBackgroundImage(bg);
         this.support.firePropertyChange("changeLevelData", null, this.level);
@@ -118,11 +113,20 @@ public class GameEditorModel{
         if (levelFile.exists()) levelFile.delete();
     }
 
+
+    //Pour charger un niveau déjà existant
     public void loadLevel(String levelName){
         this.level = new Level(null, levelName);
         this.support.firePropertyChange("initLevel", null, this.level);
     }
 
+    //Pour initialiser un nouveau niveau
+    public void initLevel(String levelName, double levelWidth, double levelHeight){
+        Level lastLevel = this.level;
+        this.setLevelName(levelName);
+        this.level = new Level(levelWidth, levelHeight);
+        this.support.firePropertyChange("initLevel", lastLevel, this.level);
+    }
 
     public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){
         for(LevelObject levelObject : this.level.getLevelObjects()){

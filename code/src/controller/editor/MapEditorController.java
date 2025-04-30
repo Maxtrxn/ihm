@@ -34,9 +34,8 @@ public class MapEditorController {
         this.model.addPropertyChangeListener("changeLevelObjectName", e -> this.view.updateSelectedLevelObjectImage((String)e.getNewValue()));
     }
 
-    ScrollPane getMapEditorScrollPane(){
-        return this.view.getMainRegion();
-    }
+    ScrollPane getMapEditorRegion(){return this.view.getMainRegion();}
+    HBox getMapEditorSettingsRegion(){return this.view.getSettingsRegion();}
 
 
     public void addPlatform(double x, double y){this.model.addPlatform(x, y);}

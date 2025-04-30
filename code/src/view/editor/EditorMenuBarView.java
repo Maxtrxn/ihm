@@ -18,6 +18,7 @@ public class EditorMenuBarView extends MenuBar{
         super();
         this.controller = controller;
         this.items = new HashMap<>();
+        this.getStyleClass().add("steampunk-menubar");
 
         //Création du menu "Fichier"
         Menu fileMenu = new Menu("Fichier");
