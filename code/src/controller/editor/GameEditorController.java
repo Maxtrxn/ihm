@@ -3,12 +3,19 @@ package src.controller.editor;
 
 import java.beans.PropertyChangeEvent;
 
+import org.w3c.dom.css.Rect;
+
 import javafx.scene.image.Image;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import src.controller.game.GameController;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
-import src.model.game.LevelObject;
 import src.view.editor.GameEditorView;
 
 
@@ -27,12 +34,11 @@ public class GameEditorController{
         EditorMenuBarController subController = new EditorMenuBarController(this.model);
         this.view.setTop(subController.getEditorMenuBarView());
 
+
         this.model.addPropertyChangeListener("changeLevelName", e -> {stage.setTitle("Steampunk Adventure - Éditeur de niveau" + " - " + e.getNewValue());});
         this.model.addPropertyChangeListener("initLevel", e -> handleInitLevel(e));
     }
 
-    public void setModel(GameEditorModel model){this.model = model;}
-    public void setView(GameEditorView view){this.view = view;}
     public GameEditorModel getModel(){return this.model;}
     public GameEditorView getView(){return this.view;}
 
@@ -47,10 +53,12 @@ public class GameEditorController{
     public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
     public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){this.model.addEnemy(x, y, leftBound, rightBound, speed);}
     public Level getLevel(){return this.model.getLevel();}
+    
     public void loadLevel(String levelName){
         this.model.loadLevel(levelName);
         this.view.initLevel(getLevel(), levelName);
     }
+    
 
     public void testLevel(Stage gameStage){
         new GameController(gameStage, this.model.getLevelName());
@@ -58,6 +66,10 @@ public class GameEditorController{
 
     public void handleInitLevel(PropertyChangeEvent e){
         MapEditorController subController = new MapEditorController(model, (Level)e.getNewValue());
+
         this.view.setCenter(subController.getMapEditorScrollPane());
+
+        EditorLevelObjectSelectorController subController2 = new EditorLevelObjectSelectorController(model);
+        this.view.setLeft(subController2.getRegion());
     }
 }

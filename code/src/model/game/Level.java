@@ -163,7 +163,9 @@ public class Level {
     public void addPlatform(double x, double y, String platformName) {this.platforms.add(new Platform(x, y, platformName));}
     public void addDecoration(double x, double y, String decorationName) {this.decorations.add(new Decoration(x, y, decorationName));}
     public void addEnemy(double x, double y, double speed, double leftBound, double rightBound, String name){this.enemies.add(new Enemy(x, y, speed, leftBound, rightBound, name));}
-
+    public void removePlatform(Platform platform){this.platforms.remove(platform);}
+    public void removeDecoration(Decoration decoration){this.decorations.remove(decoration);}
+    public void removeEnemy(Enemy enemy){this.enemies.remove(enemy);}
 
     // ——————————— Helpers ———————————
 

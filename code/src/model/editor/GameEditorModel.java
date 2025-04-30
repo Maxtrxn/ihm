@@ -16,22 +16,27 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 
+import javax.sound.sampled.LineListener;
+
 import org.json.JSONObject;
 
 
 public class GameEditorModel{
     private PropertyChangeSupport support;
     private final GameEditorController controller;
-    private Level level = null;
-    private String levelName = null;
-    private String selectedLevelObjectName = null;
-    private LevelObject clickSelectedLevelObject = null;
+    private String levelName;
+    private Level level;
+    private String selectedLevelObjectName;
+    private LevelObject clickSelectedLevelObject;
 
 
     public GameEditorModel(GameEditorController controller){
         this.support = new PropertyChangeSupport(this);
         this.controller = controller;
-        this.controller.setModel(this);
+        this.levelName = null;
+        this.level = null;
+        this.selectedLevelObjectName = null;
+        this.clickSelectedLevelObject = null;
     }
 
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
@@ -45,7 +50,14 @@ public class GameEditorModel{
         this.support.firePropertyChange("changeLevelName", oldValue, levelName);
     }
     
-    public void setSelectedLevelObjectName(String name){this.selectedLevelObjectName = name;}
+    public String getSelectedLevelObjectName(){return this.selectedLevelObjectName;}
+    public void setSelectedLevelObjectName(String name){
+        String oldName = this.selectedLevelObjectName;
+        this.selectedLevelObjectName = name;
+        this.support.firePropertyChange("changeLevelObjectName", oldName, this.selectedLevelObjectName);
+    }
+    public void setClickSelectedLevelObject(LevelObject levelObject){this.clickSelectedLevelObject = levelObject;}
+    public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
     public void initLevel(String levelName, double levelWidth, double levelHeight){
         Level lastLevel = this.level;
         this.setLevelName(levelName);
@@ -54,18 +66,30 @@ public class GameEditorModel{
     }
     public void setLevelBackground(Image bg){
         this.level.setBackgroundImage(bg);
-        this.support.firePropertyChange("changeLevelData", this.level, this.level);
+        this.support.firePropertyChange("changeLevelData", null, this.level);
     }
     public Level getLevel(){return this.level;}
-    public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
     public String getLevelName(){return this.levelName;}
 
 
     public void addPlatform(double x, double y){
         this.level.addPlatform(x, y, selectedLevelObjectName);
-        this.support.firePropertyChange("changeLevelData", this.level, this.level);
+        this.support.firePropertyChange("changeLevelData", null, this.level);
     }
     
+    public void removeLevelObject(LevelObject levelObject){
+        if(levelObject instanceof Platform){
+            this.level.removePlatform((Platform)levelObject);
+        }else if(levelObject instanceof Decoration){
+            this.level.removeDecoration((Decoration)levelObject);
+        }else if(levelObject instanceof Enemy){
+            this.level.removeEnemy((Enemy)levelObject);
+        }else{
+            throw new IllegalStateException("Level object has not the right type");
+        }
+
+        this.support.firePropertyChange("changeLevelData", null, null);
+    }
 
     //Booléen foreground pour savoir si on ajoute la décoration au premier au à l'arrière plan
     public void addDecoration(double x, double y, boolean foreground){
@@ -74,12 +98,12 @@ public class GameEditorModel{
         }else{
             this.level.addDecoration(x, y, selectedLevelObjectName);
         }
-        this.support.firePropertyChange("changeLevelData", this.level, this.level);
+        this.support.firePropertyChange("changeLevelData", null, this.level);
     }
 
     public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){
         this.level.addEnemy(x, y, speed, leftBound, rightBound, this.selectedLevelObjectName);
-        this.support.firePropertyChange("changeLevelData", this.level, this.level);
+        this.support.firePropertyChange("changeLevelData", null, this.level);
     }
     
     public boolean saveLevel(boolean overwrite){
@@ -96,7 +120,7 @@ public class GameEditorModel{
 
     public void loadLevel(String levelName){
         this.level = new Level(null, levelName);
-        this.support.firePropertyChange("initLevel", this.level, this.level);
+        this.support.firePropertyChange("initLevel", null, this.level);
     }
 
 
@@ -113,7 +137,7 @@ public class GameEditorModel{
                         this.level.getDecorations().remove(levelObject);
                     }
                     this.clickSelectedLevelObject = null;
-                    this.support.firePropertyChange("changeLevelData", this.level, this.level);
+                    this.support.firePropertyChange("changeLevelData", null, this.level);
                 }else{
                     this.clickSelectedLevelObject = levelObject;
                 }

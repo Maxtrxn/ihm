@@ -27,7 +27,6 @@ public class GameEditorView extends BorderPane{
     public GameEditorView(GameEditorController controller, Stage stage) {
         super();
         this.controller = controller;
-        this.controller.setView(this);
         this.stage = stage;
         
 
@@ -36,11 +35,12 @@ public class GameEditorView extends BorderPane{
         // -La selection des plateformes à gauche grâce à un ListView (A VOIR)------------------------------------------------------------------------
         // -L'affichage du niveau dans l'éditeur au centre grâce à un ScrollPane
 
-        
+        /*
         this.top = new EditorMenuBar(this);
         this.setTop(top);
         this.left = new EditorLevelObjectSelector(this);
         this.setLeft(left);
+        */
         Scene scene = new Scene(this);
         scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
         stage.setScene(scene); 

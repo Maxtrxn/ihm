@@ -1,16 +1,20 @@
 package src.view.editor;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.effect.Blend;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.ColorInput;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -24,16 +28,23 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.controller.editor.GameEditorController.LevelObjectType;
+import src.common.ResourceManager;
 import src.controller.editor.MapEditorController;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
 import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
+import org.json.JSONObject;
 
-public class MapEditorView extends ScrollPane{
+public class MapEditorView{
+    private final Color DEFAULT_COLOR = Color.rgb(255, 255, 255, 0.0); //Couleur de base d'une case : transparent
+    private final Color HOVER_COLOR = Color.rgb(0, 0, 255, 0.3); //Couleur de la case sélectionnée : bleu translucide
+    private final Color SELECT_COLOR = Color.rgb(0, 255, 0, 0.3); //Couleur de la case sélectionnée : rouge translucide
+    private final int defaultCellSize = 16;
     private MapEditorController controller;
-    private Rectangle[][] rectangles;
+    private ScrollPane mainRegion;
+    private HBox settingsRegion;
     private StackPane layers;
     private Pane backgroundLayer;
     private Pane behindLayer;
@@ -43,34 +54,19 @@ public class MapEditorView extends ScrollPane{
     private int gridPaneNbRows;
     private int gridPaneNbCols;
     private int cellSize;
-    private final Color DEFAULT_COLOR = Color.rgb(255, 255, 255, 0.0); //Couleur de base d'une case : blanc pour l'instant mais transparent après
-    private final Color HOVER_COLOR = Color.rgb(0, 0, 255, 0.3); //Couleur de la case sélectionnée : bleu translucide
-    private final Color SELECT_COLOR = Color.rgb(0, 255, 0, 0.3); //Couleur de la case sélectionnée : rouge translucide
     private ImageView selectedLevelObjectImage = null;
+    private Pane selectedLevelObjectImageCorrespondingPane = null;
     private LevelObjectType selectedLevelObjectType;
     private Rectangle selectedRectangle = null;
-    private Map<LevelObjectType, Pane> correspondingPane;
     private LevelObject clickSelectedLevelObject = null;
 
     public MapEditorView(MapEditorController controller, Level level){
         this.controller = controller;
-        this.cellSize = 16;
+        this.cellSize = defaultCellSize;
         this.gridPaneNbRows = (int)level.getLevelHeight() / this.cellSize;
         this.gridPaneNbCols = (int)level.getLevelWidth() / this.cellSize;
-        this.rectangles = new Rectangle[this.gridPaneNbRows][this.gridPaneNbCols];
-        
-        this.addEventFilter(ScrollEvent.ANY, event -> {
-            //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
-            //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
-            //le scroll soit horizontal.
-
-            if (event.getDeltaY() != 0) {
-                //Si la molette défile verticalement, on défile horizontalement
-                this.setHvalue(this.getHvalue() - (event.getDeltaY() / 1000));
-            }
-            event.consume();
-        });
-
+        this.mainRegion = new ScrollPane();
+        this.settingsRegion = new HBox();
         this.layers = new StackPane();
         this.backgroundLayer = new Pane();
         this.behindLayer = new Pane();
@@ -78,98 +74,99 @@ public class MapEditorView extends ScrollPane{
         this.foregroundLayer = new Pane();
         this.gridPane = new GridPane();
         this.layers.getChildren().addAll(backgroundLayer, behindLayer, mainLayer, foregroundLayer, gridPane);
-        this.setContent(this.layers);
+        this.mainRegion.setContent(this.layers);
+        
+        
 
-        this.correspondingPane = new HashMap<>();
-        correspondingPane.put(LevelObjectType.PLATFORM, this.mainLayer);
-        correspondingPane.put(LevelObjectType.DECORATION, this.behindLayer);
-        correspondingPane.put(LevelObjectType.ENEMY, this.mainLayer);
-        correspondingPane.put(LevelObjectType.FRAGILE_PLATFORM, this.mainLayer);
-        correspondingPane.put(LevelObjectType.BOSS, this.mainLayer);
+        initMainRegion();
+        initSettingsRegion();
 
-        initializeGridPane();
+        
+        initGridPane();
         showLevel(level);
     }
 
+    public ScrollPane getMainRegion(){return this.mainRegion;}
+    public HBox getSettingsRegion(){return this.settingsRegion;}
 
+    private void initMainRegion(){
+        this.mainRegion.addEventFilter(ScrollEvent.ANY, event -> {
+            //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
+            //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
+            //le scroll soit horizontal.
 
-    private void initializeGridPane(){
-        //gridPane.setStyle("-fx-grid-lines-visible: true;");
-        gridPane.setGridLinesVisible(true);
-        for (int i = 0; i < gridPaneNbRows; i++) {
-            for (int j = 0; j < gridPaneNbCols; j++) {
+            if (event.getDeltaY() != 0) {
+                //Si la molette défile verticalement, on défile horizontalement
+                this.mainRegion.setHvalue(this.mainRegion.getHvalue() - (event.getDeltaY() / 1000));
+            }
+            event.consume();
+        });
+    }
+
+    private void initSettingsRegion(){
+
+    }
+
+    public void updateSelectedLevelObjectImage(String levelObjectName){
+        if(levelObjectName == null){
+            this.selectedLevelObjectImage = null;
+            this.selectedLevelObjectImageCorrespondingPane = null;
+            return;
+        }
+
+        String pathToLevelObjectTexture = null;
+        if(ResourceManager.PLATFORMS_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.PLATFORMS_FOLDER + ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            this.selectedLevelObjectImageCorrespondingPane = this.mainLayer;
+        }else if(ResourceManager.DECORATIONS_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.DECORATIONS_FOLDER + ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            this.selectedLevelObjectImageCorrespondingPane = this.behindLayer;
+        }
+        else if(ResourceManager.ENEMIES_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.ENEMIES_FOLDER + ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            this.selectedLevelObjectImageCorrespondingPane = this.mainLayer;
+        }
+        this.selectedLevelObjectImage = new ImageView(new Image("file:" + pathToLevelObjectTexture));
+        this.selectedLevelObjectImage.setOpacity(0.5);
+    }
+
+    private void initGridPane(){
+        this.gridPane.setGridLinesVisible(true);
+        for (int i = 0; i < this.gridPaneNbRows; i++) {
+            for (int j = 0; j < this.gridPaneNbCols; j++) {
                 Rectangle rect = new Rectangle(this.cellSize, this.cellSize);
                 rect.setFill(this.DEFAULT_COLOR);
+                this.gridPane.add(rect, j, i);
+
+                //Ajout de la gestion du déplacement de la souris dans le gridpane
                 rect.setOnMouseEntered((MouseEvent e) -> {
-                    if(this.selectedLevelObjectImage == null){
-                        if(rect.getFill() != this.SELECT_COLOR){
-                            rect.setFill(this.HOVER_COLOR);
-                        }
-                    }else{
+                    if(this.selectedLevelObjectImage != null){
                         Integer col = GridPane.getColumnIndex(rect);
                         Integer row = GridPane.getRowIndex(rect);
-
                         int colIndex = (col == null) ? 0 : col;
                         int rowIndex = (row == null) ? 0 : row;
 
-                        this.correspondingPane.get(this.selectedLevelObjectType).getChildren().add(this.selectedLevelObjectImage);
+                        this.selectedLevelObjectImageCorrespondingPane.getChildren().add(this.selectedLevelObjectImage);
                         this.selectedLevelObjectImage.setLayoutX(colIndex * cellSize);
-                        this.selectedLevelObjectImage.setLayoutY(rowIndex * cellSize);  
+                        this.selectedLevelObjectImage.setLayoutY(rowIndex * cellSize);
                     }
-                    
                 });
                 rect.setOnMouseExited((MouseEvent e) -> {
-                    if(this.selectedLevelObjectImage == null){
-                        if(rect.getFill() != this.SELECT_COLOR){
-                            rect.setFill(this.DEFAULT_COLOR);
-                        }
-                    }else{
-                        this.correspondingPane.get(this.selectedLevelObjectType).getChildren().remove(this.selectedLevelObjectImage);
+                    if(this.selectedLevelObjectImage != null){
+                        this.selectedLevelObjectImageCorrespondingPane.getChildren().remove(this.selectedLevelObjectImage);
                     }
                 });
 
                 //Ajout de la gestion du clique de la souris dans le grid pane
                 rect.setOnMousePressed((MouseEvent e) -> {
-                    if(this.selectedRectangle != null) this.selectedRectangle.setFill(this.DEFAULT_COLOR);
-                    
                     Integer col = GridPane.getColumnIndex(rect);
                     Integer row = GridPane.getRowIndex(rect);
-
                     int colIndex = (col == null) ? 0 : col;
                     int rowIndex = (row == null) ? 0 : row;
-
-                    double levelObjectX = colIndex * cellSize;
-                    double levelObjectY = rowIndex * cellSize;
-
-                    if(this.selectedLevelObjectImage != null){
-                        this.selectedRectangle = null;
-
-                        switch (this.selectedLevelObjectType) {
-                            case LevelObjectType.FRAGILE_PLATFORM:
-                            case LevelObjectType.PLATFORM:
-                                this.controller.addPlatform(levelObjectX, levelObjectY);
-                                break;
-                            case LevelObjectType.DECORATION:
-                                this.controller.addDecoration(levelObjectX, levelObjectY, false);
-                                break;
-                            case LevelObjectType.BOSS:
-                            case LevelObjectType.ENEMY:
-                                handleEnemyPlacement(levelObjectX, levelObjectY);
-                                break;
-                            default:
-                                break;
-                        }
-                        
-                        
-                    }else{
-                        //On envoie le centre du rectangle pour les coordonnées de la selection
-                        this.clickSelectedLevelObject = this.controller.clickSelectLevelObject(levelObjectX + cellSize/2, levelObjectY + cellSize/2);
-                        this.selectedRectangle = rect;
-                        rect.setFill(this.SELECT_COLOR);
-                    }
+                    double cellTopLeftX = colIndex * cellSize;
+                    double cellTopLeftY = rowIndex * cellSize;
+                    this.controller.handleMouseClick(cellTopLeftX, cellTopLeftY);
                 });
-                gridPane.add(rect, j, i);
-                rectangles[i][j] = rect;
             }
         }
     }
@@ -220,19 +217,44 @@ public class MapEditorView extends ScrollPane{
     }
 
 
+    public void updateClickSelectedLevelObject(LevelObject levelObject){
+        for (Pane layers : Arrays.asList(this.behindLayer, this.mainLayer, this.foregroundLayer)) {
+            for (Node image : layers.getChildren()) {
+                if(image instanceof ImageView){
+                    if(image.getLayoutX() == levelObject.getX() && image.getLayoutY() == levelObject.getY()){
+                        image = (ImageView)image;
+                        Blend blend = new Blend(
+                            BlendMode.MULTIPLY,
+                            null,
+                            new ColorInput(0, 0, levelObject.getWidth(), levelObject.getHeight(), Color.color(0.0, 1.0, 0.0, 0.6))
+                        );
+                        image.setEffect(blend);
+                        return;
+                    }
+                    
+                }
+            }
+        }
+    }
 
+
+    //On affiche visuellement le niveau en ajoutant chaque éléments sous leur forme graphique
+    //dans les différente couche que contient la vue
     public void showLevel(Level level){
-
+        //On clear tout ce qui est déjà affiché
         this.backgroundLayer.getChildren().clear();
+        this.mainLayer.getChildren().clear();
+        this.behindLayer.getChildren().clear();
+        this.foregroundLayer.getChildren().clear();
+
+        
+        //On ajoute le background à la couche de fond
         ImageView bg = new ImageView(level.getBackgroundImage());
         this.backgroundLayer.getChildren().add(bg);
         bg.setLayoutX(0);
         bg.setLayoutY(0);
         
-        this.mainLayer.getChildren().clear();
-        this.behindLayer.getChildren().clear();
-        this.foregroundLayer.getChildren().clear();
-
+        //On ajoute les éléments qui vont dans la couche principale et celle de derrière
         for(LevelObject levelObject : level.getLevelObjects()){
             ImageView temp = new ImageView(levelObject.getTexture());
             temp.setFitWidth(levelObject.getWidth());
