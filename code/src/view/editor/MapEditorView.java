@@ -28,6 +28,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -280,20 +281,21 @@ public class MapEditorView{
             temp.setLayoutX(levelObject.getX());
             temp.setLayoutY(levelObject.getY());
 
-            /* 
-            if(levelObject == this.clickSelectedLevelObject){
-                Blend blend = new Blend(
-                    BlendMode.MULTIPLY,
-                    null,
-                    new ColorInput(0, 0, levelObject.getWidth(), levelObject.getHeight(), Color.color(0.0, 1.0, 0.0, 0.6))
-                );
-                temp.setEffect(blend);
-            }*/
 
-            if(levelObject instanceof Platform || levelObject instanceof Enemy){
+            if(levelObject instanceof Platform){
                 this.mainLayer.getChildren().add(temp);
             }else if(levelObject instanceof Decoration){
                 this.behindLayer.getChildren().add(temp);
+            }else if(levelObject instanceof Enemy){
+                //Si c'est un enemy on affiche en plus les limites de sa patrouille
+                Enemy tempEnemy = ((Enemy)levelObject);
+                double patrolXStart = tempEnemy.getLeftBound() - tempEnemy.getX();
+                double patrolXEnd = tempEnemy.getRightBound() + tempEnemy.getY();
+
+                Line ligne = new Line(tempEnemy.getLeftBound(), tempEnemy.getY(), tempEnemy.getRightBound(), tempEnemy.getY());
+                ligne.setStroke(Color.RED);
+                ligne.setStrokeWidth(3);  
+                this.mainLayer.getChildren().addAll(temp, ligne);
             }
         }
     }

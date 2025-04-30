@@ -1,8 +1,16 @@
 package src.controller.editor;
 
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import src.common.ResourceManager;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
@@ -18,7 +26,11 @@ public class MapEditorController {
         this.model = model;
         this.view = new MapEditorView(this, level);
 
-        this.model.addPropertyChangeListener("changeLevelData", e -> this.view.showLevel((Level)e.getNewValue()));
+        this.model.addPropertyChangeListener("changeLevelData", e -> {
+            this.model.setClickSelectedLevelObject(null);
+            this.view.updateClickSelectedLevelObject(null);
+            this.view.showLevel((Level)e.getNewValue());
+        });
         this.model.addPropertyChangeListener("changeLevelObjectName", e -> this.view.updateSelectedLevelObjectImage((String)e.getNewValue()));
     }
 
@@ -71,11 +83,58 @@ public class MapEditorController {
             }else if(ResourceManager.DECORATIONS_JSON.has(selectedLevelObjectName)){
                 this.model.addDecoration(cellTopLeftX, cellTopLeftY, false);
             }else if(ResourceManager.ENEMIES_JSON.has(selectedLevelObjectName)){
-
+                handleEnemyPlacement(cellTopLeftX, cellTopLeftY);
             }
 
 
         }
+    }
+
+
+
+
+
+    public void handleEnemyPlacement(double levelObjectX, double levelObjectY){
+        Stage newWindow = new Stage();
+        newWindow.initModality(Modality.APPLICATION_MODAL);
+
+        Label leftPatrolDistanceLabel = new Label("Distance de la patrouille vers la gauche (en pixel) :");
+        Spinner<Integer> leftPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
+        leftPatrolDistanceSelection.setEditable(true);
+
+        Label rightPatrolDistanceLabel = new Label("Distance de la patrouille vers la droite (en pixel) :");
+        Spinner<Integer> rightPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
+        rightPatrolDistanceSelection.setEditable(true);
+
+        Label speedLabel = new Label("Vitesse de l'ennemi :");
+        Spinner<Integer> speedSelection = new Spinner<>(0, 200, 60, 1);
+        speedSelection.setEditable(true);
+
+        HBox buttons = new HBox();
+        Button createButton = new Button("Confirmer");
+        createButton.setOnAction(e -> {
+            double leftBound = leftPatrolDistanceSelection.getValue();
+            double rightBound = rightPatrolDistanceSelection.getValue();
+            double speed = speedSelection.getValue();
+            this.model.addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
+            newWindow.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {
+            newWindow.close();
+        });
+        buttons.getChildren().addAll(createButton, cancelButton);
+        buttons.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+
+        VBox layout = new VBox(10, leftPatrolDistanceLabel, leftPatrolDistanceSelection, rightPatrolDistanceLabel,
+        rightPatrolDistanceSelection, speedLabel, speedSelection, buttons);
+        layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
+
+        Scene scene = new Scene(layout, 300, 400);
+        newWindow.setScene(scene);
+        newWindow.setTitle("Paramètres de l'ennemi");
+        newWindow.showAndWait();
     }
 
 
