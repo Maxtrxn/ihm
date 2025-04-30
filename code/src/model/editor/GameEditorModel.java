@@ -88,7 +88,7 @@ public class GameEditorModel{
             throw new IllegalStateException("Level object has not the right type");
         }
 
-        this.support.firePropertyChange("changeLevelData", null, null);
+        this.support.firePropertyChange("changeLevelData", null, this.level);
     }
 
     //Booléen foreground pour savoir si on ajoute la décoration au premier au à l'arrière plan

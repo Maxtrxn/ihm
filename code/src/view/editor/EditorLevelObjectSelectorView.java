@@ -33,7 +33,11 @@ public class EditorLevelObjectSelectorView {
         ListView<LevelObjectSelectorItem> levelObjectSelector = new ListView<>();
         // Gestion de la sélection
         levelObjectSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
-            this.controller.handleSelectedLevelObjectChange(newValue.getLevelObjectNameLabel().getText());
+            if(newValue == null){
+                this.controller.handleSelectedLevelObjectChange(null);
+            }else{
+                this.controller.handleSelectedLevelObjectChange(newValue.getLevelObjectNameLabel().getText());
+            }
         });
 
         //Chargement des plateformes dans le ListView

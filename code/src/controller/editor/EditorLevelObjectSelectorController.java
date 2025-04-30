@@ -17,5 +17,7 @@ public class EditorLevelObjectSelectorController {
 
     public VBox getRegion(){return this.view.getRegion();}
 
-    public void handleSelectedLevelObjectChange(String levelObjectName){this.model.setSelectedLevelObjectName(levelObjectName);}
+    public void handleSelectedLevelObjectChange(String levelObjectName){
+        this.model.setSelectedLevelObjectName(levelObjectName);
+    }
 }

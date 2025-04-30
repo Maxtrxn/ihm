@@ -7,6 +7,7 @@ import src.common.ResourceManager;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
 import src.model.game.LevelObject;
+import src.model.game.Platform;
 import src.view.editor.MapEditorView;
 
 public class MapEditorController {
@@ -52,10 +53,18 @@ public class MapEditorController {
 
             //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
             this.model.setClickSelectedLevelObject(null);
+            this.view.updateClickSelectedLevelObject(null);
         }else{
             //Si il y a un objet sélectionné dans le listview
             String selectedLevelObjectName = this.model.getSelectedLevelObjectName();
 
+            for (LevelObject levelObject : this.model.getLevel().getLevelObjects()) {
+                if(levelObject.getX() == cellTopLeftX && levelObject.getY() == cellTopLeftY){
+                    //Si il y a déjà un level object à l'endroit où on a cliqué, on ne l'ajoute pas,
+                    //C'est plus simple pour gérer la selection avec un clique d'un objet placé.
+                    return;
+                }
+            }
             
             if(ResourceManager.PLATFORMS_JSON.has(selectedLevelObjectName)){
                 this.model.addPlatform(cellTopLeftX, cellTopLeftY);

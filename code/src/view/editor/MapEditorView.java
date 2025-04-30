@@ -1,9 +1,13 @@
 package src.view.editor;
 
+import java.beans.PropertyChangeEvent;
+import java.nio.channels.Pipe.SourceChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -55,10 +59,11 @@ public class MapEditorView{
     private int gridPaneNbCols;
     private int cellSize;
     private ImageView selectedLevelObjectImage = null;
+    private ObjectProperty<ImageView> clickSelectedLevelObjectImage = null;
     private Pane selectedLevelObjectImageCorrespondingPane = null;
     private LevelObjectType selectedLevelObjectType;
     private Rectangle selectedRectangle = null;
-    private LevelObject clickSelectedLevelObject = null;
+    
 
     public MapEditorView(MapEditorController controller, Level level){
         this.controller = controller;
@@ -76,7 +81,9 @@ public class MapEditorView{
         this.layers.getChildren().addAll(backgroundLayer, behindLayer, mainLayer, foregroundLayer, gridPane);
         this.mainRegion.setContent(this.layers);
         
-        
+        this.clickSelectedLevelObjectImage = new SimpleObjectProperty<>();
+        this.clickSelectedLevelObjectImage.addListener((observable, oldValue, newValue) -> {if (oldValue != null) oldValue.setEffect(null);});
+
 
         initMainRegion();
         initSettingsRegion();
@@ -224,17 +231,22 @@ public class MapEditorView{
 
 
     public void updateClickSelectedLevelObject(LevelObject levelObject){
-        for (Pane layers : Arrays.asList(this.behindLayer, this.mainLayer, this.foregroundLayer)) {
-            for (Node image : layers.getChildren()) {
+        if(levelObject == null){
+            this.clickSelectedLevelObjectImage.set(null);
+            return;
+        } 
+
+        for (Pane panes : Arrays.asList(this.behindLayer, this.mainLayer, this.foregroundLayer)) {
+            for (Node image : panes.getChildren()) {
                 if(image instanceof ImageView){
                     if(image.getLayoutX() == levelObject.getX() && image.getLayoutY() == levelObject.getY()){
-                        image = (ImageView)image;
                         Blend blend = new Blend(
                             BlendMode.MULTIPLY,
                             null,
                             new ColorInput(0, 0, levelObject.getWidth(), levelObject.getHeight(), Color.color(0.0, 1.0, 0.0, 0.6))
                         );
                         image.setEffect(blend);
+                        this.clickSelectedLevelObjectImage.set((ImageView)image);
                         return;
                     }
                     
@@ -268,6 +280,7 @@ public class MapEditorView{
             temp.setLayoutX(levelObject.getX());
             temp.setLayoutY(levelObject.getY());
 
+            /* 
             if(levelObject == this.clickSelectedLevelObject){
                 Blend blend = new Blend(
                     BlendMode.MULTIPLY,
@@ -275,7 +288,7 @@ public class MapEditorView{
                     new ColorInput(0, 0, levelObject.getWidth(), levelObject.getHeight(), Color.color(0.0, 1.0, 0.0, 0.6))
                 );
                 temp.setEffect(blend);
-            }
+            }*/
 
             if(levelObject instanceof Platform || levelObject instanceof Enemy){
                 this.mainLayer.getChildren().add(temp);
