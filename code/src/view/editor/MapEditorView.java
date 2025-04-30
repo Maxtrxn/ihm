@@ -115,19 +115,25 @@ public class MapEditorView{
         }
 
         String pathToLevelObjectTexture = null;
+        double scaleFactor = 1.0;
         if(ResourceManager.PLATFORMS_JSON.has(levelObjectName)){
             pathToLevelObjectTexture = ResourceManager.PLATFORMS_FOLDER + ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
             this.selectedLevelObjectImageCorrespondingPane = this.mainLayer;
+            scaleFactor = ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
         }else if(ResourceManager.DECORATIONS_JSON.has(levelObjectName)){
             pathToLevelObjectTexture = ResourceManager.DECORATIONS_FOLDER + ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
             this.selectedLevelObjectImageCorrespondingPane = this.behindLayer;
+            scaleFactor = ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
         }
         else if(ResourceManager.ENEMIES_JSON.has(levelObjectName)){
             pathToLevelObjectTexture = ResourceManager.ENEMIES_FOLDER + ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getString("textureFileName");
             this.selectedLevelObjectImageCorrespondingPane = this.mainLayer;
+            scaleFactor = ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
         }
         this.selectedLevelObjectImage = new ImageView(new Image("file:" + pathToLevelObjectTexture));
         this.selectedLevelObjectImage.setOpacity(0.5);
+        this.selectedLevelObjectImage.setFitHeight(this.selectedLevelObjectImage.getImage().getHeight() * scaleFactor);
+        this.selectedLevelObjectImage.setFitWidth(this.selectedLevelObjectImage.getImage().getWidth() * scaleFactor);
     }
 
     private void initGridPane(){
