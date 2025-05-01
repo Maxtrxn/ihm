@@ -333,15 +333,5 @@ public class EditorMenuBarController {
             this.stage.getScene().getStylesheets().add(getClass().getResource("/css/" + cssFileName[0]).toString());
         }
     }
-
-    public void handlePreferenceEditorLanguage(){
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle(ResourceManager.getString("info_title"));
-        alert.setHeaderText(null);
-        alert.setContentText(ResourceManager.getString("preferences_editor_language"));
-        alert.showAndWait();
-        return;
-    }
-
 }
 

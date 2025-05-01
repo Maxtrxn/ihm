@@ -52,9 +52,7 @@ public class EditorMenuBarView extends MenuBar{
         Menu preferencesMenu = new Menu(ResourceManager.getString("EditorMenuBarView_preferencesMenu"));
         MenuItem Preference_ChangeEditorTheme = new MenuItem(ResourceManager.getString("EditorMenuBarView_Preference_ChangeEditorTheme"));
         Preference_ChangeEditorTheme.setOnAction(e -> this.controller.handlePreferenceEditorTheme());
-        MenuItem Preference_ChangeEditorLanguage = new MenuItem(ResourceManager.getString("EditorMenuBarView_Preference_ChangeEditorLanguage"));
-        Preference_ChangeEditorLanguage.setOnAction(e -> this.controller.handlePreferenceEditorLanguage());
-        preferencesMenu.getItems().addAll(Preference_ChangeEditorTheme, Preference_ChangeEditorLanguage);
+        preferencesMenu.getItems().addAll(Preference_ChangeEditorTheme);
 
 
         
