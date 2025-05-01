@@ -16,13 +16,15 @@ public class GameEditorController{
     }
     private GameEditorModel model = null;
     private GameEditorView view = null;
+    private Stage stage;
     
 
     public GameEditorController(Stage stage) {
         this.model = new GameEditorModel(this);
         this.view = new GameEditorView(this, stage);
+        this.stage = stage;
 
-        EditorMenuBarController menuBarMVC = new EditorMenuBarController(this.model);
+        EditorMenuBarController menuBarMVC = new EditorMenuBarController(this.model, stage);
         this.view.setTop(menuBarMVC.getEditorMenuBarView());
 
 
@@ -35,7 +37,7 @@ public class GameEditorController{
 
 
     public void handleInitLevel(PropertyChangeEvent e){
-        MapEditorController mapEditorMVC = new MapEditorController(model, (Level)e.getNewValue());
+        MapEditorController mapEditorMVC = new MapEditorController(model, (Level)e.getNewValue(), this.stage);
 
         this.view.setCenter(mapEditorMVC.getMapEditorRegion());
         this.view.setBottom(mapEditorMVC.getMapEditorSettingsRegion());

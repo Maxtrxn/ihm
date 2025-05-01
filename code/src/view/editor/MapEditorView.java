@@ -2,10 +2,12 @@ package src.view.editor;
 
 import java.beans.PropertyChangeEvent;
 import java.nio.channels.Pipe.SourceChannel;
+import javafx.util.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javafx.animation.RotateTransition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -112,7 +114,6 @@ public class MapEditorView{
 
 
     private void initMainRegion(){
-        this.mainRegion.getStyleClass().add("steampunk-box");
         this.mainRegion.addEventFilter(ScrollEvent.ANY, event -> {
             //On utilise addEventFilter sur ScrollEvent.ANY pour retirer celui que le ScrollPane avait de base
             //qui scrollait verticalement mais pour la map qui est étendue horizontalement c'est mieux que
@@ -132,10 +133,11 @@ public class MapEditorView{
     private void initSettingsRegion(){
         this.settingsRegion.setSpacing(10);
         this.settingsRegion.setAlignment(Pos.CENTER);
-        this.settingsRegion.getStyleClass().add("steampunk-box");
+        this.settingsRegion.getStyleClass().add("main-region");
 
 
         VBox shownLayerSelection = new VBox();
+        HBox.setHgrow(shownLayerSelection, Priority.ALWAYS);
         ToggleGroup rbGroup = new ToggleGroup();
         for (int i = 0; i <= 4; i++) {
             String rbText;
@@ -157,7 +159,6 @@ public class MapEditorView{
                     break;
             }
             RadioButton rb = new RadioButton(rbText);
-            rb.getStyleClass().add("steampunk-radio");
             rb.setToggleGroup(rbGroup);
             rb.setUserData(i); // associe la valeur 0-4
             shownLayerSelection.getChildren().add(rb);
@@ -178,20 +179,22 @@ public class MapEditorView{
             }
         });
 
+        VBox buttonsRegion = new VBox(10);
+        buttonsRegion.setAlignment(Pos.CENTER);
+        HBox.setHgrow(buttonsRegion, Priority.ALWAYS);
         //Le toggle bouton pour masque le cadrillage
         ToggleButton gridLinesVisible = new ToggleButton("Masquer le cadrillage");
-        gridLinesVisible.getStyleClass().add("steampunk-toggle");
         gridLinesVisible.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
             gridLinesVisible.setText(isNowSelected ? "Afficher le cadrillage" : "Masquer le cadrillage");
             gridPane.setGridLinesVisible(!isNowSelected);
         });
+        buttonsRegion.getChildren().add(gridLinesVisible);
 
         //La region pour selectionner la taille des cellules
         VBox changeCellSizeRegion = new VBox(10);
         changeCellSizeRegion.setAlignment(Pos.CENTER);
         HBox.setHgrow(changeCellSizeRegion, Priority.ALWAYS);
         Label currCellSizeLabel = new Label("Taille des cellules du cadrillage : "+ this.cellSize);
-        currCellSizeLabel.getStyleClass().add("steampunk-label");
         
         Spinner<Integer> spinner = new Spinner<>();
         ObservableList<Integer> values = FXCollections.observableArrayList(16, 32, 64, 128);
@@ -202,6 +205,7 @@ public class MapEditorView{
             this.cellSize = newVal;
             initGridPane();
         });
+
         changeCellSizeRegion.getChildren().addAll(currCellSizeLabel, spinner);
 
 
@@ -216,7 +220,7 @@ public class MapEditorView{
         
 
         //On ajoute tout à la region des settings
-        this.settingsRegion.getChildren().addAll(shownLayerSelection, spacer, changeCellSizeRegion, spacer2, gridLinesVisible);        
+        this.settingsRegion.getChildren().addAll(shownLayerSelection, spacer, changeCellSizeRegion, spacer2, buttonsRegion);        
     }
 
 

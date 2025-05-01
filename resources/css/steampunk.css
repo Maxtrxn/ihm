@@ -1,5 +1,5 @@
 /* Style général du RadioButton Steampunk */
-.radio-button.steampunk-radio {
+.radio-button {
     -fx-text-fill: #f7e2c3; /* Texte couleur cuivre */
     -fx-font-weight: bold;
     -fx-font-size: 16px;
@@ -8,7 +8,7 @@
 }
 
 /* Cercle du RadioButton */
-.radio-button.steampunk-radio .radio {
+.radio-button .radio {
     -fx-background-color: transparent;
     -fx-border-color: #8b5e3c; /* Bord cuivré, couleur métal */
     -fx-border-width: 3;
@@ -17,38 +17,40 @@
 }
 
 /* Quand sélectionné, fond métallique cuivré */
-.radio-button.steampunk-radio:selected .radio {
+.radio-button:selected .radio {
     -fx-background-color: #f7e2c3;
 }
 
 /* Survol, avec effet lumineux */
-.radio-button.steampunk-radio:hover .radio {
+.radio-button:hover .radio {
     -fx-border-color: #c49e6c; /* Bord doré brillant quand on survole */
     -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0);
 }
 
 /* Cœur du RadioButton quand sélectionné, aspect rouillé cuivré */
-.radio-button.steampunk-radio:selected .radio > .dot {
+.radio-button:selected .radio > .dot {
     -fx-background-color: #f7e2c3;
 }
 
 
 
-.steampunk-box {
+
+.main-region {
 	-fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e);
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.3, 0, 2);
+	/*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.3, 0, 2);*/
     /*-fx-background-color: linear-gradient(to right, #b17f4a, #7f4e2a, #c69c6d);*/
     -fx-padding: 20;
     -fx-spacing: 15;
     /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 10, 0.4, 0, 4);*/ /* Ombre pour effet de métal */
-    -fx-border-color: #8b5e3c;
-    -fx-border-width: 3;
+    /*-fx-border-color: #8b5e3c;*/
+    /*-fx-border-width: 3;*/
 }
 
 
 
+
 /* Style général du ToggleButton Steampunk */
-.toggle-button.steampunk-toggle {
+.toggle-button {
     -fx-background-color: linear-gradient(to bottom, #8b5e3c, #5a3a1e);
     -fx-text-fill: #f7e2c3; /* Texte couleur cuivre */
     -fx-font-weight: bold;
@@ -63,7 +65,7 @@
 }
 
 /* Style lorsque le ToggleButton est sélectionné */
-.toggle-button.steampunk-toggle:selected {
+.toggle-button:selected {
     -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
     -fx-text-fill: #2e1b0e; /* Texte plus foncé pour contraste */
     -fx-border-color: #c49e6c;
@@ -71,7 +73,7 @@
 }
 
 /* Style au survol du ToggleButton */
-.toggle-button.steampunk-toggle:hover {
+.toggle-button:hover {
     -fx-border-color: #c49e6c;
     -fx-effect: dropshadow(gaussian, #c49e6c, 6, 0.5, 0, 0);
 }
@@ -111,7 +113,7 @@
 
 
 /* ListView steampunk général */
-.list-view.steampunk-list {
+.list-view {
     -fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e); /* Fond sombre et chaud */
     -fx-border-color: #8b5e3c;
     -fx-border-width: 3;
@@ -122,7 +124,7 @@
 }
 
 /* Cellules uniquement si elles sont dans une ListView avec classe steampunk-list */
-.list-view.steampunk-list .list-cell {
+.list-view .list-cell {
     -fx-text-fill: #f7e2c3;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
@@ -131,8 +133,8 @@
     -fx-border-color: transparent;
 }
 
-.list-view.steampunk-list .list-cell:filled:selected,
-.list-view.steampunk-list .list-cell:filled:selected:hover {
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:selected:hover {
     -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
     -fx-text-fill: #2e1b0e;
     -fx-effect: dropshadow(gaussian, #c49e6c, 4, 0.3, 0, 0);
@@ -192,8 +194,8 @@
 
 
 /* MenuBar steampunk */
-.menu-bar.steampunk-menubar,
-.menu-bar.steampunk-menubar .context-menu {
+.menu-bar,
+.menu-bar .context-menu {
     -fx-background-color: linear-gradient(to bottom, #5a3a1e, #2e1b0e);
 	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 8, 0.3, 0, 2);
     -fx-border-color: #8b5e3c;
@@ -201,24 +203,24 @@
     -fx-padding: 5 10;
 }
 
-.menu-bar.steampunk-menubar .label {
+.menu-bar .label {
     -fx-text-fill: #f7e2c3;
 }
 
-.menu-bar.steampunk-menubar .menu .label {
+.menu-bar .menu .label {
 	-fx-font-weight: bold;
     -fx-font-size: 16px;
 }
 
-.menu-bar.steampunk-menubar .menu-item .label {
+.menu-bar .menu-item .label {
 	-fx-font-weight: normal;
     -fx-font-size: 14px;
 }
 
-.menu-bar.steampunk-menubar .menu:hover,
-.menu-bar.steampunk-menubar .menu:showing,
-.menu-bar.steampunk-menubar .menu-item:focused,
-.menu-bar.steampunk-menubar .menu-item:hover {
+.menu-bar .menu:hover,
+.menu-bar .menu:showing,
+.menu-bar .menu-item:focused,
+.menu-bar .menu-item:hover {
     -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
     -fx-text-fill: #2e1b0e;
     -fx-cursor: hand;
@@ -226,11 +228,68 @@
 
 
 
-.label.steampunk-label {
+.label {
 	-fx-font-weight: bold;
     -fx-text-fill: #f7e2c3;
 	-fx-font-size: 16px;
 	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.3, 2, 2);
 }
+
+.sp-separator {
+    -fx-background-color: linear-gradient(to right, #8b5e3c, #c49e6c, #8b5e3c);
+    -fx-text-fill: #2e1b0e;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #5a3a1e;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 3, 0.3, 0, 1);
+}
+
+
+
+.spinner {
+    -fx-background-color: linear-gradient(to bottom, #7f4e2a, #b17f4a);
+    -fx-background-radius: 10;
+    -fx-border-color: #5a3a1e;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-padding: 2 4;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.4, 1, 1);
+}
+
+
+
+
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7e2c3;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-highlight-fill: #c49e6c;
+    -fx-highlight-text-fill: #2e1b0e;
+    -fx-cursor: text;
+    -fx-border-color: transparent;
+}
+
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: linear-gradient(to bottom, #c49e6c, #8b5e3c);
+    -fx-background-radius: 8;
+    -fx-border-color: #5a3a1e;
+    -fx-border-width: 1;
+    -fx-padding: 2;
+    -fx-cursor: hand;
+}
+
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: #2e1b0e;
+}
+
 
 

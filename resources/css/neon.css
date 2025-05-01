@@ -1,0 +1,234 @@
+.radio-button {
+    -fx-text-fill: #00f0ff;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 5 10;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 6, 0.1, 0, 0);
+}
+
+.radio-button .radio {
+    -fx-background-color: transparent;
+    -fx-border-color: #00f0ff;
+    -fx-border-width: 3;
+    -fx-border-radius: 50%;
+    -fx-padding: 3;
+}
+
+.radio-button:selected .radio {
+    -fx-background-color: #00f0ff;
+}
+
+.radio-button:hover .radio {
+    -fx-border-color: #ff00ff;
+    -fx-effect: dropshadow(gaussian, #ff00ff, 6, 0.7, 0, 0);
+}
+
+.radio-button:selected .radio > .dot {
+    -fx-background-color: #ff00ff;
+}
+
+.main-region {
+    -fx-background-color: linear-gradient(to bottom, #0d0d0d, #1a1a1a);
+    -fx-padding: 20;
+    -fx-spacing: 15;
+}
+
+.toggle-button {
+    -fx-background-color: linear-gradient(to bottom, #111, #222);
+    -fx-text-fill: #00ffcc;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 8 16;
+    -fx-border-color: #00ffcc;
+    -fx-border-width: 3;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 3, 0.4, 0, 0);
+    -fx-cursor: hand;
+}
+
+.toggle-button:selected {
+    -fx-background-color: linear-gradient(to bottom, #330033, #550055);
+    -fx-text-fill: #ff00ff;
+    -fx-border-color: #ff00ff;
+    -fx-effect: dropshadow(gaussian, #ff00ff, 6, 0.6, 0, 0);
+}
+
+.toggle-button:hover {
+    -fx-border-color: #00f0ff;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 6, 0.6, 0, 0);
+}
+
+.button {
+    -fx-background-color: linear-gradient(to bottom, #1a1a1a, #000);
+    -fx-text-fill: #00ffcc;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-padding: 8 16;
+    -fx-border-color: #00ffcc;
+    -fx-border-width: 3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, #00ffcc, 6, 0.6, 0, 0);
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #222, #111);
+    -fx-border-color: #ff00ff;
+    -fx-effect: dropshadow(gaussian, #ff00ff, 6, 0.6, 0, 0);
+}
+
+.button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #000, #111);
+    -fx-text-fill: #ff00ff;
+    -fx-translate-y: 1;
+}
+
+.list-view {
+    -fx-background-color: linear-gradient(to bottom, #0a0a0a, #111);
+    -fx-border-color: #00f0ff;
+    -fx-border-width: 3;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 10, 0.6, 0, 2);
+}
+
+.list-view .list-cell {
+    -fx-text-fill: #ccff00;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 12;
+    -fx-background-color: transparent;
+}
+
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:selected:hover {
+    -fx-background-color: linear-gradient(to bottom, #440044, #220022);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, #ff00ff, 4, 0.5, 0, 0);
+}
+
+.list-view.steampunk-list .list-cell:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-cursor: hand;
+}
+
+.scroll-bar:vertical, .scroll-bar:horizontal {
+    -fx-background-color: #111;
+    -fx-padding: 2;
+}
+
+.scroll-bar .track {
+    -fx-background-color: #1a1a1a;
+    -fx-border-color: #333;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: linear-gradient(to bottom, #00f0ff, #005f6b);
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 3, 0.5, 0, 0);
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: linear-gradient(to bottom, #ff00ff, #800080);
+    -fx-cursor: hand;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #111;
+    -fx-padding: 4;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #00ffcc;
+}
+
+.menu-bar,
+.menu-bar .context-menu {
+    -fx-background-color: linear-gradient(to bottom, #0d0d0d, #222);
+    -fx-effect: dropshadow(gaussian, #00ffcc, 8, 0.5, 0, 2);
+    -fx-border-color: #00ffcc;
+    -fx-border-width: 3 0 3 0;
+    -fx-padding: 5 10;
+}
+
+.menu-bar .label {
+    -fx-text-fill: #00ffcc;
+}
+
+.menu-bar .menu .label {
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.menu-bar .menu-item .label {
+    -fx-font-weight: normal;
+    -fx-font-size: 14px;
+}
+
+.menu-bar .menu:hover,
+.menu-bar .menu:showing,
+.menu-bar .menu-item:focused,
+.menu-bar .menu-item:hover {
+    -fx-background-color: linear-gradient(to bottom, #00ffcc, #003f3f);
+    -fx-text-fill: #000;
+    -fx-cursor: hand;
+}
+
+.label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #00f0ff;
+    -fx-font-size: 16px;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 6, 0.1, 0, 0);
+}
+
+.sp-separator {
+    -fx-background-color: linear-gradient(to right, #00f0ff, #ff00ff, #00f0ff);
+    -fx-text-fill: #fff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-alignment: center;
+    -fx-padding: 8 12;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #00ffcc;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #00f0ff, 3, 0.3, 0, 1);
+}
+
+.spinner {
+    -fx-background-color: linear-gradient(to bottom, #1a1a1a, #000);
+    -fx-background-radius: 10;
+    -fx-border-color: #00ffcc;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-padding: 2 4;
+    -fx-effect: dropshadow(gaussian, #00ffcc, 4, 0.5, 1, 1);
+}
+
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #00f0ff;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-highlight-fill: #ff00ff;
+    -fx-highlight-text-fill: #000;
+    -fx-cursor: text;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: linear-gradient(to bottom, #ff00ff, #aa00aa);
+    -fx-background-radius: 8;
+    -fx-border-color: #ff00ff;
+    -fx-border-width: 1;
+    -fx-padding: 2;
+    -fx-cursor: hand;
+}
+
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: #00ffcc;
+}

@@ -30,9 +30,11 @@ import src.view.editor.EditorMenuBarView;
 public class EditorMenuBarController {
     private GameEditorModel model;
     private EditorMenuBarView view;
+    private Stage stage;
 
-    public EditorMenuBarController(GameEditorModel model){
+    public EditorMenuBarController(GameEditorModel model, Stage stage){
         this.model = model;
+        this.stage = stage;
         this.view = new EditorMenuBarView(this);
 
         this.view.getMenuItem(null);
@@ -294,4 +296,55 @@ public class EditorMenuBarController {
             return;
         } 
     }
+
+
+
+    // --- Preferences Menu Items ---
+    public void handlePreferenceEditorTheme(){
+        final String[] cssFileName = {null};
+        Stage window = new Stage();
+        window.initModality(Modality.APPLICATION_MODAL);
+        window.setTitle("Sélectionnez le fichier du thème");
+
+        ListView<String> listView = new ListView<>();
+        File directory = new File(ResourceManager.STYLESHEET_FOLDER);
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    listView.getItems().add(fileName);
+                }
+            }
+        }
+
+        Button selectButton = new Button("Sélectionner");
+        selectButton.setOnAction(e -> {
+            cssFileName[0] = listView.getSelectionModel().getSelectedItem();
+            window.close();
+        });
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setOnAction(e -> {window.close();});
+
+        HBox buttons = new HBox(10, selectButton, cancelButton);
+        VBox layout = new VBox(10, listView, buttons);
+        Scene scene = new Scene(layout, 400, 400);
+        window.setScene(scene);
+        window.showAndWait();
+
+        if(cssFileName[0] != null){
+            this.stage.getScene().getStylesheets().clear();
+            this.stage.getScene().getStylesheets().add(getClass().getResource("/css/" + cssFileName[0]).toString());
+        }
+    }
+
+    public void handlePreferenceEditorLanguage(){
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText("Pas implémenté");
+        alert.showAndWait();
+        return;
+    }
+
 }
+

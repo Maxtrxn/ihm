@@ -55,7 +55,7 @@ public class GameEditorModel{
     public void setSelectedLevelObjectName(String name){
         String oldName = this.selectedLevelObjectName;
         this.selectedLevelObjectName = name;
-        this.support.firePropertyChange("changeLevelObjectName", oldName, this.selectedLevelObjectName);
+        this.support.firePropertyChange("changeSelectedLevelObjectName", oldName, this.selectedLevelObjectName);
     }
     public void setClickSelectedLevelObject(LevelObject levelObject){this.clickSelectedLevelObject = levelObject;}
     public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
@@ -152,33 +152,4 @@ public class GameEditorModel{
         return null;
     }
 
-
-
-/* 
-    public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){
-        for(LevelObject levelObject : this.level.getLevelObjects()){
-            if(mouseClickPosX >= levelObject.getX() && mouseClickPosX <= levelObject.getX() + levelObject.getWidth() &&
-            mouseClickPosY >= levelObject.getY() && mouseClickPosY <= levelObject.getY() + levelObject.getHeight()){
-                if(this.clickSelectedLevelObject == levelObject){
-                    if(levelObject instanceof Platform){
-                        this.level.getPlatforms().remove(levelObject);
-                    }else if(levelObject instanceof Enemy){
-                        this.level.getEnemies().remove(levelObject);
-                    }else if(levelObject instanceof Decoration){
-                        this.level.getDecorations().remove(levelObject);
-                    }else if(levelObject instanceof SpawnPoint){
-                        this.level.setSpawnPoint(null);
-                    }   
-                    this.clickSelectedLevelObject = null;
-                    this.support.firePropertyChange("changeLevelData", null, this.level);
-                }else{
-                    this.clickSelectedLevelObject = levelObject;
-                }
-                return this.clickSelectedLevelObject;
-            }
-        }
-        this.clickSelectedLevelObject = null;
-        return this.clickSelectedLevelObject;
-    }
-        */
 }

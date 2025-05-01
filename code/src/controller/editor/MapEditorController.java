@@ -23,17 +23,24 @@ import src.view.editor.MapEditorView;
 public class MapEditorController {
     private GameEditorModel model;
     private MapEditorView view;
+    private Stage stage;
 
-    public MapEditorController(GameEditorModel model, Level level){
+    public MapEditorController(GameEditorModel model, Level level, Stage stage){
         this.model = model;
         this.view = new MapEditorView(this, level);
+        this.stage = stage;
 
         this.model.addPropertyChangeListener("changeLevelData", e -> {
             this.model.setClickSelectedLevelObject(null);
             this.view.updateClickSelectedLevelObject(null);
             this.view.showLevel((Level)e.getNewValue());
         });
-        this.model.addPropertyChangeListener("changeLevelObjectName", e -> this.view.updateSelectedLevelObjectImage((String)e.getNewValue()));
+        this.model.addPropertyChangeListener("changeSelectedLevelObjectName", e -> {
+            model.setClickSelectedLevelObject(null);
+            view.updateClickSelectedLevelObject(null);
+            this.view.updateSelectedLevelObjectImage((String)e.getNewValue());
+        });
+
     }
 
     ScrollPane getMapEditorRegion(){return this.view.getMainRegion();}
@@ -43,30 +50,12 @@ public class MapEditorController {
     public void addPlatform(double x, double y){this.model.addPlatform(x, y);}
     public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
     public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){this.model.addEnemy(x, y, leftBound, rightBound, speed);}
-    //public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){return this.model.clickSelectLevelObject(mouseClickPosX, mouseClickPosY);}
+
 
     public void handleMouseClick(double cellTopLeftX, double cellTopLeftY){
         if(this.model.getSelectedLevelObjectName() == null){
             //Si il n'y a pas d'objet sélectionné dans le listview
             handleObjectSelectionOrDeletion(cellTopLeftX, cellTopLeftY);
-
-            LevelObject onPos = this.model.getLevelObjectAt(cellTopLeftX, cellTopLeftY);
-            if(onPos == null){
-                //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
-                this.model.setClickSelectedLevelObject(null);
-                this.view.updateClickSelectedLevelObject(null);
-            }else if(this.model.getClickSelectedLevelObject() == onPos){
-                //Si on a cliqué 2 fois sur un objet, on le supprime
-                this.model.removeLevelObject(onPos);
-                this.model.setClickSelectedLevelObject(null);
-            }else{
-                //Si c'est la premiere fois qu'on clique sur l'objet on le selectionne
-                this.model.setClickSelectedLevelObject(onPos);
-                this.view.updateClickSelectedLevelObject(onPos);
-            }
-
-            
-            
         }else{
             //Si il y a un objet sélectionné dans le listview
             handleObjectPlacement(cellTopLeftX, cellTopLeftY);
@@ -78,20 +67,20 @@ public class MapEditorController {
     private void handleObjectSelectionOrDeletion(double x, double y) {
         LevelObject onPos = model.getLevelObjectAt(x, y);
     
+        LevelObject newSelection = null;
+
         if (onPos == null) {
-            //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
-            model.setClickSelectedLevelObject(null);
-            view.updateClickSelectedLevelObject(null);
+            //Clic dans le vide -> désélection
         } else if (onPos == model.getClickSelectedLevelObject()) {
-            //Si on a cliqué 2 fois sur un objet, on le supprime
+            //Deucième clic sur un objet -> suppression
             model.removeLevelObject(onPos);
-            model.setClickSelectedLevelObject(null);
-            view.updateClickSelectedLevelObject(null);
         } else {
-            //Sinon c'est la premiere fois qu'on clique sur l'objet donc on le selectionne
-            model.setClickSelectedLevelObject(onPos);
-            view.updateClickSelectedLevelObject(onPos);
+            //Sélection d'un nouvel objet
+            newSelection = onPos;
         }
+
+        model.setClickSelectedLevelObject(newSelection);
+        view.updateClickSelectedLevelObject(newSelection);
     }
 
 
@@ -157,6 +146,7 @@ public class MapEditorController {
         layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
 
         Scene scene = new Scene(layout, 300, 400);
+        scene.getStylesheets().add(this.stage.getScene().getStylesheets().getFirst());
         newWindow.setScene(scene);
         newWindow.setTitle("Paramètres de l'ennemi");
         newWindow.showAndWait();

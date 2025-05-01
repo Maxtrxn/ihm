@@ -18,7 +18,6 @@ public class EditorMenuBarView extends MenuBar{
         super();
         this.controller = controller;
         this.items = new HashMap<>();
-        this.getStyleClass().add("steampunk-menubar");
 
         //Création du menu "Fichier"
         Menu fileMenu = new Menu("Fichier");
@@ -47,9 +46,19 @@ public class EditorMenuBarView extends MenuBar{
         levelMenu.getItems().addAll(Level_ChangeLevelName, Level_ChangeLevelBackground, Level_TestLevel);
 
 
+
+        //Création du menu "Préférences"
+        Menu preferencesMenu = new Menu("Préférences");
+        MenuItem Preference_ChangeEditorTheme = new MenuItem("Changer le thème de l'éditeur");
+        Preference_ChangeEditorTheme.setOnAction(e -> this.controller.handlePreferenceEditorTheme());
+        MenuItem Preference_ChangeEditorLanguage = new MenuItem("Changer la langue de l'éditeur");
+        Preference_ChangeEditorLanguage.setOnAction(e -> this.controller.handlePreferenceEditorLanguage());
+        preferencesMenu.getItems().addAll(Preference_ChangeEditorTheme, Preference_ChangeEditorLanguage);
+
+
         
         //On ajoute les menus à la barre
-        this.getMenus().addAll(fileMenu, levelMenu);
+        this.getMenus().addAll(fileMenu, levelMenu, preferencesMenu);
     }
 
 

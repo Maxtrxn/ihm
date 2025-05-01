@@ -16,7 +16,7 @@ public class MainMenuView extends VBox {
         this.setAlignment(Pos.CENTER);
 
         Scene scene = new Scene(this, SCENE_WIDTH, SCENE_HEIGHT);
-        scene.getStylesheets().add(getClass().getResource("/css/editorStyle.css").toString());
+        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
 
         this.controller = controller;

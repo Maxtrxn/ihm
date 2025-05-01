@@ -21,7 +21,7 @@ public class EditorLevelObjectSelectorView {
     public EditorLevelObjectSelectorView(EditorLevelObjectSelectorController controller){
         this.controller = controller;
         this.region = new VBox();
-        this.region.getStyleClass().add("steampunk-box");
+        this.region.getStyleClass().add("main-region");
 
         initializeLevelObjectSelector();
     }
@@ -32,7 +32,6 @@ public class EditorLevelObjectSelectorView {
 
     public void initializeLevelObjectSelector(){
         ListView<LevelObjectSelectorItem> levelObjectSelector = new ListView<>();
-        levelObjectSelector.getStyleClass().add("steampunk-list");
         //Gestion de la sélection
         levelObjectSelector.getSelectionModel().selectedItemProperty().addListener((obs, oldValue, newValue) -> {
             if(newValue == null){
@@ -115,10 +114,9 @@ class LevelObjectSelectorItem extends VBox{
     public LevelObjectSelectorItem(String levelObjectName){
         super();
 
-        this.levelObjectNameLabel = new Label(levelObjectName);
-        this.levelObjectNameLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        this.levelObjectNameLabel = new Label("    "+ levelObjectName+ "    ");
+        this.levelObjectNameLabel.getStyleClass().add("sp-separator");
         this.getChildren().add(this.levelObjectNameLabel);
-        this.setStyle("-fx-background-color: black; -fx-pref-height: 2px;");
         this.texture = null;
     }
 
