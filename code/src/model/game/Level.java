@@ -9,6 +9,7 @@ import src.model.game.Enemy;
 import src.model.game.Platform;
 import src.model.game.Player;
 import src.model.game.platforms.FragilePlatform;
+import src.model.game.platforms.SpawnPoint;
 import src.controller.editor.GameEditorController.LevelObjectType;
 
 import org.json.JSONArray;
@@ -34,6 +35,7 @@ public class Level {
     protected Image            backgroundImage;
     protected double           levelWidth;
     protected double           levelHeight;
+    protected SpawnPoint spawnPoint;
 
     // ——— Zone de boss (optionnelle) ———
     private double bossZoneStart = Double.NEGATIVE_INFINITY;
@@ -46,6 +48,7 @@ public class Level {
         this.decorations = new ArrayList<>();
         this.levelWidth = levelWidth;
         this.levelHeight = levelHeight;
+        this.spawnPoint = null;
     }
 
     /** Constructeur JSON : charge "levels/{levelName}.json". */
@@ -55,6 +58,10 @@ public class Level {
         this.enemies     = new ArrayList<>();
         this.decorations = new ArrayList<>();
         initialize(levelName);
+        if(this.player != null){
+            this.player.setX(this.spawnPoint.getX());
+            this.player.setY(this.spawnPoint.getY() - this.player.getHeight());
+        }
     }
 
     /** Initialise le niveau depuis le JSON correspondant. */
@@ -84,6 +91,8 @@ public class Level {
                 platforms.add(new FragilePlatform(x, y, name));
             }else if(type == LevelObjectType.PLATFORM){
                 platforms.add(new Platform(x, y, name));
+            }else if(type == LevelObjectType.SPAWNPOINT){
+                this.spawnPoint = new SpawnPoint(x, y, name);
             }
         }
 
@@ -131,6 +140,18 @@ public class Level {
             bossZoneStart = bz.getDouble("startX");
             bossZoneEnd   = bz.getDouble("endX");
         }
+
+
+
+        if (L.has("spawnPoint")){
+            JSONObject sp = L.getJSONObject("spawnPoint");
+            double x = sp.getDouble("x");
+            double y =  sp.getDouble("y");
+            String name = sp.getString("name");
+            this.spawnPoint = new SpawnPoint(x, y, name);
+        }else{
+            this.spawnPoint = new SpawnPoint(0, 0, null);
+        }
     }
 
     // ——— Getters ———
@@ -141,11 +162,13 @@ public class Level {
     public Image            getBackgroundImage() { return backgroundImage; }
     public double           getLevelWidth()      { return levelWidth;   }
     public double           getLevelHeight()     { return levelHeight;  }
+    public SpawnPoint getSpawnPoint(){return this.spawnPoint;}
     public List<LevelObject> getLevelObjects() {
         List<LevelObject> levelObjects = new ArrayList<>();
         levelObjects.addAll(this.platforms);
         levelObjects.addAll(this.decorations);
         levelObjects.addAll(this.enemies);
+        if(this.spawnPoint != null) levelObjects.add(this.spawnPoint);
         return levelObjects;
     }
 
@@ -166,6 +189,7 @@ public class Level {
     public void removePlatform(Platform platform){this.platforms.remove(platform);}
     public void removeDecoration(Decoration decoration){this.decorations.remove(decoration);}
     public void removeEnemy(Enemy enemy){this.enemies.remove(enemy);}
+    public void setSpawnPoint(SpawnPoint spawnPoint){this.spawnPoint = spawnPoint;}
 
     // ——————————— Helpers ———————————
 
@@ -232,6 +256,11 @@ public class Level {
             bossZoneJSON.put("endX", this.bossZoneEnd);
             levelJSON.put("bossZone", bossZoneJSON);
         }
+
+
+        JSONObject spawnPointJSON = this.spawnPoint.toJSONObject();
+        levelJSON.put("spawnPoint", spawnPointJSON);
+
 
         return levelJSON;
     }

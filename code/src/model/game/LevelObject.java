@@ -16,10 +16,15 @@ public abstract class LevelObject {
         
         JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
         this.name = name;
-        this.texture = new Image("file:" + pathToLevelObjectFolder + levelObjectJson.getString("textureFileName"));
+        double scaleFactor;
+        if(name == null){
+            this.texture = new Image("file:" + ResourceManager.DEFAULT_TEXTURE);
+            scaleFactor = 1;
+        }else{
+            this.texture = new Image("file:" + pathToLevelObjectFolder + levelObjectJson.getString("textureFileName"));
+            scaleFactor = levelObjectJson.getDouble("scaleFactor");
+        }
 
-        // Dimensions initiales basées sur la taille d'origine de la texture
-        double scaleFactor = levelObjectJson.getDouble("scaleFactor");
         this.width = texture.getWidth() * scaleFactor;
         this.height = texture.getHeight() * scaleFactor;
     }
@@ -28,7 +33,7 @@ public abstract class LevelObject {
     public double getY()      { return y; }
     public double getWidth()  { return width; }
     public double getHeight() { return height; }
-    public Image getTexture() { return texture; }
+    public Image getTexture() { return texture;}
     public String getName() { return name; }
 
     public JSONObject toJSONObject(){

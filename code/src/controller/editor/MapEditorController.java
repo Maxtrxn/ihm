@@ -12,10 +12,12 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
+import src.controller.editor.GameEditorController.LevelObjectType;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
+import src.model.game.platforms.SpawnPoint;
 import src.view.editor.MapEditorView;
 
 public class MapEditorController {
@@ -41,59 +43,83 @@ public class MapEditorController {
     public void addPlatform(double x, double y){this.model.addPlatform(x, y);}
     public void addDecoration(double x, double y, boolean foreground){this.model.addDecoration(x, y, foreground);}
     public void addEnemy(double x, double y, double leftBound, double rightBound, double speed){this.model.addEnemy(x, y, leftBound, rightBound, speed);}
-    public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){return this.model.clickSelectLevelObject(mouseClickPosX, mouseClickPosY);}
+    //public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){return this.model.clickSelectLevelObject(mouseClickPosX, mouseClickPosY);}
+
     public void handleMouseClick(double cellTopLeftX, double cellTopLeftY){
         if(this.model.getSelectedLevelObjectName() == null){
             //Si il n'y a pas d'objet sélectionné dans le listview
-            for (LevelObject levelObject : this.model.getLevel().getLevelObjects()) {
-                if(levelObject.getX() == cellTopLeftX && levelObject.getY() == cellTopLeftY){
-                    //Si les coordonnées de la case cliquée correspondent avec les coo de l'objet
-                    if(this.model.getClickSelectedLevelObject() == levelObject){
-                        //Si on a cliqué 2 fois sur un objet, on le supprime
-                        this.model.removeLevelObject(levelObject);
-                        this.model.setClickSelectedLevelObject(null);
-                    }else{
-                        //Si c'est la premiere fois qu'on clique sur l'objet on le selectionne
-                        this.model.setClickSelectedLevelObject(levelObject);
-                        this.view.updateClickSelectedLevelObject(levelObject);
-                    }
-    
-                    return;
-                }
-            } 
+            handleObjectSelectionOrDeletion(cellTopLeftX, cellTopLeftY);
 
-            //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
-            this.model.setClickSelectedLevelObject(null);
-            this.view.updateClickSelectedLevelObject(null);
+            LevelObject onPos = this.model.getLevelObjectAt(cellTopLeftX, cellTopLeftY);
+            if(onPos == null){
+                //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
+                this.model.setClickSelectedLevelObject(null);
+                this.view.updateClickSelectedLevelObject(null);
+            }else if(this.model.getClickSelectedLevelObject() == onPos){
+                //Si on a cliqué 2 fois sur un objet, on le supprime
+                this.model.removeLevelObject(onPos);
+                this.model.setClickSelectedLevelObject(null);
+            }else{
+                //Si c'est la premiere fois qu'on clique sur l'objet on le selectionne
+                this.model.setClickSelectedLevelObject(onPos);
+                this.view.updateClickSelectedLevelObject(onPos);
+            }
+
+            
+            
         }else{
             //Si il y a un objet sélectionné dans le listview
-            String selectedLevelObjectName = this.model.getSelectedLevelObjectName();
+            handleObjectPlacement(cellTopLeftX, cellTopLeftY);
+        }
+    }
 
-            for (LevelObject levelObject : this.model.getLevel().getLevelObjects()) {
-                if(levelObject.getX() == cellTopLeftX && levelObject.getY() == cellTopLeftY){
-                    //Si il y a déjà un level object à l'endroit où on a cliqué, on ne l'ajoute pas,
-                    //C'est plus simple pour gérer la selection avec un clique d'un objet placé.
-                    return;
-                }
+
+
+    private void handleObjectSelectionOrDeletion(double x, double y) {
+        LevelObject onPos = model.getLevelObjectAt(x, y);
+    
+        if (onPos == null) {
+            //Si on a cliqué dans le vide, on désélectionne la plateforme sélectionnée
+            model.setClickSelectedLevelObject(null);
+            view.updateClickSelectedLevelObject(null);
+        } else if (onPos == model.getClickSelectedLevelObject()) {
+            //Si on a cliqué 2 fois sur un objet, on le supprime
+            model.removeLevelObject(onPos);
+            model.setClickSelectedLevelObject(null);
+            view.updateClickSelectedLevelObject(null);
+        } else {
+            //Sinon c'est la premiere fois qu'on clique sur l'objet donc on le selectionne
+            model.setClickSelectedLevelObject(onPos);
+            view.updateClickSelectedLevelObject(onPos);
+        }
+    }
+
+
+
+    private void handleObjectPlacement(double x, double y) {
+        //Si il y a déjà un level object à l'endroit où on a cliqué, on ne l'ajoute pas,
+        //C'est plus simple pour gérer la selection avec un clique d'un objet placé.
+        if(model.getLevelObjectAt(x, y) != null) return;
+    
+        String name = model.getSelectedLevelObjectName();
+    
+        if(ResourceManager.PLATFORMS_JSON.has(name)){
+            LevelObjectType type = LevelObjectType.valueOf(ResourceManager.PLATFORMS_JSON.getJSONObject(name).getString("type"));
+            switch (type) {
+                case SPAWNPOINT -> model.setSpawnPoint(x, y);
+                case FRAGILE_PLATFORM, PLATFORM -> model.addPlatform(x, y);
             }
-            
-            if(ResourceManager.PLATFORMS_JSON.has(selectedLevelObjectName)){
-                this.model.addPlatform(cellTopLeftX, cellTopLeftY);
-            }else if(ResourceManager.DECORATIONS_JSON.has(selectedLevelObjectName)){
-                this.model.addDecoration(cellTopLeftX, cellTopLeftY, false);
-            }else if(ResourceManager.ENEMIES_JSON.has(selectedLevelObjectName)){
-                handleEnemyPlacement(cellTopLeftX, cellTopLeftY);
-            }
-
-
+        }else if(ResourceManager.DECORATIONS_JSON.has(name)){
+            model.addDecoration(x, y, false);
+        }else if(ResourceManager.ENEMIES_JSON.has(name)){
+            handleEnemyPlacement(x, y);
         }
     }
 
 
 
 
-
-    public void handleEnemyPlacement(double levelObjectX, double levelObjectY){
+    private void handleEnemyPlacement(double levelObjectX, double levelObjectY){
         Stage newWindow = new Stage();
         newWindow.initModality(Modality.APPLICATION_MODAL);
 

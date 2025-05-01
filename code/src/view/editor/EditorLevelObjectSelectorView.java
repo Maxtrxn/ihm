@@ -131,6 +131,7 @@ class LevelObjectSelectorItem extends VBox{
 
         switch (levelObjectType) {
             case LevelObjectType.FRAGILE_PLATFORM:
+            case LevelObjectType.SPAWNPOINT:
             case LevelObjectType.PLATFORM:
                 this.texture = new Image("file:" + ResourceManager.PLATFORMS_FOLDER + levelObjectTextureFileName);
                 break;

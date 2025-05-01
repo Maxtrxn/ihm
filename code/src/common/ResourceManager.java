@@ -2,6 +2,8 @@ package src.common;
 
 import org.json.JSONObject;
 
+import javafx.scene.image.Image;
+
 public class ResourceManager {
     public static final String RESOURCE_FOLDER = "../resources/";
     public static final String LEVELS_FOLDER = RESOURCE_FOLDER + "levels/";
@@ -14,4 +16,6 @@ public class ResourceManager {
     public static final JSONObject DECORATIONS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "decorations.json");
     public static final JSONObject ENEMIES_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "enemies.json");
     public static final JSONObject PLATFORMS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
+
+    public static final String DEFAULT_TEXTURE = TEXTURES_FOLDER + "default.png";
 }

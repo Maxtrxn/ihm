@@ -65,5 +65,10 @@
       "textureFileName": "sol pierre.png",
       "scaleFactor": 1.0,
 	  "type": "PLATFORM"
+    },
+    "Spawnpoint": {
+      "textureFileName": "spawnpoint.png",
+      "scaleFactor": 1.0,
+	  "type": "SPAWNPOINT"
     }
 }

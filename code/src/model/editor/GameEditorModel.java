@@ -11,6 +11,7 @@ import src.model.game.Enemy;
 import src.model.game.Level;
 import src.model.game.LevelObject;
 import src.model.game.Platform;
+import src.model.game.platforms.SpawnPoint;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -59,6 +60,11 @@ public class GameEditorModel{
     public void setClickSelectedLevelObject(LevelObject levelObject){this.clickSelectedLevelObject = levelObject;}
     public LevelObject getClickSelectedLevelObject(){return this.clickSelectedLevelObject;}
     
+    public void setSpawnPoint(double x, double y){
+        this.level.setSpawnPoint(new SpawnPoint(x, y, selectedLevelObjectName));
+        this.support.firePropertyChange("changeLevelData", null, this.level);
+    }
+
     public void setLevelBackground(Image bg){
         this.level.setBackgroundImage(bg);
         this.support.firePropertyChange("changeLevelData", null, this.level);
@@ -74,7 +80,11 @@ public class GameEditorModel{
     
     public void removeLevelObject(LevelObject levelObject){
         if(levelObject instanceof Platform){
-            this.level.removePlatform((Platform)levelObject);
+            if(levelObject instanceof SpawnPoint){
+                this.level.setSpawnPoint(null);
+            }else{
+                this.level.removePlatform((Platform)levelObject);
+            }
         }else if(levelObject instanceof Decoration){
             this.level.removeDecoration((Decoration)levelObject);
         }else if(levelObject instanceof Enemy){
@@ -117,6 +127,7 @@ public class GameEditorModel{
     //Pour charger un niveau déjà existant
     public void loadLevel(String levelName){
         this.level = new Level(null, levelName);
+        this.setLevelName(levelName);
         this.support.firePropertyChange("initLevel", null, this.level);
     }
 
@@ -128,6 +139,22 @@ public class GameEditorModel{
         this.support.firePropertyChange("initLevel", lastLevel, this.level);
     }
 
+
+
+
+
+    public LevelObject getLevelObjectAt(double x, double y){
+        for (LevelObject levelObject : this.level.getLevelObjects()) {
+            if(levelObject.getX() == x && levelObject.getY() == y){
+                return levelObject;
+            }
+        } 
+        return null;
+    }
+
+
+
+/* 
     public LevelObject clickSelectLevelObject(double mouseClickPosX, double mouseClickPosY){
         for(LevelObject levelObject : this.level.getLevelObjects()){
             if(mouseClickPosX >= levelObject.getX() && mouseClickPosX <= levelObject.getX() + levelObject.getWidth() &&
@@ -139,7 +166,9 @@ public class GameEditorModel{
                         this.level.getEnemies().remove(levelObject);
                     }else if(levelObject instanceof Decoration){
                         this.level.getDecorations().remove(levelObject);
-                    }
+                    }else if(levelObject instanceof SpawnPoint){
+                        this.level.setSpawnPoint(null);
+                    }   
                     this.clickSelectedLevelObject = null;
                     this.support.firePropertyChange("changeLevelData", null, this.level);
                 }else{
@@ -151,4 +180,5 @@ public class GameEditorModel{
         this.clickSelectedLevelObject = null;
         return this.clickSelectedLevelObject;
     }
+        */
 }

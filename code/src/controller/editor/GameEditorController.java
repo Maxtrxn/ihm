@@ -12,7 +12,7 @@ import src.view.editor.GameEditorView;
 
 public class GameEditorController{
     public enum LevelObjectType {
-        PLATFORM, FRAGILE_PLATFORM, DECORATION, ENEMY, BOSS;
+        PLATFORM, FRAGILE_PLATFORM, DECORATION, ENEMY, BOSS, SPAWNPOINT;
     }
     private GameEditorModel model = null;
     private GameEditorView view = null;

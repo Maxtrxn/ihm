@@ -275,12 +275,15 @@ public class EditorMenuBarController {
 
     public void handleLevelTestLevel(){
         if(this.model.getLevel() != null){
+            String levelName = this.model.getLevelName();
+            this.model.setLevelName("temp");
             this.model.saveLevel(true);
+            this.model.setLevelName(levelName);
 
             Stage gameStage = new Stage();
             gameStage.initModality(Modality.APPLICATION_MODAL);
             gameStage.setTitle("Test du niveau");
-            new GameController(gameStage, this.model.getLevelName());
+            new GameController(gameStage, "temp");
             gameStage.showAndWait();
         }else{
             Alert alert = new Alert(AlertType.INFORMATION);
