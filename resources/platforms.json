@@ -70,5 +70,65 @@
       "textureFileName": "spawnpoint.png",
       "scaleFactor": 1.0,
 	  "type": "SPAWNPOINT"
+    },
+    "bas cheminee dark": {
+      "textureFileName": "bas cheminee dark.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "bas cheminee laiton": {
+      "textureFileName": "bas cheminee laiton.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "bas cheminee pierre": {
+      "textureFileName": "bas cheminee pierre.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "caisse": {
+      "textureFileName": "caisse.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "fer angle": {
+      "textureFileName": "fer angle.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "fer borde": {
+      "textureFileName": "fer bord.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "fer": {
+      "textureFileName": "fer.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "haut cheminee dark": {
+      "textureFileName": "haut cheminee dark.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "haut cheminee laiton": {
+      "textureFileName": "haut cheminee laiton.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "haut cheminee pierre": {
+      "textureFileName": "haut cheminee pierre.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "table bleue": {
+      "textureFileName": "table bleue.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
+    },
+    "table laiton": {
+      "textureFileName": "table laiton.png",
+      "scaleFactor": 1.0,
+    "type": "PLATFORM"
     }
 }

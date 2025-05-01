@@ -1,5 +1,5 @@
 {
-    "levelWidth": 6000,
+    "levelWidth": 400,
     "enemies": [
         {
             "patrolEnd": 800,

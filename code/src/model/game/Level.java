@@ -150,7 +150,7 @@ public class Level {
             String name = sp.getString("name");
             this.spawnPoint = new SpawnPoint(x, y, name);
         }else{
-            this.spawnPoint = new SpawnPoint(0, 0, null);
+            this.spawnPoint = new SpawnPoint(0, 0, "Spawnpoint");
         }
     }
 
