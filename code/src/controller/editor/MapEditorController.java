@@ -112,20 +112,20 @@ public class MapEditorController {
         Stage newWindow = new Stage();
         newWindow.initModality(Modality.APPLICATION_MODAL);
 
-        Label leftPatrolDistanceLabel = new Label("Distance de la patrouille vers la gauche (en pixel) :");
+        Label leftPatrolDistanceLabel = new Label(ResourceManager.getString("handleEnemyPlacement_leftPatrolDistanceLabel"));
         Spinner<Integer> leftPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
         leftPatrolDistanceSelection.setEditable(true);
 
-        Label rightPatrolDistanceLabel = new Label("Distance de la patrouille vers la droite (en pixel) :");
+        Label rightPatrolDistanceLabel = new Label(ResourceManager.getString("handleEnemyPlacement_rightPatrolDistanceLabel"));
         Spinner<Integer> rightPatrolDistanceSelection = new Spinner<>(0, 200, 100, 1);
         rightPatrolDistanceSelection.setEditable(true);
 
-        Label speedLabel = new Label("Vitesse de l'ennemi :");
+        Label speedLabel = new Label(ResourceManager.getString("handleEnemyPlacement_speedLabel"));
         Spinner<Integer> speedSelection = new Spinner<>(0, 200, 60, 1);
         speedSelection.setEditable(true);
 
         HBox buttons = new HBox();
-        Button createButton = new Button("Confirmer");
+        Button createButton = new Button(ResourceManager.getString("confirm_button"));
         createButton.setOnAction(e -> {
             double leftBound = leftPatrolDistanceSelection.getValue();
             double rightBound = rightPatrolDistanceSelection.getValue();
@@ -133,7 +133,7 @@ public class MapEditorController {
             this.model.addEnemy(levelObjectX, levelObjectY, levelObjectX - leftBound, levelObjectX + rightBound, speed);
             newWindow.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {
             newWindow.close();
         });
@@ -148,7 +148,7 @@ public class MapEditorController {
         Scene scene = new Scene(layout, 300, 400);
         scene.getStylesheets().add(this.stage.getScene().getStylesheets().getFirst());
         newWindow.setScene(scene);
-        newWindow.setTitle("Paramètres de l'ennemi");
+        newWindow.setTitle(ResourceManager.getString("handleEnemyPlacement_window_title"));
         newWindow.showAndWait();
     }
 

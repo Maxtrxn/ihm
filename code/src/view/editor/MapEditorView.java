@@ -143,19 +143,19 @@ public class MapEditorView{
             String rbText;
             switch (i) {
                 case 0:
-                    rbText = "Afficher seulement la couche du fond d'écran";
+                    rbText = ResourceManager.getString("initSettingsRegion_0");
                     break;
                 case 1:
-                    rbText = "Afficher seulement la couche derrière la principale";
+                    rbText = ResourceManager.getString("initSettingsRegion_1");
                     break;
                 case 2:
-                    rbText = "Afficher seulement la couche principale";
+                    rbText = ResourceManager.getString("initSettingsRegion_2");
                     break;
                 case 3:
-                    rbText = "Afficher seulement la couche devant la principale";
+                    rbText = ResourceManager.getString("initSettingsRegion_3");
                     break;
                 default:
-                    rbText = "Afficher toutes les couches";
+                    rbText = ResourceManager.getString("initSettingsRegion_default");
                     break;
             }
             RadioButton rb = new RadioButton(rbText);
@@ -183,9 +183,9 @@ public class MapEditorView{
         buttonsRegion.setAlignment(Pos.CENTER);
         HBox.setHgrow(buttonsRegion, Priority.ALWAYS);
         //Le toggle bouton pour masque le cadrillage
-        ToggleButton gridLinesVisible = new ToggleButton("Masquer le cadrillage");
+        ToggleButton gridLinesVisible = new ToggleButton(ResourceManager.getString("initSettingsRegion_gridLinesVisible_hide"));
         gridLinesVisible.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
-            gridLinesVisible.setText(isNowSelected ? "Afficher le cadrillage" : "Masquer le cadrillage");
+            gridLinesVisible.setText(isNowSelected ? ResourceManager.getString("initSettingsRegion_gridLinesVisible_show") : ResourceManager.getString("initSettingsRegion_gridLinesVisible_hide"));
             gridPane.setGridLinesVisible(!isNowSelected);
         });
         buttonsRegion.getChildren().add(gridLinesVisible);
@@ -194,7 +194,7 @@ public class MapEditorView{
         VBox changeCellSizeRegion = new VBox(10);
         changeCellSizeRegion.setAlignment(Pos.CENTER);
         HBox.setHgrow(changeCellSizeRegion, Priority.ALWAYS);
-        Label currCellSizeLabel = new Label("Taille des cellules du cadrillage : "+ this.cellSize);
+        Label currCellSizeLabel = new Label(ResourceManager.getString("initSettingsRegion_currCellSizeLabel")+ this.cellSize);
         
         Spinner<Integer> spinner = new Spinner<>();
         ObservableList<Integer> values = FXCollections.observableArrayList(16, 32, 64, 128);

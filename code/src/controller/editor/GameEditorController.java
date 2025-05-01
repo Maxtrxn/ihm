@@ -5,6 +5,7 @@ import java.beans.PropertyChangeEvent;
 
 
 import javafx.stage.Stage;
+import src.common.ResourceManager;
 import src.model.editor.GameEditorModel;
 import src.model.game.Level;
 import src.view.editor.GameEditorView;
@@ -28,7 +29,7 @@ public class GameEditorController{
         this.view.setTop(menuBarMVC.getEditorMenuBarView());
 
 
-        this.model.addPropertyChangeListener("changeLevelName", e -> {stage.setTitle("Steampunk Adventure - Éditeur de niveau" + " - " + e.getNewValue());});
+        this.model.addPropertyChangeListener("changeLevelName", e -> {stage.setTitle("Steampunk Adventure - "+ ResourceManager.getString("editor_title_name") + " - " + e.getNewValue());});
         this.model.addPropertyChangeListener("initLevel", e -> handleInitLevel(e));
     }
 

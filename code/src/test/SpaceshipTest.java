@@ -9,6 +9,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import src.common.ResourceManager;
 import javafx.scene.input.KeyCode;
 
 /**
@@ -45,7 +46,7 @@ public class SpaceshipTest extends Application {
             if (e.getCode() == KeyCode.RIGHT) right = false;
         });
 
-        primaryStage.setTitle("Spaceship Test");
+        primaryStage.setTitle(ResourceManager.getString("SpaceshipTest_title"));
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -81,7 +82,7 @@ public class SpaceshipTest extends Application {
 
         gc.setFill(Color.WHITE);
         gc.setFont(Font.font(18));
-        gc.fillText("Use arrow keys to move the spaceship.\nX=" + x + ", Y=" + y, 20, 30);
+        gc.fillText(ResourceManager.getString("SpaceshipTest_info_key")+"\nX=" + x + ", Y=" + y, 20, 30);
 
         // Dessine un cercle comme "vaisseau"
         gc.setFill(Color.YELLOW);

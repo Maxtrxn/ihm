@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import src.common.ResourceManager;
 import src.controller.game.GameController;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class GameModel{
             currentLevelIndex++;
             loadCurrentLevel();
         } else {
-            System.out.println("🎉 Vous avez terminé le jeu !");
+            System.out.println(ResourceManager.getString("GameModel_win_message"));
             controller.stopGameLoop();
         }
     }

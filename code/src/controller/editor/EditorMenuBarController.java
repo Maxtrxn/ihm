@@ -4,8 +4,6 @@ import java.io.File;
 import java.util.Optional;
 
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -14,7 +12,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
@@ -51,11 +48,11 @@ public class EditorMenuBarController {
         Stage newWindow = new Stage();
 
         //Les champs input
-        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        Label levelNameLabel = new Label(ResourceManager.getString("new_level_name_label"));
         TextField levelName = new TextField();
 
 
-        Label levelHeightLabel = new Label("Sélectionnez la hauteur du niveau en pixel (128-1280 avec pas de 128) :");
+        Label levelHeightLabel = new Label(ResourceManager.getString("new_level_height_label"));
         Spinner<Integer> levelHeight = new Spinner<>(128, 1280, 640, 128);
         levelHeight.setEditable(true);
         levelHeight.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -65,7 +62,7 @@ public class EditorMenuBarController {
             }
         });
 
-        Label levelWidthLabel = new Label("Sélectionnez la largeur du niveau en pixel (128-12800 avec pas de 128) :");
+        Label levelWidthLabel = new Label(ResourceManager.getString("new_level_width_label"));
         Spinner<Integer> levelWidth = new Spinner<>(128, 12800, 6400, 128);
         levelWidth.setEditable(true);
         levelWidth.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -77,12 +74,12 @@ public class EditorMenuBarController {
 
         //Les boutons
         HBox buttons = new HBox(10);
-        Button createButton = new Button("Créer");
+        Button createButton = new Button(ResourceManager.getString("create_button"));
         createButton.setOnAction(e -> {
             this.model.initLevel(levelName.getText(), levelWidth.getValue(), levelHeight.getValue());
             newWindow.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {
             newWindow.close();
         });
@@ -96,7 +93,7 @@ public class EditorMenuBarController {
 
         newWindow.initModality(Modality.APPLICATION_MODAL);
         newWindow.setScene(scene);
-        newWindow.setTitle("Paramètres du niveau");
+        newWindow.setTitle(ResourceManager.getString("new_level_window_title"));
         newWindow.showAndWait();
     }
 
@@ -104,7 +101,7 @@ public class EditorMenuBarController {
         final String[] levelName = {null};
         Stage window = new Stage();
         window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Sélectionnez un niveau à charger");
+        window.setTitle(ResourceManager.getString("file_open_level"));
 
         ListView<String> listView = new ListView<>();
         File directory = new File(ResourceManager.LEVELS_FOLDER);
@@ -117,12 +114,12 @@ public class EditorMenuBarController {
             }
         }
 
-        Button selectButton = new Button("Sélectionner");
+        Button selectButton = new Button(ResourceManager.getString("select_button"));
         selectButton.setOnAction(e -> {
             levelName[0] = listView.getSelectionModel().getSelectedItem();
             window.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {window.close();});
 
         HBox buttons = new HBox(10, selectButton, cancelButton);
@@ -140,15 +137,15 @@ public class EditorMenuBarController {
         Alert alert;
         if(this.model.saveLevel(false)){ //Si le fichier existe déjà
             alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Information");
-            alert.setHeaderText("L'enregistrement a réussi !");
-            alert.setContentText("Le niveau est dans Jeu/resources/levels");
+            alert.setTitle(ResourceManager.getString("info_title"));
+            alert.setHeaderText(ResourceManager.getString("Level_save_success"));
+            alert.setContentText(ResourceManager.getString("Level_save_folder"));
             alert.showAndWait();
         }else{
             alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Choix de confirmation");
+            alert.setTitle(ResourceManager.getString("Level_save_confirm_title"));
             alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
-            alert.setContentText("Ce nom de niveau existe déjà, voulez vous le remplacer ?");
+            alert.setContentText(ResourceManager.getString("level_save_overwrite"));
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent()) {
                 if (result.get() == ButtonType.YES) {
@@ -162,7 +159,7 @@ public class EditorMenuBarController {
         final String[] levelName = {null};
         Stage window = new Stage();
         window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Sélectionnez un niveau à supprimer");
+        window.setTitle(ResourceManager.getString("file_delete_level"));
 
         ListView<String> listView = new ListView<>();
         File directory = new File(ResourceManager.LEVELS_FOLDER);
@@ -175,12 +172,12 @@ public class EditorMenuBarController {
             }
         }
 
-        Button selectButton = new Button("Sélectionner");
+        Button selectButton = new Button(ResourceManager.getString("select_button"));
         selectButton.setOnAction(e -> {
             levelName[0] = listView.getSelectionModel().getSelectedItem();
             window.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {window.close();});
 
         HBox buttons = new HBox(10, selectButton, cancelButton);
@@ -207,9 +204,9 @@ public class EditorMenuBarController {
     public void handleLevelChangeLevelName(){
         if(this.model.getLevel() == null){
             Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Information");
+            alert.setTitle(ResourceManager.getString("info_title"));
             alert.setHeaderText(null);
-            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le nom à sauvegarder");
+            alert.setContentText(ResourceManager.getString("level_name_change_error"));
             alert.showAndWait();
             return;
         }
@@ -218,16 +215,16 @@ public class EditorMenuBarController {
         newWindow.initModality(Modality.APPLICATION_MODAL);
 
 
-        Label levelNameLabel = new Label("Sélectionnez le nom niveau :");
+        Label levelNameLabel = new Label(ResourceManager.getString("level_name_change_label"));
         TextField levelName = new TextField();
 
         HBox buttons = new HBox();
-        Button createButton = new Button("Changer");
+        Button createButton = new Button(ResourceManager.getString("confirm_button"));
         createButton.setOnAction(e -> {
             this.model.setLevelName(levelName.getText());
             newWindow.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {
             newWindow.close();
         });
@@ -240,23 +237,23 @@ public class EditorMenuBarController {
 
         Scene scene = new Scene(layout, 300, 200);
         newWindow.setScene(scene);
-        newWindow.setTitle("Changement du nom de niveau pour la sauvegarde");
+        newWindow.setTitle(ResourceManager.getString("Level_name_change_title"));
         newWindow.showAndWait();
     }
 
     public void handleLevelChangeLevelBackground(){
         if(this.model.getLevel() == null){
             Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Information");
+            alert.setTitle(ResourceManager.getString("info_title"));
             alert.setHeaderText(null);
-            alert.setContentText("Veuillez choisir ou créer un niveau avant de changer le fond de niveau");
+            alert.setContentText(ResourceManager.getString("level_background_error"));
             alert.showAndWait();
             return;
         }
 
         //On créer un sélecteur de fichier
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Sélectionner une image");
+        fileChooser.setTitle(ResourceManager.getString("level_background_title"));
 
         //On ajoute un filtre au sélecteur de fichier pour n'avoir que des images
         fileChooser.getExtensionFilters().addAll(
@@ -284,14 +281,14 @@ public class EditorMenuBarController {
 
             Stage gameStage = new Stage();
             gameStage.initModality(Modality.APPLICATION_MODAL);
-            gameStage.setTitle("Test du niveau");
+            gameStage.setTitle(ResourceManager.getString("level_test"));
             new GameController(gameStage, "temp");
             gameStage.showAndWait();
         }else{
             Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Information");
+            alert.setTitle(ResourceManager.getString("info_title"));
             alert.setHeaderText(null);
-            alert.setContentText("Veuillez choisir ou créer un niveau avant de le tester");
+            alert.setContentText(ResourceManager.getString("level_test_info"));
             alert.showAndWait();
             return;
         } 
@@ -304,7 +301,7 @@ public class EditorMenuBarController {
         final String[] cssFileName = {null};
         Stage window = new Stage();
         window.initModality(Modality.APPLICATION_MODAL);
-        window.setTitle("Sélectionnez le fichier du thème");
+        window.setTitle(ResourceManager.getString("preferences_editor_theme_title"));
 
         ListView<String> listView = new ListView<>();
         File directory = new File(ResourceManager.STYLESHEET_FOLDER);
@@ -317,12 +314,12 @@ public class EditorMenuBarController {
             }
         }
 
-        Button selectButton = new Button("Sélectionner");
+        Button selectButton = new Button(ResourceManager.getString("select_button"));
         selectButton.setOnAction(e -> {
             cssFileName[0] = listView.getSelectionModel().getSelectedItem();
             window.close();
         });
-        Button cancelButton = new Button("Annuler");
+        Button cancelButton = new Button(ResourceManager.getString("cancel_button"));
         cancelButton.setOnAction(e -> {window.close();});
 
         HBox buttons = new HBox(10, selectButton, cancelButton);
@@ -339,9 +336,9 @@ public class EditorMenuBarController {
 
     public void handlePreferenceEditorLanguage(){
         Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Information");
+        alert.setTitle(ResourceManager.getString("info_title"));
         alert.setHeaderText(null);
-        alert.setContentText("Pas implémenté");
+        alert.setContentText(ResourceManager.getString("preferences_editor_language"));
         alert.showAndWait();
         return;
     }

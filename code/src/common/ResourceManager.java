@@ -1,5 +1,12 @@
 package src.common;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Locale;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+
 import org.json.JSONObject;
 
 import javafx.scene.image.Image;
@@ -20,4 +27,34 @@ public class ResourceManager {
     public static final JSONObject PLATFORMS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
 
     public static final String DEFAULT_TEXTURE = TEXTURES_FOLDER + "default.png";
+
+
+    private static Locale currentLocale;
+    private static ResourceBundle bundle;
+
+    public static void setLocale(Locale locale) {
+        currentLocale = locale;
+        loadBundleFromFile(locale);
+    }
+    public static Locale getLocale() {return currentLocale;}
+    public static String getString(String key) {
+        if (bundle != null && bundle.containsKey(key)) {
+            return bundle.getString(key);
+        } else {
+            return "!" + key + "!";
+        }
+    }
+
+    private static void loadBundleFromFile(Locale locale) {
+        String langCode = locale.getLanguage();
+        String filePath = "../resources/text/text_" + langCode + ".properties";
+
+        try (FileInputStream fis = new FileInputStream(filePath);
+             InputStreamReader reader = new InputStreamReader(fis, "UTF-8")) {
+            bundle = new PropertyResourceBundle(reader);
+        } catch (IOException e) {
+            System.err.println("Impossible de charger les fichiers de langue : " + filePath);
+            bundle = null;
+        }
+    }
 }

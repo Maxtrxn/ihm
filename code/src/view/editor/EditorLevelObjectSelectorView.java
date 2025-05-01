@@ -43,7 +43,7 @@ public class EditorLevelObjectSelectorView {
 
         //Chargement des plateformes dans le ListView
         JSONObject platformsObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
-        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Plateformes"));
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem(ResourceManager.getString("EditorLevelObjectSelectorView_separator_platforms")));
         Set<String> keys = platformsObjects.keySet();
         for (String name : keys) {
             JSONObject platform = platformsObjects.getJSONObject(name);
@@ -55,7 +55,7 @@ public class EditorLevelObjectSelectorView {
 
         //Chargement des decorations dans le ListView
         JSONObject decorationsObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "decorations.json");
-        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Décorations"));
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem(ResourceManager.getString("EditorLevelObjectSelectorView_separator_decorations")));
         keys.clear();
         keys = decorationsObjects.keySet();
         for (String name : keys) {
@@ -68,7 +68,7 @@ public class EditorLevelObjectSelectorView {
         
         //Chargement des ennemis dans le ListView
         JSONObject enemiesObjects = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "enemies.json");
-        levelObjectSelector.getItems().add(new LevelObjectSelectorItem("Ennemis"));
+        levelObjectSelector.getItems().add(new LevelObjectSelectorItem(ResourceManager.getString("EditorLevelObjectSelectorView_separator_enemies")));
         keys.clear();
         keys = enemiesObjects.keySet();
         for (String name : keys) {
@@ -95,7 +95,7 @@ public class EditorLevelObjectSelectorView {
                 retractButton.setText("<");
             }
         });
-        Button unselectButton = new Button("Désélectionner");
+        Button unselectButton = new Button(ResourceManager.getString("unselect_button"));
         //Gestion de la déselection de plateforme dans le sélecteur
         unselectButton.setOnAction(e -> {levelObjectSelector.getSelectionModel().clearSelection();});
         this.region.getChildren().addAll(retractButton, levelObjectSelector, unselectButton);
