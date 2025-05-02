@@ -13,6 +13,7 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.ColorInput;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -22,8 +23,11 @@ import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
 import src.common.ResourceManager;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 public class GameView {
@@ -36,6 +40,23 @@ public class GameView {
     private Scene scene;
     private Canvas canvas;
     private GameController controller;
+
+    // Pour animer les ennemis configurés dans enemies.json
+    private final Map<String, Image> enemySheets          = new HashMap<>();
+    private final Map<String, Integer> enemyFrameCount    = new HashMap<>();
+    private final Map<String, Long>    enemyFrameDuration = new HashMap<>();
+    private final Map<String, Integer> enemyFrameIndex    = new HashMap<>();
+    private final Map<String, Long>    enemyLastFrameTime = new HashMap<>();
+    private final Map<String, Image[]> enemyFrames = new HashMap<>();
+
+    // Pour animer les décorations configurées dans decorations.json
+    private final Map<String, Integer>   decoFrameCount    = new HashMap<>();
+    private final Map<String, Long>      decoFrameDuration = new HashMap<>();
+    private final Map<String, Integer>   decoFrameIndex    = new HashMap<>();
+    private final Map<String, Long>      decoLastFrameTime = new HashMap<>();
+    private final Map<String, Image[]>   decoFrames        = new HashMap<>();
+
+
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
@@ -103,8 +124,12 @@ public class GameView {
         primaryStage.setResizable(true);
 
         this.gc = canvas.getGraphicsContext2D();
+        gc.setImageSmoothing(false);
         canvas.setCache(true);
         canvas.setCacheHint(CacheHint.SPEED);
+
+        loadEnemyAnimations();
+        loadDecorationAnimations();
 
         try {
             // Engrenage
@@ -154,6 +179,77 @@ public class GameView {
         }
     }
 
+        /**
+     * Charge et découpe en frames tous les sprite-sheets d'ennemis
+     * configurés dans enemies.json (attributs "frames" et "durationMs").
+     */
+    private void loadEnemyAnimations() {
+        for (String name : ResourceManager.ENEMIES_JSON.keySet()) {
+            JSONObject cfg = ResourceManager.ENEMIES_JSON.getJSONObject(name);
+            if (cfg.has("frames") && cfg.has("durationMs")) {
+                // 1) On charge le sprite-sheet
+                Image sheet = new Image("file:" + ResourceManager.ENEMIES_FOLDER
+                                        + cfg.getString("textureFileName"));
+                int   framesNb = cfg.getInt("frames");
+                long  durNs    = cfg.getLong("durationMs") * 1_000_000L;
+
+                // 2) On stocke les métadonnées
+                enemyFrameCount   .put(name, framesNb);
+                enemyFrameDuration.put(name, durNs);
+                enemyFrameIndex   .put(name, 0);
+                enemyLastFrameTime.put(name, System.nanoTime());
+
+                // 3) On découpe le sheet en sous-images
+                int frameW = (int)(sheet.getWidth()  / framesNb);
+                int frameH = (int)(sheet.getHeight());
+                PixelReader reader = sheet.getPixelReader();
+                Image[]    frames  = new Image[framesNb];
+                for (int i = 0; i < framesNb; i++) {
+                    frames[i] = new WritableImage(
+                        reader,
+                        i * frameW, 0,
+                        frameW,      frameH
+                    );
+                }
+                enemyFrames.put(name, frames);
+            }
+        }
+    }
+
+        /**
+     * Charge et découpe en frames tous les sprite-sheets de décorations
+     * configurés dans decorations.json (attributs "frames" et "durationMs").
+     */
+    private void loadDecorationAnimations() {
+        JSONObject all = ResourceManager.DECORATIONS_JSON;
+        for (String name : all.keySet()) {
+            JSONObject cfg = all.getJSONObject(name);
+            if (cfg.has("frames") && cfg.has("durationMs")) {
+                // Charge le sprite-sheet
+                Image sheet = new Image("file:" + ResourceManager.DECORATIONS_FOLDER
+                                        + cfg.getString("textureFileName"));
+                int   framesNb = cfg.getInt("frames");
+                long  durNs    = cfg.getLong("durationMs") * 1_000_000L;
+
+                // Stocke les métadonnées
+                decoFrameCount   .put(name, framesNb);
+                decoFrameDuration.put(name, durNs);
+                decoFrameIndex   .put(name, 0);
+                decoLastFrameTime.put(name, System.nanoTime());
+
+                // Découpe en sous-images
+                int    frameW = (int)Math.round(sheet.getWidth()  / framesNb);
+                int    frameH = (int) sheet.getHeight();
+                PixelReader pr = sheet.getPixelReader();
+                Image[]    arr = new Image[framesNb];
+                for (int i = 0; i < framesNb; i++) {
+                    arr[i] = new WritableImage(pr, i*frameW, 0, frameW, frameH);
+                }
+                decoFrames.put(name, arr);
+            }
+        }
+    }
+
     /**
      * Retourne une version redimensionnée du background (thread-safe).
      */
@@ -183,8 +279,9 @@ public class GameView {
         return wi;
     }
 
-    /**
-     * Dessine la frame complète, avec décorations, plateformes, ennemis et projectiles.
+        /**
+     * Dessine la frame complète, avec décorations, plateformes, joueur/vaisseau,
+     * ennemis animés et projectiles.
      */
     public void draw(
         Image background,
@@ -192,30 +289,33 @@ public class GameView {
         double playerW, double playerH,
         boolean isWalking, boolean facingRight,
         boolean isJumping, boolean spaceshipMode,
-        List<Image> decorationImages,
-        List<Double[]> decorationPositions,
-        List<Image> platformImages,
-        List<Double[]> platformPositions,
-        List<Enemy> enemies,
-        List<Double[]> projectilePositions
+        // <- on ajoute List<String> decorationNames
+        List<Image>      decorationImages,
+        List<Double[]>   decorationPositions,
+        List<String>     decorationNames,
+        List<Image>      platformImages,
+        List<Double[]>   platformPositions,
+        List<Enemy>      enemies,
+        List<Double[]>   projectilePositions
     ) {
         double cw = gc.getCanvas().getWidth();
         double ch = gc.getCanvas().getHeight();
 
-        // Fond noir
+        // 0) Fond noir
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, cw, ch);
 
-        // Background mis à l’échelle + cache
+        // 1) Background mis à l’échelle + cache
         if (background != null) {
             if (cachedBackground == null || cachedWidth != cw || cachedHeight != ch) {
                 cachedBackground = getScaledBackground(background, cw, ch);
-                cachedWidth = cw; cachedHeight = ch;
+                cachedWidth  = cw;
+                cachedHeight = ch;
             }
             gc.drawImage(cachedBackground, 0, 0);
         }
 
-        // Engrenage
+        // 2) Engrenage (sprite‐sheet carré)
         if (gearSpriteSheet != null && gearFrameWidth > 0) {
             long now = System.nanoTime();
             if (now - lastGearFrameTime >= gearFrameDuration) {
@@ -223,24 +323,49 @@ public class GameView {
                 lastGearFrameTime = now;
             }
             int sx = gearFrameIndex * gearFrameWidth;
-            gc.drawImage(gearSpriteSheet,
-                         sx, 0, gearFrameWidth, gearFrameHeight,
-                         0, 0, gearFrameWidth, gearFrameHeight);
+            gc.drawImage(
+                gearSpriteSheet,
+                sx, 0, gearFrameWidth, gearFrameHeight,
+                0,  0,  gearFrameWidth, gearFrameHeight
+            );
         }
 
-        // 1) Décorations
+        // 3) Décorations (animées si configurées)
         for (int i = 0; i < decorationImages.size(); i++) {
-            Image img = decorationImages.get(i);
-            Double[] pos = decorationPositions.get(i);
-            double dx = pos[0] - cameraX.get();
-            double dy = pos[1] - cameraY.get();
-            double dw = pos[2], dh = pos[3];
-            if (img != null) {
+            String name      = decorationNames.get(i);
+            Double[] pos     = decorationPositions.get(i);
+            double dx        = pos[0] - cameraX.get();
+            double dy        = pos[1] - cameraY.get();
+            double sf        = ResourceManager.DECORATIONS_JSON
+                                    .getJSONObject(name)
+                                    .getDouble("scaleFactor");
+            Image[] framesArr= decoFrames.get(name);  // votre Map<String,Image[]> pour décorations
+
+            if (framesArr != null) {
+                long now      = System.nanoTime();
+                long last     = decoLastFrameTime.get(name);
+                long duration = decoFrameDuration.get(name);
+                int  idx      = decoFrameIndex.get(name);
+                if (now - last >= duration) {
+                    idx = (idx + 1) % framesArr.length;
+                    decoFrameIndex   .put(name, idx);
+                    decoLastFrameTime.put(name, now);
+                }
+                Image frame = framesArr[idx];
+                double dw   = frame.getWidth()  * sf;
+                double dh   = frame.getHeight() * sf;
+                gc.drawImage(frame, dx, dy, dw, dh);
+
+            } else {
+                // Affichage statique
+                Image img = decorationImages.get(i);
+                double dw  = img.getWidth()  * sf;
+                double dh  = img.getHeight() * sf;
                 gc.drawImage(img, dx, dy, dw, dh);
             }
         }
 
-        // 2) Plateformes
+        // 4) Plateformes
         for (int i = 0; i < platformImages.size(); i++) {
             Image img = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
@@ -255,7 +380,7 @@ public class GameView {
             }
         }
 
-        // 3) JOUEUR ou VAISSEAU
+        // 5) Joueur ou vaisseau
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
@@ -265,16 +390,12 @@ public class GameView {
             double targetW = targetH * (imageW / imageH);
 
             if (facingRight) {
-                gc.drawImage(spaceshipImage,
-                             drawX, drawY,
-                             targetW, targetH);
+                gc.drawImage(spaceshipImage, drawX, drawY, targetW, targetH);
             } else {
                 gc.save();
                 gc.translate(drawX + targetW, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(spaceshipImage,
-                             0, 0,
-                             targetW, targetH);
+                gc.drawImage(spaceshipImage, 0, 0, targetW, targetH);
                 gc.restore();
             }
         } else if (isJumping && playerJumpSheet != null && jumpFrameWidth > 0) {
@@ -285,16 +406,20 @@ public class GameView {
             }
             int sx = jumpFrameIndex * jumpFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerJumpSheet,
-                             sx, 0, jumpFrameWidth, jumpFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerJumpSheet,
+                    sx, 0, jumpFrameWidth, jumpFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerJumpSheet,
-                             sx, 0, jumpFrameWidth, jumpFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerJumpSheet,
+                    sx, 0, jumpFrameWidth, jumpFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         } else if (isWalking && playerWalkSheet != null && walkFrameWidth > 0) {
@@ -305,16 +430,20 @@ public class GameView {
             }
             int sx = walkFrameIndex * walkFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerWalkSheet,
-                             sx, 0, walkFrameWidth, walkFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerWalkSheet,
+                    sx, 0, walkFrameWidth, walkFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerWalkSheet,
-                             sx, 0, walkFrameWidth, walkFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerWalkSheet,
+                    sx, 0, walkFrameWidth, walkFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         } else if (playerIdleSheet != null && idleFrameWidth > 0) {
@@ -325,44 +454,83 @@ public class GameView {
             }
             int sx = idleFrameIndex * idleFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerIdleSheet,
-                             sx, 0, idleFrameWidth, idleFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerIdleSheet,
+                    sx, 0, idleFrameWidth, idleFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerIdleSheet,
-                             sx, 0, idleFrameWidth, idleFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerIdleSheet,
+                    sx, 0, idleFrameWidth, idleFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         }
 
-        
-        // 4) Ennemis + boss
+        // 6) Ennemis animés + boss
         for (Enemy e : enemies) {
-            double ex = e.getX() - cameraX.get();
-            double ey = e.getY() - cameraY.get();
-            double ew = e.getWidth(), eh = e.getHeight();
-            Image img = e.getTexture();
-            if (e instanceof Boss && ((Boss) e).isHit()) {
-                ImageView temp = new ImageView(img);
-                Blend blend = new Blend(
-                    BlendMode.HARD_LIGHT,
-                    null,
-                    new ColorInput(0, 0, e.getWidth(), e.getHeight(), Color.color(1.0, 0.0, 0.0, 0.7))
-                );
-                temp.setEffect(blend);
-                WritableImage writableImage = new WritableImage((int) img.getWidth(), (int) img.getHeight());
-                temp.snapshot(null, writableImage);
-                gc.drawImage(writableImage, ex, ey, ew, eh);
+            String name       = e.getName();
+            Image[] framesArr = enemyFrames.get(name);
+
+            // calcule position et échelle une fois pour toutes
+            double dx = e.getX() - cameraX.get();
+            double dy = e.getY() - cameraY.get();
+            double sf = ResourceManager.ENEMIES_JSON
+                                .getJSONObject(name)
+                                .getDouble("scaleFactor");
+
+            if (framesArr != null) {
+                // a) mise à jour de l’index
+                long now      = System.nanoTime();
+                long last     = enemyLastFrameTime.get(name);
+                long duration = enemyFrameDuration.get(name);
+                int  idx      = enemyFrameIndex.get(name);
+                if (now - last >= duration) {
+                    idx = (idx + 1) % framesArr.length;
+                    enemyFrameIndex   .put(name, idx);
+                    enemyLastFrameTime.put(name, now);
+                }
+
+                // b) calcul de la vignette courante
+                Image frame = framesArr[idx];
+                double dw   = frame.getWidth()  * sf;
+                double dh   = frame.getHeight() * sf;
+
+                // si l’ennemi bouge vers la droite, on flippe
+                if (e.isMovingRight()) {
+                    gc.save();
+                    gc.translate(dx + dw, dy);
+                    gc.scale(-1, 1);
+                    gc.drawImage(frame, 0, 0, dw, dh);
+                    gc.restore();
+                } else {
+                    // sinon, on dessine “normal” (visage vers la gauche)
+                    gc.drawImage(frame, dx, dy, dw, dh);
+                }
+
+
             } else {
-                gc.drawImage(img, ex, ey, ew, eh);
+                // fallback statique : même principe de flip
+                double dw = e.getWidth();
+                double dh = e.getHeight();
+                if (e.isMovingRight()) {
+                    gc.drawImage(e.getTexture(), dx, dy, dw, dh);
+                } else {
+                    gc.save();
+                    gc.translate(dx + dw, dy);
+                    gc.scale(-1, 1);
+                    gc.drawImage(e.getTexture(), 0, 0, dw, dh);
+                    gc.restore();
+                }
             }
         }
 
-        // 5) Projectiles (mode vaisseau)
+        // 7) Projectiles (mode vaisseau)
         if (spaceshipMode) {
             gc.setFill(Color.RED);
             for (Double[] pos : projectilePositions) {
