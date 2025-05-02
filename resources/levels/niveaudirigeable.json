@@ -1,5 +1,10 @@
 {
     "levelWidth": 6400,
+    "spawnPoint": {
+        "name": "Spawnpoint",
+        "x": 0,
+        "y": 608
+    },
     "enemies": [
         {
             "patrolEnd": 1272,
@@ -39,6 +44,38 @@
             "name": "dirigeable ennemi",
             "x": 1040,
             "y": 688,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 3892,
+            "patrolStart": 3692,
+            "name": "dirigeable ennemi",
+            "x": 3792,
+            "y": 560,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 4244,
+            "patrolStart": 4044,
+            "name": "dirigeable ennemi",
+            "x": 4144,
+            "y": 112,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 4676,
+            "patrolStart": 4476,
+            "name": "dirigeable ennemi",
+            "x": 4576,
+            "y": 224,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 4676,
+            "patrolStart": 4476,
+            "name": "dirigeable ennemi",
+            "x": 4576,
+            "y": 608,
             "speed": 60
         }
     ],
@@ -591,6 +628,291 @@
             "name": "fer bord haut",
             "x": 3488,
             "y": 144
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 320
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 288
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 256
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 240
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 224
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 208
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 192
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 160
+        },
+        {
+            "name": "mur pierre",
+            "x": 2512,
+            "y": 128
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 96
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 80
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 64
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 32
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 16
+        },
+        {
+            "name": "mur cuivre",
+            "x": 2512,
+            "y": 0
+        },
+        {
+            "name": "haut cheminee pierre",
+            "x": 4208,
+            "y": 528
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 544
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 560
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 576
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 592
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 608
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 624
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 640
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 656
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 672
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 688
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 704
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 720
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 736
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 752
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 768
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 784
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 800
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 816
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 832
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 848
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 864
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 880
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 896
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 912
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 928
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 944
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 960
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 976
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 992
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 4208,
+            "y": 1008
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 848
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 864
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 880
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 896
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 912
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 928
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 944
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 960
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 976
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 992
+        },
+        {
+            "name": "bas cheminee pierre",
+            "x": 2944,
+            "y": 1008
         }
     ]
 }

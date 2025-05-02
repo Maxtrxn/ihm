@@ -89,6 +89,10 @@
             "speed": 60
         }
     ],
+    "bossZone": {
+        "startX": 4500,
+        "endX":   5100
+      },
     "decorations": [{
         "name": "banc 2",
         "x": 0,
