@@ -28,7 +28,7 @@
     "enemies": [],
     "decorations": [],
     "backgroundImageFileName": "background_level5.png",
-    "levelWidth": 3000,
+    "levelWidth": 600,
     "levelHeight": 600
   }
   

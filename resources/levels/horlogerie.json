@@ -1,0 +1,61 @@
+{
+    "backgroundImageFileName": "background briques.png",
+    "levelWidth": 2000,
+    "levelHeight": 800,
+  
+    "spawnPoint": {
+      "name": "Spawnpoint",
+      "x": 100,
+      "y": 700
+    },
+  
+    "platforms": [
+      { "name": "brique",             "x":    0, "y": 750 },
+      { "name": "brique_sombre",      "x":  400, "y": 750 },
+      { "name": "cuivre",             "x":  800, "y": 750 },
+      { "name": "acier",              "x": 1200, "y": 750 },
+      { "name": "sol pierre",         "x":    0, "y": 780 },
+      { "name": "sol bronze",         "x":  600, "y": 780 },
+      { "name": "sol_brique",         "x": 1200, "y": 780 }
+    ],
+  
+    "decorations": [
+      { "name": "horloge 1",           "x":  200, "y": 600 },
+      { "name": "pendule1",            "x":  600, "y": 500 },
+      { "name": "chaine quadruple",    "x": 1000, "y": 400 },
+      { "name": "petite horloge 1",    "x": 1400, "y": 550 }
+    ],
+  
+    "enemies": [
+      {
+        "name": "mob horloge",
+        "x": 500,
+        "y": 700,
+        "speed":       60,
+        "patrolStart": 400,
+        "patrolEnd":   600
+      },
+      {
+        "name": "mob décharge",
+        "x": 1200,
+        "y": 700,
+        "speed":       80,
+        "patrolStart": 1100,
+        "patrolEnd":   1300
+      },
+      {
+        "name": "boss horlogerie",
+        "x": 1800,
+        "y": 700,
+        "speed":       40,
+        "patrolStart": 1700,
+        "patrolEnd":   2000
+      }
+    ],
+  
+    "bossZone": {
+      "startX": 1600,
+      "endX":   2000
+    }
+  }
+  

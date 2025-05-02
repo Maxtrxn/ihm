@@ -1,22 +1,77 @@
 {
   "lampadaire1": {
     "textureFileName": "lampadaire 1.png",
-	"scaleFactor": 1.0,
-	"type": "DECORATION"
+	  "scaleFactor": 1.0,
+	  "type": "DECORATION"
   },
   "lampadaire2": {
     "textureFileName": "lampadaire 2.png",
-	"scaleFactor": 1.0,
-	"type": "DECORATION"
+	  "scaleFactor": 1.0,
+	  "type": "DECORATION"
   },
   "lampadaire3": {
     "textureFileName": "lampadaire 3.png",
     "scaleFactor": 1.0,
-	"type": "DECORATION"
+	  "type": "DECORATION"
    },
    "lampadaire3_dark": {
     "textureFileName": "lampadaire 3 dark.png",
     "scaleFactor": 1.0,
-	"type": "DECORATION"
-   }
+	  "type": "DECORATION"
+   },
+   "aimant": {
+    "textureFileName": "aimant.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+   },
+   "banc 1": {
+    "textureFileName": "banc 1.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+   },
+   "banc 2": {
+    "textureFileName": "banc 2.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+   },
+   "chaine double": {
+    "textureFileName": "chaine double.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+   },
+   "chaine": {
+    "textureFileName": "chaine.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "chaine quadruple": {
+    "textureFileName": "chaine quadruple.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "horloge 1": {
+    "textureFileName": "horloge 1-Sheet.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "horloge 2": {
+    "textureFileName": "horloge 2-Sheet.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "mini ballon": {
+    "textureFileName": "mini ballon.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "pendule1": {
+    "textureFileName": "pendule1-Sheet.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  },
+  "petite horloge 1": {
+    "textureFileName": "petite horloge 1-Sheet.png",
+    "scaleFactor": 1.0,
+    "type": "DECORATION"
+  }
 }
