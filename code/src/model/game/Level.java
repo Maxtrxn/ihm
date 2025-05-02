@@ -42,6 +42,9 @@ public class Level {
     private double bossZoneStart = Double.NEGATIVE_INFINITY;
     private double bossZoneEnd   = Double.POSITIVE_INFINITY;
 
+    // ——— Mode vaisseau ———
+    private boolean spaceshipMode = false;
+
     //Constructeur pour initialiser un level pour l'editeur de niveau
     public Level(double levelWidth, double levelHeight) {
         this.platforms   = new ArrayList<>();
@@ -86,6 +89,7 @@ public class Level {
         if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourceManager.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
         this.levelWidth  = L.getDouble("levelWidth");
         this.levelHeight = L.getDouble("levelHeight");
+        this.spaceshipMode = L.optBoolean("spaceshipMode", false);
 
         if (L.has("musicFileName")) {
             this.musicFileName = L.getString("musicFileName");
@@ -93,59 +97,59 @@ public class Level {
             this.musicFileName = null;  // ou un nom par défaut
           }
 
-        // 2) Plateformes
-        JSONArray plats = L.getJSONArray("platforms");
-        for (int i = 0; i < plats.length(); i++) {
-            JSONObject p = plats.getJSONObject(i);
-            String name = p.getString("name");
-            double x     = p.getDouble("x");
-            double y     = p.getDouble("y");
-
-            JSONObject platformJSON = ResourceManager.PLATFORMS_JSON.getJSONObject(name);
-            String typeStr = platformJSON.getString("type");
-            LevelObjectType type = LevelObjectType.valueOf(typeStr);
-            if(type == LevelObjectType.FRAGILE_PLATFORM){
-                platforms.add(new FragilePlatform(x, y, name));
-            }else if(type == LevelObjectType.PLATFORM){
-                platforms.add(new Platform(x, y, name));
-            }else if(type == LevelObjectType.SPAWNPOINT){
-                this.spawnPoint = new SpawnPoint(x, y, name);
+        // 2) Plateformes (s’il y en a)
+        JSONArray plats = L.optJSONArray("platforms");
+        if (plats != null) {
+            for (int i = 0; i < plats.length(); i++) {
+                JSONObject p = plats.getJSONObject(i);
+                String name = p.getString("name");
+                double x    = p.getDouble("x");
+                double y    = p.getDouble("y");
+                JSONObject platformJSON = ResourceManager.PLATFORMS_JSON.getJSONObject(name);
+                LevelObjectType type = LevelObjectType.valueOf(platformJSON.getString("type"));
+                switch (type) {
+                    case FRAGILE_PLATFORM:
+                        platforms.add(new FragilePlatform(x, y, name)); break;
+                    case PLATFORM:
+                        platforms.add(new Platform(x, y, name));      break;
+                    case SPAWNPOINT:
+                        spawnPoint = new SpawnPoint(x, y, name);      break;
+                }
             }
         }
 
-        // 3) Ennemis + boss
-        JSONArray ens = L.getJSONArray("enemies");
-        for (int i = 0; i < ens.length(); i++) {
-            JSONObject e = ens.getJSONObject(i);
-            String name = e.getString("name");
-            double x           = e.getDouble("x");
-            double y           = e.getDouble("y");
-            double speed       = e.getDouble("speed");
-            double patrolStart = e.getDouble("patrolStart");
-            double patrolEnd   = e.getDouble("patrolEnd");
-
-            JSONObject enemyJSON = ResourceManager.ENEMIES_JSON.getJSONObject(name);
-            String typeStr = enemyJSON.getString("type");
-            LevelObjectType type = LevelObjectType.valueOf(typeStr);
-            if(type == LevelObjectType.BOSS){
-                enemies.add(new Boss(x, y, speed, patrolStart, patrolEnd, name));
-            }else if(type == LevelObjectType.ENEMY){
-                enemies.add(new Enemy(x, y, speed, patrolStart, patrolEnd, name));
+        // 3) Ennemis + boss (s’il y en a)
+        JSONArray ens = L.optJSONArray("enemies");
+        if (ens != null) {
+            for (int i = 0; i < ens.length(); i++) {
+                JSONObject e = ens.getJSONObject(i);
+                String name       = e.getString("name");
+                double x          = e.getDouble("x");
+                double y          = e.getDouble("y");
+                double speed      = e.getDouble("speed");
+                double patrolStart= e.getDouble("patrolStart");
+                double patrolEnd  = e.getDouble("patrolEnd");
+                JSONObject enemyJSON = ResourceManager.ENEMIES_JSON.getJSONObject(name);
+                LevelObjectType type = LevelObjectType.valueOf(enemyJSON.getString("type"));
+                if (type == LevelObjectType.BOSS) {
+                    enemies.add(new Boss(x, y, speed, patrolStart, patrolEnd, name));
+                } else if (type == LevelObjectType.ENEMY) {
+                    enemies.add(new Enemy(x, y, speed, patrolStart, patrolEnd, name));
+                }
             }
         }
 
-        // 4) Décorations (optionnel)
-        if (L.has("decorations")) {
-            for (Object o : L.getJSONArray("decorations")) {
-                JSONObject d = (JSONObject) o;
-                double x = d.getDouble("x");
-                double y =  d.getDouble("y");
+        // 4) Décorations (s’il y en a)
+        JSONArray decos = L.optJSONArray("decorations");
+        if (decos != null) {
+            for (int i = 0; i < decos.length(); i++) {
+                JSONObject d = decos.getJSONObject(i);
+                double x  = d.getDouble("x");
+                double y  = d.getDouble("y");
                 String name = d.getString("name");
-
                 JSONObject decorationJSON = ResourceManager.DECORATIONS_JSON.getJSONObject(name);
-                String typeStr = decorationJSON.getString("type");
-                LevelObjectType type = LevelObjectType.valueOf(typeStr);
-                if(type == LevelObjectType.DECORATION){
+                LevelObjectType type = LevelObjectType.valueOf(decorationJSON.getString("type"));
+                if (type == LevelObjectType.DECORATION) {
                     decorations.add(new Decoration(x, y, name));
                 }
             }
@@ -169,6 +173,11 @@ public class Level {
         }else{
             this.spawnPoint = new SpawnPoint(0, 0, "Spawnpoint");
         }
+    }
+
+    /** Retourne vrai si on a activé le mode vaisseau dans le JSON. */
+    public boolean isSpaceshipMode() {
+        return spaceshipMode;
     }
 
     // ——— Getters ———

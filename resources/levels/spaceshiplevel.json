@@ -1,0 +1,10 @@
+{
+  "levelType": "spaceship",
+  "spaceshipMode": true,
+  "enemies": [],
+  "decorations": [],
+  "backgroundImageFileName": "background dirigeable.png",
+  "musicFileName": "musiqueDirigeable.wav",
+  "levelWidth": 4000,
+  "levelHeight": 600
+}
