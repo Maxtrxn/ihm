@@ -1,2 +1,13 @@
 code/bin/
 code/TODO.txt
+.vscode
+code.sh
+test-lib/
+uml/
+code/.classpath
+code/all_code.txt
+code/compil.sh
+code/compil_start.bat
+code/histoire.txt
+code/sources.txt
+code/start.bat
