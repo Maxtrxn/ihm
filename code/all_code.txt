@@ -1805,7 +1805,7 @@ public class GameModel{
 
 
         // Liste des noms de niveaux JSON
-        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5", "horlogerie");
+        List<String> levelNames = List.of("horlogerie", "level1", "level2", "level3", "level4", "level5", "horlogerie");
         levelSuppliers = new ArrayList<>();
 
         // Instancie Level(player, name) pour chaque JSON
@@ -3278,8 +3278,11 @@ import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
 import src.common.ResourceManager;
+import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 public class GameView {
@@ -3292,6 +3295,15 @@ public class GameView {
     private Scene scene;
     private Canvas canvas;
     private GameController controller;
+
+    // Pour animer les ennemis configurés dans enemies.json
+    private final Map<String, Image> enemySheets          = new HashMap<>();
+    private final Map<String, Integer> enemyFrameCount    = new HashMap<>();
+    private final Map<String, Long>    enemyFrameDuration = new HashMap<>();
+    private final Map<String, Integer> enemyFrameIndex    = new HashMap<>();
+    private final Map<String, Long>    enemyLastFrameTime = new HashMap<>();
+    private final Map<String, Image[]> enemyFrames = new HashMap<>();
+
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
@@ -3359,8 +3371,13 @@ public class GameView {
         primaryStage.setResizable(true);
 
         this.gc = canvas.getGraphicsContext2D();
-        canvas.setCache(true);
+        // 1. Pas de lissage de découpe
+        gc.setImageSmoothing(false);
+        // 2. On désactive le cache, indispensable pour les anims pixel‐perfect
+        canvas.setCache(false);
         canvas.setCacheHint(CacheHint.SPEED);
+
+        loadEnemyAnimations();
 
         try {
             // Engrenage
@@ -3409,6 +3426,42 @@ public class GameView {
             System.err.println("Exception loading images: " + e.getMessage());
         }
     }
+
+     /**
+     * Charge la config d'animation pour chaque ennemi ayant "frames" dans enemies.json.
+     */
+    private void loadEnemyAnimations() {
+        for (String name : ResourceManager.ENEMIES_JSON.keySet()) {
+            JSONObject cfg = ResourceManager.ENEMIES_JSON.getJSONObject(name);
+            if (cfg.has("frames")) {
+                Image sheet = new Image("file:" + ResourceManager.ENEMIES_FOLDER
+                                        + cfg.getString("textureFileName"));
+                int frames = cfg.optInt("frames", 1);
+                long ms   = cfg.optLong("durationMs", 100L);
+    
+                // stocke sheet + données
+                enemySheets.put(name, sheet);
+                enemyFrameCount.put(name, frames);
+                enemyFrameDuration.put(name, ms * 1_000_000L);
+                enemyFrameIndex.put(name, 0);
+                enemyLastFrameTime.put(name, System.nanoTime());
+    
+                // --- NOUVEAU : pré‐découpage des frames ---
+                int frameW = (int)(sheet.getWidth()  / frames);
+                int frameH = (int) sheet.getHeight();
+                Image[] array = new Image[frames];
+                for (int i = 0; i < frames; i++) {
+                    array[i] = new WritableImage(
+                        sheet.getPixelReader(),
+                        i * frameW, 0, frameW, frameH
+                    );
+                }
+                enemyFrames.put(name, array);
+            }
+        }
+    }
+    
+
 
     /**
      * Retourne une version redimensionnée du background (thread-safe).
@@ -3596,25 +3649,44 @@ public class GameView {
         }
 
         
-        // 4) Ennemis + boss
+        // 4) Ennemis animés + boss
         for (Enemy e : enemies) {
-            double ex = e.getX() - cameraX.get();
-            double ey = e.getY() - cameraY.get();
-            double ew = e.getWidth(), eh = e.getHeight();
-            Image img = e.getTexture();
-            if (e instanceof Boss && ((Boss) e).isHit()) {
-                ImageView temp = new ImageView(img);
-                Blend blend = new Blend(
-                    BlendMode.HARD_LIGHT,
-                    null,
-                    new ColorInput(0, 0, e.getWidth(), e.getHeight(), Color.color(1.0, 0.0, 0.0, 0.7))
-                );
-                temp.setEffect(blend);
-                WritableImage writableImage = new WritableImage((int) img.getWidth(), (int) img.getHeight());
-                temp.snapshot(null, writableImage);
-                gc.drawImage(writableImage, ex, ey, ew, eh);
+            String name = e.getName();
+            Image[] frames = enemyFrames.get(name);
+            if (frames != null) {
+                // 1) Update index
+                long now  = System.nanoTime();
+                long last = enemyLastFrameTime.get(name);
+                long dur  = enemyFrameDuration.get(name);
+                int  idx  = enemyFrameIndex.get(name);
+                if (now - last >= dur) {
+                    idx = (idx + 1) % frames.length;
+                    enemyFrameIndex.put(name, idx);
+                    enemyLastFrameTime.put(name, now);
+                }
+
+                // 2) Récupère l’Image de la frame courante
+                Image frame = frames[idx];
+
+                // 3) Position + taille en int
+                int dx = (int)Math.round(e.getX() - cameraX.get());
+                int dy = (int)Math.round(e.getY() - cameraY.get());
+                double sf = ResourceManager.ENEMIES_JSON
+                                .getJSONObject(name)
+                                .getDouble("scaleFactor");
+                int dw = (int)Math.round(frame.getWidth()  * sf);
+                int dh = (int)Math.round(frame.getHeight() * sf);
+
+                // 4) Dessine *net* la frame entière
+                gc.drawImage(frame, dx, dy, dw, dh);
+
             } else {
-                gc.drawImage(img, ex, ey, ew, eh);
+                // fallback statique
+                int dx = (int)Math.round(e.getX() - cameraX.get());
+                int dy = (int)Math.round(e.getY() - cameraY.get());
+                int dw = (int)Math.round(e.getWidth());
+                int dh = (int)Math.round(e.getHeight());
+                gc.drawImage(e.getTexture(), dx, dy, dw, dh);
             }
         }
 
