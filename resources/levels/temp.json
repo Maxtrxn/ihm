@@ -1,8 +1,39 @@
 {
     "levelWidth": 6400,
+    "spawnPoint": {
+        "name": "Spawnpoint",
+        "x": 464,
+        "y": 608
+    },
     "enemies": [],
     "decorations": [],
     "backgroundImageFileName": "default.png",
     "levelHeight": 640,
-    "platforms": []
+    "platforms": [
+        {
+            "name": "fragile",
+            "x": 128,
+            "y": 528
+        },
+        {
+            "name": "fragile",
+            "x": 48,
+            "y": 624
+        },
+        {
+            "name": "fragile",
+            "x": 160,
+            "y": 624
+        },
+        {
+            "name": "fragile",
+            "x": 336,
+            "y": 624
+        },
+        {
+            "name": "murret",
+            "x": 432,
+            "y": 624
+        }
+    ]
 }
