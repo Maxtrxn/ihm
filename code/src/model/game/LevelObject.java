@@ -3,6 +3,8 @@ package src.model.game;
 import javafx.scene.image.Image;
 import src.common.ResourceManager;
 
+import java.nio.channels.Pipe.SourceChannel;
+
 import org.json.JSONObject;
 
 public abstract class LevelObject {
@@ -14,6 +16,7 @@ public abstract class LevelObject {
         this.x = x;
         this.y = y;
         
+        if (name == null) System.out.println(levelObjectsJson);
         JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
         this.name = name;
         double scaleFactor;
