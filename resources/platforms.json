@@ -130,5 +130,103 @@
       "textureFileName": "table laiton.png",
       "scaleFactor": 1.0,
     "type": "PLATFORM"
-    }
+    },
+     "fer bas droite": {
+    "textureFileName": "fer bas droite.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer bas gauche": {
+    "textureFileName": "fer bas gauche.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer bord bas": {
+    "textureFileName": "fer bord bas.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer bord haut": {
+    "textureFileName": "fer bord haut.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer cote": {
+    "textureFileName": "fer cote.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer haut droite": {
+    "textureFileName": "fer haut droite.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "fer haut gauche": {
+    "textureFileName": "fer haut gauche.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+
+  "fragile_overlay": {
+    "textureFileName": "fragile_overlay.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+
+  "mur bleu": {
+    "textureFileName": "mur bleu.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur brique": {
+    "textureFileName": "mur brique.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur cuivre": {
+    "textureFileName": "mur cuivre.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur dechet": {
+    "textureFileName": "mur dechet.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur fer": {
+    "textureFileName": "mur fer.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur or": {
+    "textureFileName": "mur or.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur pierre": {
+    "textureFileName": "mur pierre.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "mur sombre": {
+    "textureFileName": "mur sombre.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+
+  "plateforme chaines": {
+    "textureFileName": "plateforme chaines.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "plateforme chaines bord": {
+    "textureFileName": "plateforme chaines bord.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  },
+  "plateforme fragile": {
+    "textureFileName": "plateforme fragile.png",
+    "scaleFactor": 1.0,
+    "type": "PLATFORM"
+  }
 }

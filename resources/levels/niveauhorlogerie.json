@@ -1,0 +1,1521 @@
+{
+    "levelWidth": 4480,
+    "spawnPoint": {
+        "name": "Spawnpoint",
+        "x": 0,
+        "y": 608
+    },
+    "enemies": [
+        {
+            "patrolEnd": 516,
+            "patrolStart": 316,
+            "name": "mob horloge",
+            "x": 416,
+            "y": 368,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 1156,
+            "patrolStart": 956,
+            "name": "mob horloge",
+            "x": 1056,
+            "y": 432,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 964,
+            "patrolStart": 764,
+            "name": "mob horloge",
+            "x": 864,
+            "y": 560,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 1252,
+            "patrolStart": 1052,
+            "name": "mob horloge",
+            "x": 1152,
+            "y": 560,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 2324,
+            "patrolStart": 2124,
+            "name": "mob horloge",
+            "x": 2224,
+            "y": 208,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 1892,
+            "patrolStart": 1692,
+            "name": "mob horloge",
+            "x": 1792,
+            "y": 240,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 2036,
+            "patrolStart": 1836,
+            "name": "mob horloge",
+            "x": 1936,
+            "y": 128,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 2836,
+            "patrolStart": 2636,
+            "name": "mob horloge",
+            "x": 2736,
+            "y": 496,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 2756,
+            "patrolStart": 2556,
+            "name": "mob horloge",
+            "x": 2656,
+            "y": 560,
+            "speed": 60
+        },
+        {
+            "patrolEnd": 3988,
+            "patrolStart": 3788,
+            "name": "boss horlogerie",
+            "x": 3888,
+            "y": 432,
+            "speed": 60
+        }
+        
+    ],
+    "bossZone": {
+        "startX": 1600,
+        "endX":   2000
+      },
+    "decorations": [
+        {
+            "name": "petite horloge 1",
+            "x": 416,
+            "y": 512
+        },
+        {
+            "name": "petite horloge 1",
+            "x": 448,
+            "y": 512
+        },
+        {
+            "name": "petite horloge 1",
+            "x": 496,
+            "y": 512
+        },
+        {
+            "name": "petite horloge 1",
+            "x": 560,
+            "y": 512
+        },
+        {
+            "name": "horloge 1",
+            "x": 144,
+            "y": 176
+        },
+        {
+            "name": "horloge 1",
+            "x": 240,
+            "y": 16
+        },
+        {
+            "name": "horloge 1",
+            "x": 368,
+            "y": 272
+        },
+        {
+            "name": "horloge 1",
+            "x": 512,
+            "y": 64
+        },
+        {
+            "name": "horloge 1",
+            "x": 624,
+            "y": 256
+        },
+        {
+            "name": "horloge 1",
+            "x": 752,
+            "y": 64
+        },
+        {
+            "name": "horloge 1",
+            "x": 896,
+            "y": 224
+        },
+        {
+            "name": "horloge 1",
+            "x": 1152,
+            "y": 224
+        },
+        {
+            "name": "horloge 1",
+            "x": 1024,
+            "y": 48
+        },
+        {
+            "name": "horloge 1",
+            "x": 1216,
+            "y": 80
+        },
+        {
+            "name": "horloge 1",
+            "x": 1344,
+            "y": 240
+        },
+        {
+            "name": "horloge 1",
+            "x": 1536,
+            "y": 48
+        },
+        {
+            "name": "horloge 1",
+            "x": 1680,
+            "y": 256
+        },
+        {
+            "name": "horloge 1",
+            "x": 1792,
+            "y": 64
+        },
+        {
+            "name": "horloge 1",
+            "x": 1968,
+            "y": 256
+        },
+        {
+            "name": "horloge 1",
+            "x": 2096,
+            "y": 48
+        },
+        {
+            "name": "horloge 1",
+            "x": 2352,
+            "y": 288
+        },
+        {
+            "name": "horloge 1",
+            "x": 2592,
+            "y": 256
+        },
+        {
+            "name": "horloge 1",
+            "x": 2416,
+            "y": 80
+        },
+        {
+            "name": "horloge 1",
+            "x": 2144,
+            "y": 224
+        },
+        {
+            "name": "horloge 1",
+            "x": 2832,
+            "y": 80
+        },
+        {
+            "name": "horloge 1",
+            "x": 2992,
+            "y": 288
+        },
+        {
+            "name": "horloge 1",
+            "x": 3152,
+            "y": 80
+        },
+        {
+            "name": "horloge 1",
+            "x": 3280,
+            "y": 272
+        },
+        {
+            "name": "horloge 1",
+            "x": 3440,
+            "y": 48
+        },
+        {
+            "name": "horloge 1",
+            "x": 3776,
+            "y": 64
+        },
+        {
+            "name": "horloge 1",
+            "x": 3648,
+            "y": 304
+        },
+        {
+            "name": "horloge 1",
+            "x": 3904,
+            "y": 304
+        },
+        {
+            "name": "horloge 1",
+            "x": 3984,
+            "y": 64
+        },
+        {
+            "name": "horloge 1",
+            "x": 4224,
+            "y": 96
+        },
+        {
+            "name": "horloge 1",
+            "x": 4256,
+            "y": 320
+        },
+        {
+            "name": "horloge 1",
+            "x": 4352,
+            "y": 80
+        },
+        {
+            "name": "horloge 1",
+            "x": 4400,
+            "y": 336
+        },
+        {
+            "name": "horloge 2",
+            "x": 4128,
+            "y": 208
+        },
+        {
+            "name": "horloge 2",
+            "x": 4160,
+            "y": 16
+        },
+        {
+            "name": "horloge 2",
+            "x": 4352,
+            "y": 224
+        },
+        {
+            "name": "horloge 2",
+            "x": 3936,
+            "y": 192
+        },
+        {
+            "name": "horloge 2",
+            "x": 3712,
+            "y": 192
+        },
+        {
+            "name": "horloge 2",
+            "x": 3504,
+            "y": 208
+        },
+        {
+            "name": "horloge 2",
+            "x": 3328,
+            "y": 64
+        },
+        {
+            "name": "horloge 2",
+            "x": 3616,
+            "y": 80
+        },
+        {
+            "name": "horloge 2",
+            "x": 2976,
+            "y": 176
+        },
+        {
+            "name": "horloge 2",
+            "x": 2736,
+            "y": 272
+        },
+        {
+            "name": "horloge 2",
+            "x": 2672,
+            "y": 144
+        },
+        {
+            "name": "horloge 2",
+            "x": 2256,
+            "y": 128
+        },
+        {
+            "name": "horloge 2",
+            "x": 2224,
+            "y": 272
+        },
+        {
+            "name": "horloge 2",
+            "x": 1968,
+            "y": 96
+        },
+        {
+            "name": "horloge 2",
+            "x": 1856,
+            "y": 208
+        },
+        {
+            "name": "horloge 2",
+            "x": 1872,
+            "y": 16
+        },
+        {
+            "name": "horloge 2",
+            "x": 1648,
+            "y": 160
+        },
+        {
+            "name": "horloge 2",
+            "x": 1504,
+            "y": 240
+        },
+        {
+            "name": "horloge 2",
+            "x": 1376,
+            "y": 32
+        },
+        {
+            "name": "horloge 2",
+            "x": 1312,
+            "y": 144
+        },
+        {
+            "name": "horloge 2",
+            "x": 1056,
+            "y": 144
+        },
+        {
+            "name": "horloge 2",
+            "x": 896,
+            "y": 48
+        },
+        {
+            "name": "horloge 2",
+            "x": 784,
+            "y": 208
+        },
+        {
+            "name": "horloge 2",
+            "x": 656,
+            "y": 48
+        },
+        {
+            "name": "horloge 2",
+            "x": 560,
+            "y": 176
+        },
+        {
+            "name": "horloge 2",
+            "x": 400,
+            "y": 80
+        },
+        {
+            "name": "horloge 2",
+            "x": 336,
+            "y": 0
+        },
+        {
+            "name": "horloge 2",
+            "x": 320,
+            "y": 176
+        },
+        {
+            "name": "horloge 2",
+            "x": 448,
+            "y": 240
+        },
+        {
+            "name": "horloge 2",
+            "x": 176,
+            "y": 288
+        },
+        {
+            "name": "horloge 2",
+            "x": 48,
+            "y": 64
+        },
+        {
+            "name": "horloge 2",
+            "x": 16,
+            "y": 288
+        },
+        {
+            "name": "horloge 2",
+            "x": 160,
+            "y": 80
+        },
+        {
+            "name": "pendule1",
+            "x": 0,
+            "y": 496
+        },
+        {
+            "name": "pendule1",
+            "x": 672,
+            "y": 496
+        },
+        {
+            "name": "banc 2",
+            "x": 928,
+            "y": 576
+        },
+        {
+            "name": "banc 2",
+            "x": 752,
+            "y": 576
+        },
+        {
+            "name": "pendule1",
+            "x": 864,
+            "y": 368
+        },
+        {
+            "name": "banc 1",
+            "x": 1040,
+            "y": 576
+        },
+        {
+            "name": "pendule1",
+            "x": 1616,
+            "y": 512
+        },
+        {
+            "name": "pendule1",
+            "x": 2864,
+            "y": 496
+        },
+        {
+            "name": "pendule1",
+            "x": 2384,
+            "y": 496
+        },
+        {
+            "name": "pendule1",
+            "x": 2224,
+            "y": 336
+        }
+    ],
+    "backgroundImageFileName": "background briques.png",
+    "levelHeight": 640,
+    "platforms": [
+        {
+            "name": "sol_brique_sombre",
+            "x": 0,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 160,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 320,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 480,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 640,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 800,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 960,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1120,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1280,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1440,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1600,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1760,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 1920,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2080,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2240,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2400,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2560,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2720,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 2880,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3040,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3200,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3360,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3520,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3680,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 3840,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 4000,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 4160,
+            "y": 624
+        },
+        {
+            "name": "sol_brique_sombre",
+            "x": 4320,
+            "y": 624
+        },
+        {
+            "name": "mur sombre",
+            "x": 192,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 224,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 256,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 288,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 288,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 256,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 288,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 288,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 256,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 224,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 320,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 320,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 320,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 320,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 320,
+            "y": 464
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 464
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 352,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 592
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 464
+        },
+        {
+            "name": "mur sombre",
+            "x": 384,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 416,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 448,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 480,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 512,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 544,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 576,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 608,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 400
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 672,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 704,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 736,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 768,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 800,
+            "y": 368
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 464
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 528
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 640,
+            "y": 592
+        },
+        {
+            "name": "caisse",
+            "x": 416,
+            "y": 560
+        },
+        {
+            "name": "caisse",
+            "x": 480,
+            "y": 560
+        },
+        {
+            "name": "caisse",
+            "x": 544,
+            "y": 560
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 304
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 272
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 240
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 208
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 176
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 144
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 112
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 80
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 48
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 16
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 0
+        },
+        {
+            "name": "mur sombre",
+            "x": 800,
+            "y": 400
+        },
+        {
+            "name": "mur sombre",
+            "x": 800,
+            "y": 432
+        },
+        {
+            "name": "mur sombre",
+            "x": 800,
+            "y": 464
+        },
+        {
+            "name": "mur sombre",
+            "x": 800,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 848,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 832,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 880,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 912,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 944,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 976,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1008,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1040,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1072,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1104,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1136,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1168,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1200,
+            "y": 496
+        },
+        {
+            "name": "mur sombre",
+            "x": 1232,
+            "y": 496
+        },
+        {
+            "name": "mur fer",
+            "x": 1264,
+            "y": 528
+        },
+        {
+            "name": "mur fer",
+            "x": 1456,
+            "y": 592
+        },
+        {
+            "name": "mur fer",
+            "x": 1488,
+            "y": 560
+        },
+        {
+            "name": "mur fer",
+            "x": 1520,
+            "y": 528
+        },
+        {
+            "name": "mur fer",
+            "x": 1552,
+            "y": 496
+        },
+        {
+            "name": "mur fer",
+            "x": 1584,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1616,
+            "y": 432
+        },
+        {
+            "name": "mur fer",
+            "x": 1648,
+            "y": 400
+        },
+        {
+            "name": "mur fer",
+            "x": 1680,
+            "y": 368
+        },
+        {
+            "name": "mur fer",
+            "x": 1712,
+            "y": 336
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1776,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1808,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1840,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1872,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1904,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1936,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1968,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2000,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2032,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2064,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2096,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2128,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2160,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2192,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 336
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 368
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 400
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 432
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 496
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 544
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 560
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 592
+        },
+        {
+            "name": "mur fer",
+            "x": 1744,
+            "y": 528
+        },
+        {
+            "name": "mur fer",
+            "x": 2224,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2256,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2288,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2320,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2352,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2384,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2416,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2448,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 304
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 272
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 240
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 208
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 176
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 144
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 112
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 336
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 368
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 400
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 432
+        },
+        {
+            "name": "mur fer",
+            "x": 2576,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2544,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2512,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2480,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2448,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2416,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2384,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2352,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2336,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2288,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2256,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2192,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2160,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2112,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2032,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1952,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2000,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2016,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2048,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2096,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2128,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2304,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2320,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2240,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2224,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 2080,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1984,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1920,
+            "y": 464
+        },
+        {
+            "name": "mur fer",
+            "x": 1888,
+            "y": 464
+        },
+        {
+            "name": "mur pierre",
+            "x": 1488,
+            "y": 592
+        },
+        {
+            "name": "mur pierre",
+            "x": 1520,
+            "y": 560
+        },
+        {
+            "name": "mur pierre",
+            "x": 1552,
+            "y": 528
+        },
+        {
+            "name": "mur pierre",
+            "x": 1584,
+            "y": 496
+        },
+        {
+            "name": "mur pierre",
+            "x": 1616,
+            "y": 464
+        },
+        {
+            "name": "mur pierre",
+            "x": 1648,
+            "y": 432
+        },
+        {
+            "name": "mur pierre",
+            "x": 1680,
+            "y": 400
+        },
+        {
+            "name": "mur pierre",
+            "x": 1712,
+            "y": 368
+        },
+        {
+            "name": "caisse",
+            "x": 1680,
+            "y": 560
+        },
+        {
+            "name": "mur pierre",
+            "x": 2576,
+            "y": 80
+        },
+        {
+            "name": "mur pierre",
+            "x": 2576,
+            "y": 64
+        },
+        {
+            "name": "mur pierre",
+            "x": 2576,
+            "y": 32
+        },
+        {
+            "name": "mur pierre",
+            "x": 2576,
+            "y": 16
+        },
+        {
+            "name": "mur pierre",
+            "x": 2576,
+            "y": 0
+        }
+    ]
+}
