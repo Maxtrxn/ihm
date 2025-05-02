@@ -50,7 +50,22 @@ public class MainMenuView extends VBox {
 
         languageSelection.setOnAction(event -> { this.controller.handleLanguageChange(languageSelection.getValue());});
 
-        this.getChildren().addAll(game, editor, languageLabel, languageSelection);
+
+
+
+        Label authorTitle = new Label(ResourceManager.getString("authorTitle"));
+        Label nom1 = new Label("Matthieu PETIT");
+        Label nom2 = new Label("Zack HÉBERT");
+        Label nom3 = new Label("Erwann BRICET");
+
+        // Mise en page verticale
+        VBox authorVBox = new VBox(10); // 10 pixels d'espacement
+        authorVBox.setAlignment(Pos.CENTER);
+        authorVBox.getChildren().addAll(authorTitle, nom1, nom2, nom3);
+
+
+
+        this.getChildren().addAll(game, editor, languageLabel, languageSelection, authorVBox);
 
 
     }
