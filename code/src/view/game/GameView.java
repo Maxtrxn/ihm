@@ -40,6 +40,12 @@ public class GameView {
     private Scene scene;
     private Canvas canvas;
     private GameController controller;
+    private Image cannonballImage;
+    private Image[]         cannonballFrames;
+    private int             cannonballFrameCount;
+    private long            cannonballFrameDuration = 100_000_000L; // 100 ms par frame
+    private int             cannonballFrameIndex    = 0;
+    private long            cannonballLastFrameTime = 0;
 
     // Pour animer les ennemis configurés dans enemies.json
     private final Map<String, Image> enemySheets          = new HashMap<>();
@@ -176,6 +182,32 @@ public class GameView {
             spaceshipImage = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "dirigeable v1.png");
         } catch (Exception e) {
             System.err.println("Exception loading images: " + e.getMessage());
+        }
+        // Charge le sprite du boulet
+        cannonballImage = new Image(
+            "file:" + ResourceManager.PROJECTILES_FOLDER + "boulet-Sheet.png"
+        );
+        int sheetW = (int) cannonballImage.getWidth();
+        int sheetH = (int) cannonballImage.getHeight();
+        // ici on suppose des sprites carrés de hauteur sheetH
+        cannonballFrameCount = sheetW / sheetH;
+        cannonballFrames = new Image[cannonballFrameCount];
+        PixelReader pr = cannonballImage.getPixelReader();
+        for (int i = 0; i < cannonballFrameCount; i++) {
+            cannonballFrames[i] = new WritableImage(
+                pr,
+                i * sheetH, 0,
+                sheetH, sheetH
+            );
+        }
+        // initialiser lastFrameTime pour démarrer l'anim correctement
+        cannonballLastFrameTime = System.nanoTime();
+        System.out.println(
+            "Cannonball loaded? error=" + cannonballImage.isError()
+            + "  w×h=" + cannonballImage.getWidth() + "×" + cannonballImage.getHeight()
+        );
+        if (cannonballImage.isError()) {
+            cannonballImage.getException().printStackTrace();
         }
     }
 
@@ -530,16 +562,24 @@ public class GameView {
             }
         }
 
-        // 7) Projectiles (mode vaisseau)
+        // 7) Projectiles (mode vaisseau) — avec sprite
         if (spaceshipMode) {
-            gc.setFill(Color.RED);
+            // ** 1) mise à jour de l’index avant de dessiner **
+            long now = System.nanoTime();
+            if (now - cannonballLastFrameTime >= cannonballFrameDuration) {
+                cannonballFrameIndex = (cannonballFrameIndex + 1) % cannonballFrameCount;
+                cannonballLastFrameTime = now;
+            }
+        
+            // ** 2) on dessine ensuite chaque projectile avec la frame courante **
             for (Double[] pos : projectilePositions) {
                 double px = pos[0] - cameraX.get();
                 double py = pos[1] - cameraY.get();
-                double pw = pos[2], ph = pos[3];
-                gc.fillRect(px, py, pw, ph);
+                Image frame = cannonballFrames[cannonballFrameIndex];
+                gc.drawImage(frame, px, py);
             }
         }
+        
     }
 
     public DoubleProperty cameraXProperty() { return cameraX; }
