@@ -42,6 +42,7 @@
     ],
     "backgroundImageFileName": "background_level3.png",
     "levelWidth": 1200,
-    "levelHeight": 600
+    "levelHeight": 600,
+    "levelType": "classic"
   }
   

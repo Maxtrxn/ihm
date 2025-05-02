@@ -1,5 +1,7 @@
-{
-    "levelWidth": 4480,
+{    "levelWidth": 480,
+    "musicFileName": "musiqueHorlogerie.wav",
+    "backgroundImageFileName": "briques.png",
+    "levelType": "classic",
     "spawnPoint": {
         "name": "Spawnpoint",
         "x": 0,
@@ -494,7 +496,6 @@
             "y": 336
         }
     ],
-    "backgroundImageFileName": "background briques.png",
     "levelHeight": 640,
     "platforms": [
         {

@@ -69,17 +69,6 @@ public class GameView {
     private double cachedWidth = 0, cachedHeight = 0;
 
     // ------------------------------------------------------------
-    // Engrenage
-    // ------------------------------------------------------------
-    private Image gearSpriteSheet;
-    private int gearFrameIndex = 0;
-    private int gearFrameCount = 0;
-    private int gearFrameWidth = 0;
-    private int gearFrameHeight = 0;
-    private long lastGearFrameTime = 0;
-    private final long gearFrameDuration = 50_000_000; // 50 ms
-
-    // ------------------------------------------------------------
     // Joueur Idle
     // ------------------------------------------------------------
     private Image playerIdleSheet;
@@ -138,15 +127,6 @@ public class GameView {
         loadDecorationAnimations();
 
         try {
-            // Engrenage
-            gearSpriteSheet = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "engrenage_animation-Sheet.png");
-            if (!gearSpriteSheet.isError()) {
-                gearFrameHeight = (int) gearSpriteSheet.getHeight();
-                gearFrameWidth  = gearFrameHeight;
-                if (gearFrameWidth != 0) {
-                    gearFrameCount = (int) (gearSpriteSheet.getWidth() / gearFrameWidth);
-                }
-            }
 
             // Joueur Idle
             playerIdleSheet = new Image("file:" + ResourceManager.TEXTURES_FOLDER + "static wrench-Sheet.png");
@@ -345,21 +325,6 @@ public class GameView {
                 cachedHeight = ch;
             }
             gc.drawImage(cachedBackground, 0, 0);
-        }
-
-        // 2) Engrenage (sprite‐sheet carré)
-        if (gearSpriteSheet != null && gearFrameWidth > 0) {
-            long now = System.nanoTime();
-            if (now - lastGearFrameTime >= gearFrameDuration) {
-                gearFrameIndex = (gearFrameIndex + 1) % gearFrameCount;
-                lastGearFrameTime = now;
-            }
-            int sx = gearFrameIndex * gearFrameWidth;
-            gc.drawImage(
-                gearSpriteSheet,
-                sx, 0, gearFrameWidth, gearFrameHeight,
-                0,  0,  gearFrameWidth, gearFrameHeight
-            );
         }
 
         // 3) Décorations (animées si configurées)

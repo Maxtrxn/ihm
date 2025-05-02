@@ -54,6 +54,7 @@
     "backgroundImageFileName": "background decharge.png",
     "musicFileName": "musiqueDecharge.wav",
     "levelHeight": 600,
+    "levelType": "classic",
     "platforms": [
         {
             "name": "sol",

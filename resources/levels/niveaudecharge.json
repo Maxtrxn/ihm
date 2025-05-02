@@ -1,5 +1,7 @@
 {
     "levelWidth": 5120,
+    "backgroundImageFileName": "background decharge.png",
+    "levelType": "classic",
     "spawnPoint": {
         "name": "Spawnpoint",
         "x": 0,
@@ -92,7 +94,6 @@
         "x": 0,
         "y": 656
     }],
-    "backgroundImageFileName": "default.png",
     "levelHeight": 768,
     "platforms": [
         {
