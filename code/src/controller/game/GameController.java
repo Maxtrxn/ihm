@@ -553,7 +553,7 @@ private void render(boolean isShip) {
         @Override
         public void run() {
             jetpack = true;
-            player.setJetpackActive(true);
+            player.setJetpackActive(false);
         }
     }
 }
