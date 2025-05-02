@@ -16,7 +16,6 @@ public abstract class LevelObject {
         this.x = x;
         this.y = y;
         
-        if (name == null) System.out.println(levelObjectsJson);
         JSONObject levelObjectJson = levelObjectsJson.getJSONObject(name);
         this.name = name;
         double scaleFactor;
