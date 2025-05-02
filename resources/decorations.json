@@ -79,7 +79,7 @@
     "textureFileName": "petite horloge 1-Sheet.png",
     "scaleFactor": 1.0,
     "type": "DECORATION",
-    "frames": 8,
+    "frames": 4,
     "durationMs": 100
   }
 }
