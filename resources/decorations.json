@@ -52,12 +52,16 @@
   "horloge 1": {
     "textureFileName": "horloge 1-Sheet.png",
     "scaleFactor": 1.0,
-    "type": "DECORATION"
+    "type": "DECORATION",
+    "frames": 8,
+    "durationMs": 100
   },
   "horloge 2": {
     "textureFileName": "horloge 2-Sheet.png",
     "scaleFactor": 1.0,
-    "type": "DECORATION"
+    "type": "DECORATION",
+    "frames": 8,
+    "durationMs": 100
   },
   "mini ballon": {
     "textureFileName": "mini ballon.png",
@@ -67,11 +71,15 @@
   "pendule1": {
     "textureFileName": "pendule1-Sheet.png",
     "scaleFactor": 1.0,
-    "type": "DECORATION"
+    "type": "DECORATION",
+    "frames": 8,
+    "durationMs": 100
   },
   "petite horloge 1": {
     "textureFileName": "petite horloge 1-Sheet.png",
     "scaleFactor": 1.0,
-    "type": "DECORATION"
+    "type": "DECORATION",
+    "frames": 8,
+    "durationMs": 100
   }
 }

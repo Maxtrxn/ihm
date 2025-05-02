@@ -49,6 +49,14 @@ public class GameView {
     private final Map<String, Long>    enemyLastFrameTime = new HashMap<>();
     private final Map<String, Image[]> enemyFrames = new HashMap<>();
 
+    // Pour animer les décorations configurées dans decorations.json
+    private final Map<String, Integer>   decoFrameCount    = new HashMap<>();
+    private final Map<String, Long>      decoFrameDuration = new HashMap<>();
+    private final Map<String, Integer>   decoFrameIndex    = new HashMap<>();
+    private final Map<String, Long>      decoLastFrameTime = new HashMap<>();
+    private final Map<String, Image[]>   decoFrames        = new HashMap<>();
+
+
 
     // Cache pour le background redimensionné
     private Image cachedBackground = null;
@@ -121,6 +129,7 @@ public class GameView {
         canvas.setCacheHint(CacheHint.SPEED);
 
         loadEnemyAnimations();
+        loadDecorationAnimations();
 
         try {
             // Engrenage
@@ -205,7 +214,41 @@ public class GameView {
                 enemyFrames.put(name, frames);
             }
         }
-    }   
+    }
+
+        /**
+     * Charge et découpe en frames tous les sprite-sheets de décorations
+     * configurés dans decorations.json (attributs "frames" et "durationMs").
+     */
+    private void loadDecorationAnimations() {
+        JSONObject all = ResourceManager.DECORATIONS_JSON;
+        for (String name : all.keySet()) {
+            JSONObject cfg = all.getJSONObject(name);
+            if (cfg.has("frames") && cfg.has("durationMs")) {
+                // Charge le sprite-sheet
+                Image sheet = new Image("file:" + ResourceManager.DECORATIONS_FOLDER
+                                        + cfg.getString("textureFileName"));
+                int   framesNb = cfg.getInt("frames");
+                long  durNs    = cfg.getLong("durationMs") * 1_000_000L;
+
+                // Stocke les métadonnées
+                decoFrameCount   .put(name, framesNb);
+                decoFrameDuration.put(name, durNs);
+                decoFrameIndex   .put(name, 0);
+                decoLastFrameTime.put(name, System.nanoTime());
+
+                // Découpe en sous-images
+                int    frameW = (int)Math.round(sheet.getWidth()  / framesNb);
+                int    frameH = (int) sheet.getHeight();
+                PixelReader pr = sheet.getPixelReader();
+                Image[]    arr = new Image[framesNb];
+                for (int i = 0; i < framesNb; i++) {
+                    arr[i] = new WritableImage(pr, i*frameW, 0, frameW, frameH);
+                }
+                decoFrames.put(name, arr);
+            }
+        }
+    }
 
     /**
      * Retourne une version redimensionnée du background (thread-safe).
@@ -246,12 +289,14 @@ public class GameView {
         double playerW, double playerH,
         boolean isWalking, boolean facingRight,
         boolean isJumping, boolean spaceshipMode,
-        List<Image> decorationImages,
-        List<Double[]> decorationPositions,
-        List<Image> platformImages,
-        List<Double[]> platformPositions,
-        List<Enemy> enemies,
-        List<Double[]> projectilePositions
+        // <- on ajoute List<String> decorationNames
+        List<Image>      decorationImages,
+        List<Double[]>   decorationPositions,
+        List<String>     decorationNames,
+        List<Image>      platformImages,
+        List<Double[]>   platformPositions,
+        List<Enemy>      enemies,
+        List<Double[]>   projectilePositions
     ) {
         double cw = gc.getCanvas().getWidth();
         double ch = gc.getCanvas().getHeight();
@@ -285,14 +330,37 @@ public class GameView {
             );
         }
 
-        // 3) Décorations
+        // 3) Décorations (animées si configurées)
         for (int i = 0; i < decorationImages.size(); i++) {
-            Image img = decorationImages.get(i);
-            Double[] pos = decorationPositions.get(i);
-            double dx = pos[0] - cameraX.get();
-            double dy = pos[1] - cameraY.get();
-            double dw = pos[2], dh = pos[3];
-            if (img != null) {
+            String name      = decorationNames.get(i);
+            Double[] pos     = decorationPositions.get(i);
+            double dx        = pos[0] - cameraX.get();
+            double dy        = pos[1] - cameraY.get();
+            double sf        = ResourceManager.DECORATIONS_JSON
+                                    .getJSONObject(name)
+                                    .getDouble("scaleFactor");
+            Image[] framesArr= decoFrames.get(name);  // votre Map<String,Image[]> pour décorations
+
+            if (framesArr != null) {
+                long now      = System.nanoTime();
+                long last     = decoLastFrameTime.get(name);
+                long duration = decoFrameDuration.get(name);
+                int  idx      = decoFrameIndex.get(name);
+                if (now - last >= duration) {
+                    idx = (idx + 1) % framesArr.length;
+                    decoFrameIndex   .put(name, idx);
+                    decoLastFrameTime.put(name, now);
+                }
+                Image frame = framesArr[idx];
+                double dw   = frame.getWidth()  * sf;
+                double dh   = frame.getHeight() * sf;
+                gc.drawImage(frame, dx, dy, dw, dh);
+
+            } else {
+                // Affichage statique
+                Image img = decorationImages.get(i);
+                double dw  = img.getWidth()  * sf;
+                double dh  = img.getHeight() * sf;
                 gc.drawImage(img, dx, dy, dw, dh);
             }
         }
@@ -432,7 +500,7 @@ public class GameView {
                 Image frame = framesArr[idx];
                 double dw   = frame.getWidth()  * sf;
                 double dh   = frame.getHeight() * sf;
-                
+
                 // si l’ennemi bouge vers la droite, on flippe
                 if (e.isMovingRight()) {
                     gc.save();
