@@ -35,7 +35,8 @@ public class Level {
     protected Image            backgroundImage;
     protected double           levelWidth;
     protected double           levelHeight;
-    protected SpawnPoint spawnPoint;
+    protected SpawnPoint       spawnPoint;
+    private String             musicFileName;
 
     // ——— Zone de boss (optionnelle) ———
     private double bossZoneStart = Double.NEGATIVE_INFINITY;
@@ -50,6 +51,16 @@ public class Level {
         this.levelHeight = levelHeight;
         this.spawnPoint = null;
     }
+
+        /**
+     * Définit le fichier audio associé à ce niveau.
+     *
+     * @param fname le nom du fichier (ex. "level1.mp3")
+     */
+    public void setMusicFileName(String fname) {
+        this.musicFileName = fname;
+    }
+
 
     /** Constructeur JSON : charge "levels/{levelName}.json". */
     public Level(Player player, String levelName) {
@@ -75,6 +86,12 @@ public class Level {
         if (L.has("backgroundImageFileName")) {this.backgroundImage = new Image("file:" + ResourceManager.BACKGROUNDS_FOLDER + L.getString("backgroundImageFileName"));}
         this.levelWidth  = L.getDouble("levelWidth");
         this.levelHeight = L.getDouble("levelHeight");
+
+        if (L.has("musicFileName")) {
+            this.musicFileName = L.getString("musicFileName");
+          } else {
+            this.musicFileName = null;  // ou un nom par défaut
+          }
 
         // 2) Plateformes
         JSONArray plats = L.getJSONArray("platforms");
@@ -162,6 +179,7 @@ public class Level {
     public Image            getBackgroundImage() { return backgroundImage; }
     public double           getLevelWidth()      { return levelWidth;   }
     public double           getLevelHeight()     { return levelHeight;  }
+    public String getMusicFileName()             { return musicFileName; }
     public SpawnPoint getSpawnPoint(){return this.spawnPoint;}
     public List<LevelObject> getLevelObjects() {
         List<LevelObject> levelObjects = new ArrayList<>();
@@ -171,6 +189,7 @@ public class Level {
         if(this.spawnPoint != null) levelObjects.add(this.spawnPoint);
         return levelObjects;
     }
+      
 
     /** Coordonnée X où commence la zone de boss (infinie si non définie). */
     public double getBossZoneStart() { return bossZoneStart; }

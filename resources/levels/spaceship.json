@@ -2,8 +2,9 @@
     "platforms": [],
     "enemies": [],
     "decorations": [],
-    "backgroundImageFileName": "background temporaire1.png",
-    "levelWidth": 400,
+    "backgroundImageFileName": "background dirigeable.png",
+    "musicFileName": "musiqueDirigeable.wav",
+    "levelWidth": 4000,
     "levelHeight": 600
   }
   

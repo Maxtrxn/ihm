@@ -51,7 +51,8 @@
         "endX": 3900,
         "startX": 2100
     },
-    "backgroundImageFileName": "background temporaire1.png",
+    "backgroundImageFileName": "background decharge.png",
+    "musicFileName": "musiqueDecharge.wav",
     "levelHeight": 600,
     "platforms": [
         {

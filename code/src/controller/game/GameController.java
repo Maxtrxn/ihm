@@ -1,6 +1,12 @@
 // src/controller/game/GameController.java
 package src.controller.game;
 
+import java.io.File;
+import java.net.URL;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -11,7 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
-
+import src.common.ResourceManager;
 import src.model.game.Boss;
 import src.model.game.Decoration;
 import src.model.game.Enemy;
@@ -57,6 +63,9 @@ public class GameController {
     // Main loop
     private AnimationTimer gameLoop;
 
+    private MediaPlayer musicPlayer;
+    private AudioClip musicClip;
+
     public GameController(Stage primaryStage) {
         this.view  = new GameView(this, primaryStage);
         this.model = new GameModel(this);
@@ -76,17 +85,36 @@ public class GameController {
         this.initialPlayerY = player.getY();
     }
 
-    /** Loads a new level and resets lives. */
+     /** Charge un nouveau niveau, réinitialise la vie, et joue la musique associée. */
     public void setLevel(Level level) {
+        // 1) On met à jour le niveau et ses listes
         this.level       = level;
         this.platforms   = level.getPlatforms();
         this.enemies     = level.getEnemies();
         this.decorations = level.getDecorations();
 
-        // Reset lives at start of level
-        lives = MAX_LIVES;
+        // 2) Réinitialisation des vies et de l’invincibilité
+        lives      = MAX_LIVES;
         invincible = false;
         updateLivesDisplay();
+
+        // 3) Gestion de la musique de fond
+        // Arrête l’ancienne piste si besoin
+        if (musicClip != null) {
+            musicClip.stop();
+        }
+
+        String fname = level.getMusicFileName();
+        if (fname != null && !fname.isBlank()) {
+            URL url = getClass().getClassLoader().getResource("audio/" + fname);
+            if (url != null) {
+                musicClip = new AudioClip(url.toExternalForm());
+                musicClip.setCycleCount(AudioClip.INDEFINITE);
+                musicClip.play();
+            } else {
+                System.err.println("Audio introuvable : audio/" + fname);
+            }
+        }
     }
 
     /** Binds keyboard input to movement flags and actions. */

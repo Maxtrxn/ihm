@@ -29,6 +29,8 @@ public class GameEditorModel{
     private Level level;
     private String selectedLevelObjectName;
     private LevelObject clickSelectedLevelObject;
+    private String musicFileName;
+
 
 
     public GameEditorModel(GameEditorController controller){
@@ -113,7 +115,7 @@ public class GameEditorModel{
     
     public boolean saveLevel(boolean overwrite){
         JSONObject levelJSON = level.toJSONObject();
-
+        // levelJSON contiendra désormais musicFileName grâce à Level.toJSONObject()
         return JsonReader.saveJsonObject(levelJSON, ResourceManager.LEVELS_FOLDER + levelName + ".json", overwrite);
     }
 
@@ -128,19 +130,35 @@ public class GameEditorModel{
     public void loadLevel(String levelName){
         this.level = new Level(null, levelName);
         this.setLevelName(levelName);
+        this.musicFileName = this.level.getMusicFileName();
         this.support.firePropertyChange("initLevel", null, this.level);
     }
 
     //Pour initialiser un nouveau niveau
     public void initLevel(String levelName, double levelWidth, double levelHeight){
         Level lastLevel = this.level;
+        this.musicFileName = null;  // niveau vierge, pas encore de musique
         this.setLevelName(levelName);
         this.level = new Level(levelWidth, levelHeight);
         this.support.firePropertyChange("initLevel", lastLevel, this.level);
     }
 
-
-
+        /**
+     * Définit le fichier audio associé au niveau dans l’éditeur
+     * et met à jour le modèle JSON.
+     *
+     * @param fname le nom du fichier (ex. "level1.mp3")
+     */
+    public void setMusicFileName(String fname) {
+        // Sauvegarde de l’ancienne valeur (au besoin)
+        String old = this.musicFileName;
+        // Mise à jour du champ local
+        this.musicFileName = fname;
+        // Propagation dans l’objet Level pour la sauvegarde JSON
+        this.level.setMusicFileName(fname);
+        // Notifier la vue d’un changement de données de niveau
+        this.support.firePropertyChange("changeLevelData", null, this.level);
+    }
 
 
     public LevelObject getLevelObjectAt(double x, double y){

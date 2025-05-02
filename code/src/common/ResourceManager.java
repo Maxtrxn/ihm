@@ -32,7 +32,7 @@ public class ResourceManager {
     public static final JSONObject PLATFORMS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
 
     public static final String DEFAULT_TEXTURE = TEXTURES_FOLDER + "default.png";
-
+    public static final String AUDIO_FOLDER = "../resources/audio/";
 
 
 
