@@ -102,6 +102,7 @@ import java.util.ResourceBundle;
 
 import org.json.JSONObject;
 
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 
 public class ResourceManager {
@@ -124,6 +125,22 @@ public class ResourceManager {
     public static final JSONObject PLATFORMS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
 
     public static final String DEFAULT_TEXTURE = TEXTURES_FOLDER + "default.png";
+
+
+
+
+    private static String currStyleSheetName = "steampunk.css";
+
+    public static void setCurrStyleSheet(String styleSheetName){
+        currStyleSheetName = styleSheetName;
+    }
+
+    public static void setCurrStyleSheetToScene(Scene scene){
+        scene.getStylesheets().clear();
+        scene.getStylesheets().add(STYLESHEET_FOLDER + currStyleSheetName);
+    }
+
+
 
 
     private static Locale currentLocale;
@@ -214,6 +231,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
+import src.controller.MainMenuController;
 import src.controller.game.GameController;
 import src.model.editor.GameEditorModel;
 import src.view.editor.EditorMenuBarView;
@@ -386,7 +404,7 @@ public class EditorMenuBarController {
     }
 
     public void handleFileQuit(){
-        Platform.exit();
+        new MainMenuController(this.stage);
     }
 
     
@@ -523,8 +541,8 @@ public class EditorMenuBarController {
         window.showAndWait();
 
         if(cssFileName[0] != null){
-            this.stage.getScene().getStylesheets().clear();
-            this.stage.getScene().getStylesheets().add(getClass().getResource("/css/" + cssFileName[0]).toString());
+            ResourceManager.setCurrStyleSheet(cssFileName[0]);
+            ResourceManager.setCurrStyleSheetToScene(this.stage.getScene());
         }
     }
 }
@@ -739,7 +757,7 @@ public class MapEditorController {
         layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
 
         Scene scene = new Scene(layout, 300, 400);
-        scene.getStylesheets().add(this.stage.getScene().getStylesheets().getFirst());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         newWindow.setScene(scene);
         newWindow.setTitle(ResourceManager.getString("handleEnemyPlacement_window_title"));
         newWindow.showAndWait();
@@ -1229,41 +1247,53 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Renders all game elements via GameView. */
-    private void render(boolean isShip) {
-        List<Image>     decoImgs = new ArrayList<>();
-        List<Double[]>  posDeco  = new ArrayList<>();
-        for (Decoration d : decorations) {
-            decoImgs.add(d.getTexture());
-            posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
-        }
-
-        List<Image>     platImgs = new ArrayList<>();
-        List<Double[]>  posPl    = new ArrayList<>();
-        for (Platform p : platforms) {
-            platImgs.add(p.getTexture());
-            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
-        }
-
-        List<Double[]> posProj = new ArrayList<>();
-        for (Projectile pr : projectiles) {
-            posProj.add(new Double[]{pr.getX(), pr.getY(), pr.getWidth(), pr.getHeight()});
-        }
-
-        boolean isJumping = !player.onGround;
-        view.draw(
-            level.getBackgroundImage(),
-            player.getX(), player.getY(),
-            player.getWidth(), player.getHeight(),
-            player.isWalking(), player.isFacingRight(),
-            isJumping,
-            isShip,
-            decoImgs, posDeco,
-            platImgs, posPl,
-            enemies,
-            posProj
-        );
+/** Renders all game elements via GameView. */
+private void render(boolean isShip) {
+    // Décorations
+    List<Image>    decoImgs   = new ArrayList<>();
+    List<Double[]> posDeco    = new ArrayList<>();
+    List<String>   decoNames  = new ArrayList<>();
+    for (Decoration d : decorations) {
+        decoImgs  .add(d.getTexture());
+        posDeco   .add(new Double[]{ d.getX(), d.getY(), d.getWidth(), d.getHeight() });
+        decoNames .add(d.getName());
     }
+
+    // Plateformes
+    List<Image>    platImgs = new ArrayList<>();
+    List<Double[]> posPl    = new ArrayList<>();
+    for (Platform p : platforms) {
+        platImgs.add(p.getTexture());
+        posPl   .add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
+    }
+
+    // Projectiles
+    List<Double[]> posProj = new ArrayList<>();
+    for (Projectile pr : projectiles) {
+        posProj.add(new Double[]{ pr.getX(), pr.getY(), pr.getWidth(), pr.getHeight() });
+    }
+
+    boolean isJumping = !player.onGround;
+
+    view.draw(
+        // 1) Contexte de jeu
+        level.getBackgroundImage(),
+        player.getX(), player.getY(),
+        player.getWidth(), player.getHeight(),
+        player.isWalking(), player.isFacingRight(),
+        isJumping,
+        isShip,
+        // 2) Décorations
+        decoImgs, posDeco, decoNames,
+        // 3) Plateformes
+        platImgs, posPl,
+        // 4) Ennemis
+        enemies,
+        // 5) Projectiles
+        posProj
+    );
+}
+
 
     /** Respawns the player at the start position. */
     private void resetPlayerPosition() {
@@ -1689,7 +1719,6 @@ public class Enemy extends LevelObject{
     private double leftBound, rightBound;
     private boolean movingRight = true;
 
-
     public Enemy(double x, double y, double speed, double leftBound, double rightBound, String name) {
         super(x, y, name, ResourceManager.ENEMIES_JSON, ResourceManager.ENEMIES_FOLDER);
         this.speed = speed;
@@ -1716,6 +1745,10 @@ public class Enemy extends LevelObject{
     public Image getTexture() {
         return this.texture;
     }
+
+    public boolean isMovingRight() {
+        return movingRight;
+        }
 
     /** @param deltaSec  temps écoulé (s) */
     /**
@@ -2846,7 +2879,7 @@ public class GameEditorView extends BorderPane{
         this.stage = stage;
         
         Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         stage.setScene(scene); 
         stage.setResizable(true);
     }
@@ -3269,6 +3302,7 @@ import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.ColorInput;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -3303,6 +3337,14 @@ public class GameView {
     private final Map<String, Integer> enemyFrameIndex    = new HashMap<>();
     private final Map<String, Long>    enemyLastFrameTime = new HashMap<>();
     private final Map<String, Image[]> enemyFrames = new HashMap<>();
+
+    // Pour animer les décorations configurées dans decorations.json
+    private final Map<String, Integer>   decoFrameCount    = new HashMap<>();
+    private final Map<String, Long>      decoFrameDuration = new HashMap<>();
+    private final Map<String, Integer>   decoFrameIndex    = new HashMap<>();
+    private final Map<String, Long>      decoLastFrameTime = new HashMap<>();
+    private final Map<String, Image[]>   decoFrames        = new HashMap<>();
+
 
 
     // Cache pour le background redimensionné
@@ -3371,13 +3413,12 @@ public class GameView {
         primaryStage.setResizable(true);
 
         this.gc = canvas.getGraphicsContext2D();
-        // 1. Pas de lissage de découpe
         gc.setImageSmoothing(false);
-        // 2. On désactive le cache, indispensable pour les anims pixel‐perfect
-        canvas.setCache(false);
+        canvas.setCache(true);
         canvas.setCacheHint(CacheHint.SPEED);
 
         loadEnemyAnimations();
+        loadDecorationAnimations();
 
         try {
             // Engrenage
@@ -3427,41 +3468,76 @@ public class GameView {
         }
     }
 
-     /**
-     * Charge la config d'animation pour chaque ennemi ayant "frames" dans enemies.json.
+        /**
+     * Charge et découpe en frames tous les sprite-sheets d'ennemis
+     * configurés dans enemies.json (attributs "frames" et "durationMs").
      */
     private void loadEnemyAnimations() {
         for (String name : ResourceManager.ENEMIES_JSON.keySet()) {
             JSONObject cfg = ResourceManager.ENEMIES_JSON.getJSONObject(name);
-            if (cfg.has("frames")) {
+            if (cfg.has("frames") && cfg.has("durationMs")) {
+                // 1) On charge le sprite-sheet
                 Image sheet = new Image("file:" + ResourceManager.ENEMIES_FOLDER
                                         + cfg.getString("textureFileName"));
-                int frames = cfg.optInt("frames", 1);
-                long ms   = cfg.optLong("durationMs", 100L);
-    
-                // stocke sheet + données
-                enemySheets.put(name, sheet);
-                enemyFrameCount.put(name, frames);
-                enemyFrameDuration.put(name, ms * 1_000_000L);
-                enemyFrameIndex.put(name, 0);
+                int   framesNb = cfg.getInt("frames");
+                long  durNs    = cfg.getLong("durationMs") * 1_000_000L;
+
+                // 2) On stocke les métadonnées
+                enemyFrameCount   .put(name, framesNb);
+                enemyFrameDuration.put(name, durNs);
+                enemyFrameIndex   .put(name, 0);
                 enemyLastFrameTime.put(name, System.nanoTime());
-    
-                // --- NOUVEAU : pré‐découpage des frames ---
-                int frameW = (int)(sheet.getWidth()  / frames);
-                int frameH = (int) sheet.getHeight();
-                Image[] array = new Image[frames];
-                for (int i = 0; i < frames; i++) {
-                    array[i] = new WritableImage(
-                        sheet.getPixelReader(),
-                        i * frameW, 0, frameW, frameH
+
+                // 3) On découpe le sheet en sous-images
+                int frameW = (int)(sheet.getWidth()  / framesNb);
+                int frameH = (int)(sheet.getHeight());
+                PixelReader reader = sheet.getPixelReader();
+                Image[]    frames  = new Image[framesNb];
+                for (int i = 0; i < framesNb; i++) {
+                    frames[i] = new WritableImage(
+                        reader,
+                        i * frameW, 0,
+                        frameW,      frameH
                     );
                 }
-                enemyFrames.put(name, array);
+                enemyFrames.put(name, frames);
             }
         }
     }
-    
 
+        /**
+     * Charge et découpe en frames tous les sprite-sheets de décorations
+     * configurés dans decorations.json (attributs "frames" et "durationMs").
+     */
+    private void loadDecorationAnimations() {
+        JSONObject all = ResourceManager.DECORATIONS_JSON;
+        for (String name : all.keySet()) {
+            JSONObject cfg = all.getJSONObject(name);
+            if (cfg.has("frames") && cfg.has("durationMs")) {
+                // Charge le sprite-sheet
+                Image sheet = new Image("file:" + ResourceManager.DECORATIONS_FOLDER
+                                        + cfg.getString("textureFileName"));
+                int   framesNb = cfg.getInt("frames");
+                long  durNs    = cfg.getLong("durationMs") * 1_000_000L;
+
+                // Stocke les métadonnées
+                decoFrameCount   .put(name, framesNb);
+                decoFrameDuration.put(name, durNs);
+                decoFrameIndex   .put(name, 0);
+                decoLastFrameTime.put(name, System.nanoTime());
+
+                // Découpe en sous-images
+                int    frameW = (int)Math.round(sheet.getWidth()  / framesNb);
+                int    frameH = (int) sheet.getHeight();
+                PixelReader pr = sheet.getPixelReader();
+                Image[]    arr = new Image[framesNb];
+                for (int i = 0; i < framesNb; i++) {
+                    arr[i] = new WritableImage(pr, i*frameW, 0, frameW, frameH);
+                }
+                decoFrames.put(name, arr);
+            }
+        }
+    }
 
     /**
      * Retourne une version redimensionnée du background (thread-safe).
@@ -3492,8 +3568,9 @@ public class GameView {
         return wi;
     }
 
-    /**
-     * Dessine la frame complète, avec décorations, plateformes, ennemis et projectiles.
+        /**
+     * Dessine la frame complète, avec décorations, plateformes, joueur/vaisseau,
+     * ennemis animés et projectiles.
      */
     public void draw(
         Image background,
@@ -3501,30 +3578,33 @@ public class GameView {
         double playerW, double playerH,
         boolean isWalking, boolean facingRight,
         boolean isJumping, boolean spaceshipMode,
-        List<Image> decorationImages,
-        List<Double[]> decorationPositions,
-        List<Image> platformImages,
-        List<Double[]> platformPositions,
-        List<Enemy> enemies,
-        List<Double[]> projectilePositions
+        // <- on ajoute List<String> decorationNames
+        List<Image>      decorationImages,
+        List<Double[]>   decorationPositions,
+        List<String>     decorationNames,
+        List<Image>      platformImages,
+        List<Double[]>   platformPositions,
+        List<Enemy>      enemies,
+        List<Double[]>   projectilePositions
     ) {
         double cw = gc.getCanvas().getWidth();
         double ch = gc.getCanvas().getHeight();
 
-        // Fond noir
+        // 0) Fond noir
         gc.setFill(Color.BLACK);
         gc.fillRect(0, 0, cw, ch);
 
-        // Background mis à l’échelle + cache
+        // 1) Background mis à l’échelle + cache
         if (background != null) {
             if (cachedBackground == null || cachedWidth != cw || cachedHeight != ch) {
                 cachedBackground = getScaledBackground(background, cw, ch);
-                cachedWidth = cw; cachedHeight = ch;
+                cachedWidth  = cw;
+                cachedHeight = ch;
             }
             gc.drawImage(cachedBackground, 0, 0);
         }
 
-        // Engrenage
+        // 2) Engrenage (sprite‐sheet carré)
         if (gearSpriteSheet != null && gearFrameWidth > 0) {
             long now = System.nanoTime();
             if (now - lastGearFrameTime >= gearFrameDuration) {
@@ -3532,24 +3612,49 @@ public class GameView {
                 lastGearFrameTime = now;
             }
             int sx = gearFrameIndex * gearFrameWidth;
-            gc.drawImage(gearSpriteSheet,
-                         sx, 0, gearFrameWidth, gearFrameHeight,
-                         0, 0, gearFrameWidth, gearFrameHeight);
+            gc.drawImage(
+                gearSpriteSheet,
+                sx, 0, gearFrameWidth, gearFrameHeight,
+                0,  0,  gearFrameWidth, gearFrameHeight
+            );
         }
 
-        // 1) Décorations
+        // 3) Décorations (animées si configurées)
         for (int i = 0; i < decorationImages.size(); i++) {
-            Image img = decorationImages.get(i);
-            Double[] pos = decorationPositions.get(i);
-            double dx = pos[0] - cameraX.get();
-            double dy = pos[1] - cameraY.get();
-            double dw = pos[2], dh = pos[3];
-            if (img != null) {
+            String name      = decorationNames.get(i);
+            Double[] pos     = decorationPositions.get(i);
+            double dx        = pos[0] - cameraX.get();
+            double dy        = pos[1] - cameraY.get();
+            double sf        = ResourceManager.DECORATIONS_JSON
+                                    .getJSONObject(name)
+                                    .getDouble("scaleFactor");
+            Image[] framesArr= decoFrames.get(name);  // votre Map<String,Image[]> pour décorations
+
+            if (framesArr != null) {
+                long now      = System.nanoTime();
+                long last     = decoLastFrameTime.get(name);
+                long duration = decoFrameDuration.get(name);
+                int  idx      = decoFrameIndex.get(name);
+                if (now - last >= duration) {
+                    idx = (idx + 1) % framesArr.length;
+                    decoFrameIndex   .put(name, idx);
+                    decoLastFrameTime.put(name, now);
+                }
+                Image frame = framesArr[idx];
+                double dw   = frame.getWidth()  * sf;
+                double dh   = frame.getHeight() * sf;
+                gc.drawImage(frame, dx, dy, dw, dh);
+
+            } else {
+                // Affichage statique
+                Image img = decorationImages.get(i);
+                double dw  = img.getWidth()  * sf;
+                double dh  = img.getHeight() * sf;
                 gc.drawImage(img, dx, dy, dw, dh);
             }
         }
 
-        // 2) Plateformes
+        // 4) Plateformes
         for (int i = 0; i < platformImages.size(); i++) {
             Image img = platformImages.get(i);
             Double[] pos = platformPositions.get(i);
@@ -3564,7 +3669,7 @@ public class GameView {
             }
         }
 
-        // 3) JOUEUR ou VAISSEAU
+        // 5) Joueur ou vaisseau
         double drawX = playerX - cameraX.get();
         double drawY = playerY - cameraY.get() - playerOffsetY;
         if (spaceshipMode && spaceshipImage != null) {
@@ -3574,16 +3679,12 @@ public class GameView {
             double targetW = targetH * (imageW / imageH);
 
             if (facingRight) {
-                gc.drawImage(spaceshipImage,
-                             drawX, drawY,
-                             targetW, targetH);
+                gc.drawImage(spaceshipImage, drawX, drawY, targetW, targetH);
             } else {
                 gc.save();
                 gc.translate(drawX + targetW, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(spaceshipImage,
-                             0, 0,
-                             targetW, targetH);
+                gc.drawImage(spaceshipImage, 0, 0, targetW, targetH);
                 gc.restore();
             }
         } else if (isJumping && playerJumpSheet != null && jumpFrameWidth > 0) {
@@ -3594,16 +3695,20 @@ public class GameView {
             }
             int sx = jumpFrameIndex * jumpFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerJumpSheet,
-                             sx, 0, jumpFrameWidth, jumpFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerJumpSheet,
+                    sx, 0, jumpFrameWidth, jumpFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerJumpSheet,
-                             sx, 0, jumpFrameWidth, jumpFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerJumpSheet,
+                    sx, 0, jumpFrameWidth, jumpFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         } else if (isWalking && playerWalkSheet != null && walkFrameWidth > 0) {
@@ -3614,16 +3719,20 @@ public class GameView {
             }
             int sx = walkFrameIndex * walkFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerWalkSheet,
-                             sx, 0, walkFrameWidth, walkFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerWalkSheet,
+                    sx, 0, walkFrameWidth, walkFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerWalkSheet,
-                             sx, 0, walkFrameWidth, walkFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerWalkSheet,
+                    sx, 0, walkFrameWidth, walkFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         } else if (playerIdleSheet != null && idleFrameWidth > 0) {
@@ -3634,63 +3743,83 @@ public class GameView {
             }
             int sx = idleFrameIndex * idleFrameWidth;
             if (facingRight) {
-                gc.drawImage(playerIdleSheet,
-                             sx, 0, idleFrameWidth, idleFrameHeight,
-                             drawX, drawY, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerIdleSheet,
+                    sx, 0, idleFrameWidth, idleFrameHeight,
+                    drawX, drawY, playerW*2, playerH*2
+                );
             } else {
                 gc.save();
-                gc.translate(drawX + playerW * 2, drawY);
+                gc.translate(drawX + playerW*2, drawY);
                 gc.scale(-1, 1);
-                gc.drawImage(playerIdleSheet,
-                             sx, 0, idleFrameWidth, idleFrameHeight,
-                             0, 0, playerW * 2, playerH * 2);
+                gc.drawImage(
+                    playerIdleSheet,
+                    sx, 0, idleFrameWidth, idleFrameHeight,
+                    0, 0, playerW*2, playerH*2
+                );
                 gc.restore();
             }
         }
 
-        
-        // 4) Ennemis animés + boss
+        // 6) Ennemis animés + boss
         for (Enemy e : enemies) {
-            String name = e.getName();
-            Image[] frames = enemyFrames.get(name);
-            if (frames != null) {
-                // 1) Update index
-                long now  = System.nanoTime();
-                long last = enemyLastFrameTime.get(name);
-                long dur  = enemyFrameDuration.get(name);
-                int  idx  = enemyFrameIndex.get(name);
-                if (now - last >= dur) {
-                    idx = (idx + 1) % frames.length;
-                    enemyFrameIndex.put(name, idx);
+            String name       = e.getName();
+            Image[] framesArr = enemyFrames.get(name);
+
+            // calcule position et échelle une fois pour toutes
+            double dx = e.getX() - cameraX.get();
+            double dy = e.getY() - cameraY.get();
+            double sf = ResourceManager.ENEMIES_JSON
+                                .getJSONObject(name)
+                                .getDouble("scaleFactor");
+
+            if (framesArr != null) {
+                // a) mise à jour de l’index
+                long now      = System.nanoTime();
+                long last     = enemyLastFrameTime.get(name);
+                long duration = enemyFrameDuration.get(name);
+                int  idx      = enemyFrameIndex.get(name);
+                if (now - last >= duration) {
+                    idx = (idx + 1) % framesArr.length;
+                    enemyFrameIndex   .put(name, idx);
                     enemyLastFrameTime.put(name, now);
                 }
 
-                // 2) Récupère l’Image de la frame courante
-                Image frame = frames[idx];
+                // b) calcul de la vignette courante
+                Image frame = framesArr[idx];
+                double dw   = frame.getWidth()  * sf;
+                double dh   = frame.getHeight() * sf;
 
-                // 3) Position + taille en int
-                int dx = (int)Math.round(e.getX() - cameraX.get());
-                int dy = (int)Math.round(e.getY() - cameraY.get());
-                double sf = ResourceManager.ENEMIES_JSON
-                                .getJSONObject(name)
-                                .getDouble("scaleFactor");
-                int dw = (int)Math.round(frame.getWidth()  * sf);
-                int dh = (int)Math.round(frame.getHeight() * sf);
+                // si l’ennemi bouge vers la droite, on flippe
+                if (e.isMovingRight()) {
+                    gc.save();
+                    gc.translate(dx + dw, dy);
+                    gc.scale(-1, 1);
+                    gc.drawImage(frame, 0, 0, dw, dh);
+                    gc.restore();
+                } else {
+                    // sinon, on dessine “normal” (visage vers la gauche)
+                    gc.drawImage(frame, dx, dy, dw, dh);
+                }
 
-                // 4) Dessine *net* la frame entière
-                gc.drawImage(frame, dx, dy, dw, dh);
 
             } else {
-                // fallback statique
-                int dx = (int)Math.round(e.getX() - cameraX.get());
-                int dy = (int)Math.round(e.getY() - cameraY.get());
-                int dw = (int)Math.round(e.getWidth());
-                int dh = (int)Math.round(e.getHeight());
-                gc.drawImage(e.getTexture(), dx, dy, dw, dh);
+                // fallback statique : même principe de flip
+                double dw = e.getWidth();
+                double dh = e.getHeight();
+                if (e.isMovingRight()) {
+                    gc.drawImage(e.getTexture(), dx, dy, dw, dh);
+                } else {
+                    gc.save();
+                    gc.translate(dx + dw, dy);
+                    gc.scale(-1, 1);
+                    gc.drawImage(e.getTexture(), 0, 0, dw, dh);
+                    gc.restore();
+                }
             }
         }
 
-        // 5) Projectiles (mode vaisseau)
+        // 7) Projectiles (mode vaisseau)
         if (spaceshipMode) {
             gc.setFill(Color.RED);
             for (Double[] pos : projectilePositions) {
@@ -3752,7 +3881,8 @@ public class MainMenuView extends VBox {
 
 
         Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
+        //scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
         primaryStage.centerOnScreen();
 
@@ -3838,7 +3968,7 @@ public class MainMenuView extends VBox {
         layout.setStyle("-fx-padding: 10");
         layout.getChildren().add(new Label(ResourceManager.getString("keys_list")));
         Scene scene = new Scene(layout, 600, 600);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         keysStage.setTitle(ResourceManager.getString("keys_list_title"));
         keysStage.setScene(scene);
         keysStage.showAndWait();
