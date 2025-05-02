@@ -1,6 +1,7 @@
 {
     "levelWidth": 3072,
     "musicFileName": "musiqueVille.wav",
+    "backgroundImageFileName": "background_ville.png",
     "spawnPoint": {
         "name": "Spawnpoint",
         "x": 0,
@@ -112,7 +113,6 @@
             "y": 528
         }
     ],
-    "backgroundImageFileName": "default.png",
     "levelHeight": 768,
     "platforms": [
         {

@@ -3,6 +3,7 @@
     "musicFileName": "musiqueHorlogerie.wav",
     "levelWidth": 2000,
     "levelHeight": 800,
+    "levelType": "classic",
   
     "spawnPoint": {
       "name": "Spawnpoint",

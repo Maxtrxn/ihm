@@ -54,5 +54,6 @@
     "backgroundImageFileName": "background_level2.png",
     "levelWidth": 600,
     "levelHeight": 600,
+    "levelType": "classic",
     "musicFileName": "musiqueVille.wav"
   }
