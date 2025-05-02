@@ -1,4 +1,4 @@
-{    "levelWidth": 480,
+{    "levelWidth": 4480,
     "musicFileName": "musiqueHorlogerie.wav",
     "backgroundImageFileName": "briques.png",
     "levelType": "classic",
@@ -91,8 +91,8 @@
         
     ],
     "bossZone": {
-        "startX": 1600,
-        "endX":   2000
+        "startX": 3800,
+        "endX":   4480
       },
     "decorations": [
         {
