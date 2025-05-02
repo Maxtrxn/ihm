@@ -13,7 +13,6 @@ public class Enemy extends LevelObject{
     private double leftBound, rightBound;
     private boolean movingRight = true;
 
-
     public Enemy(double x, double y, double speed, double leftBound, double rightBound, String name) {
         super(x, y, name, ResourceManager.ENEMIES_JSON, ResourceManager.ENEMIES_FOLDER);
         this.speed = speed;
@@ -40,6 +39,10 @@ public class Enemy extends LevelObject{
     public Image getTexture() {
         return this.texture;
     }
+
+    public boolean isMovingRight() {
+        return movingRight;
+        }
 
     /** @param deltaSec  temps écoulé (s) */
     /**

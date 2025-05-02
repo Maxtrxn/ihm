@@ -36,6 +36,30 @@
         "patrolEnd":   600
       },
       {
+        "name": "mob ville",
+        "x": 900,
+        "y": 700,
+        "speed":       50,
+        "patrolStart": 800,
+        "patrolEnd":   1000
+      },
+      {
+        "name": "dirigeable ennemi",
+        "x": 1500,
+        "y": 600,
+        "speed":       30,
+        "patrolStart": 1400,
+        "patrolEnd":   1600
+      },
+      {
+        "name": "boss decharge",
+        "x": 2000,
+        "y": 700,
+        "speed":       20,
+        "patrolStart": 1900,
+        "patrolEnd":   2100
+      },
+      {
         "name": "mob décharge",
         "x": 1200,
         "y": 700,

@@ -1,42 +1,48 @@
-{
-  "enemy1": {
-    "textureFileName": "enemy1.png",
-	"scaleFactor": 1.5,
-	"type": "ENEMY"
-  },
-  "boss1": {
-    "textureFileName": "boss1.png",
-	"scaleFactor": 1.5,
-	"type": "BOSS"
-  },
-  "boss decharge": {
-    "textureFileName": "boss decharge.png",
-  "scaleFactor": 1.5,
-  "type": "BOSS"
-  },
-  "boss horlogerie": {
-    "textureFileName": "boss horlogerie.png",
-  "scaleFactor": 1.5,
-  "type": "BOSS"
-  },
-  "dirigeable ennemi": {
-    "textureFileName": "dirigeable ennemi.png",
-  "scaleFactor": 1.5,
-  "type": "ENEMY"
-  },
-  "mob décharge": {
-    "textureFileName": "mob décharge-Sheet.png",
-  "scaleFactor": 1.5,
-  "type": "ENEMY"
-  },
-  "mob horloge": {
-    "textureFileName": "mob horloge-Sheet.png",
-  "scaleFactor": 1.5,
-  "type": "ENEMY"
-  },
-  "mob ville": {
-    "textureFileName": "mob ville-Sheet.png",
-  "scaleFactor": 1.5,
-  "type": "ENEMY"
+  {
+    "enemy1": {
+      "textureFileName": "enemy1.png",
+    "scaleFactor": 1.5,
+    "type": "ENEMY"
+    },
+    "boss1": {
+      "textureFileName": "boss1.png",
+    "scaleFactor": 1.5,
+    "type": "BOSS"
+    },
+    "boss decharge": {
+      "textureFileName": "boss decharge.png",
+    "scaleFactor": 1.5,
+    "type": "BOSS"
+    },
+    "boss horlogerie": {
+      "textureFileName": "boss horlogerie.png",
+    "scaleFactor": 1.5,
+    "type": "BOSS"
+    },
+    "dirigeable ennemi": {
+      "textureFileName": "dirigeable ennemi.png",
+    "scaleFactor": 1.5,
+    "type": "ENEMY"
+    },
+    "mob décharge": {
+      "textureFileName": "mob décharge-Sheet.png",
+    "scaleFactor": 1.5,
+    "type": "ENEMY",
+    "frames": 8,
+    "durationMs": 100
+    },
+    "mob horloge": {
+      "textureFileName": "mob horloge-Sheet.png",
+    "scaleFactor": 1.5,
+    "type": "ENEMY",
+    "frames": 16,
+    "durationMs": 100
+    },
+    "mob ville": {
+      "textureFileName": "mob ville-Sheet.png",
+    "scaleFactor": 1.5,
+    "type": "ENEMY",
+    "frames": 8,
+    "durationMs": 100
+    }
   }
-}
