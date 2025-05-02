@@ -473,41 +473,53 @@ public class GameController {
         view.cameraYProperty().set(cameraY);
     }
 
-    /** Renders all game elements via GameView. */
-    private void render(boolean isShip) {
-        List<Image>     decoImgs = new ArrayList<>();
-        List<Double[]>  posDeco  = new ArrayList<>();
-        for (Decoration d : decorations) {
-            decoImgs.add(d.getTexture());
-            posDeco.add(new Double[]{d.getX(), d.getY(), d.getWidth(), d.getHeight()});
-        }
-
-        List<Image>     platImgs = new ArrayList<>();
-        List<Double[]>  posPl    = new ArrayList<>();
-        for (Platform p : platforms) {
-            platImgs.add(p.getTexture());
-            posPl.add(new Double[]{p.getX(), p.getY(), p.getWidth(), p.getHeight()});
-        }
-
-        List<Double[]> posProj = new ArrayList<>();
-        for (Projectile pr : projectiles) {
-            posProj.add(new Double[]{pr.getX(), pr.getY(), pr.getWidth(), pr.getHeight()});
-        }
-
-        boolean isJumping = !player.onGround;
-        view.draw(
-            level.getBackgroundImage(),
-            player.getX(), player.getY(),
-            player.getWidth(), player.getHeight(),
-            player.isWalking(), player.isFacingRight(),
-            isJumping,
-            isShip,
-            decoImgs, posDeco,
-            platImgs, posPl,
-            enemies,
-            posProj
-        );
+/** Renders all game elements via GameView. */
+private void render(boolean isShip) {
+    // Décorations
+    List<Image>    decoImgs   = new ArrayList<>();
+    List<Double[]> posDeco    = new ArrayList<>();
+    List<String>   decoNames  = new ArrayList<>();
+    for (Decoration d : decorations) {
+        decoImgs  .add(d.getTexture());
+        posDeco   .add(new Double[]{ d.getX(), d.getY(), d.getWidth(), d.getHeight() });
+        decoNames .add(d.getName());
     }
+
+    // Plateformes
+    List<Image>    platImgs = new ArrayList<>();
+    List<Double[]> posPl    = new ArrayList<>();
+    for (Platform p : platforms) {
+        platImgs.add(p.getTexture());
+        posPl   .add(new Double[]{ p.getX(), p.getY(), p.getWidth(), p.getHeight() });
+    }
+
+    // Projectiles
+    List<Double[]> posProj = new ArrayList<>();
+    for (Projectile pr : projectiles) {
+        posProj.add(new Double[]{ pr.getX(), pr.getY(), pr.getWidth(), pr.getHeight() });
+    }
+
+    boolean isJumping = !player.onGround;
+
+    view.draw(
+        // 1) Contexte de jeu
+        level.getBackgroundImage(),
+        player.getX(), player.getY(),
+        player.getWidth(), player.getHeight(),
+        player.isWalking(), player.isFacingRight(),
+        isJumping,
+        isShip,
+        // 2) Décorations
+        decoImgs, posDeco, decoNames,
+        // 3) Plateformes
+        platImgs, posPl,
+        // 4) Ennemis
+        enemies,
+        // 5) Projectiles
+        posProj
+    );
+}
+
 
     /** Respawns the player at the start position. */
     private void resetPlayerPosition() {
