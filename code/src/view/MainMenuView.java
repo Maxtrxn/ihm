@@ -26,7 +26,8 @@ public class MainMenuView extends VBox {
 
 
         Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
+        //scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
         primaryStage.centerOnScreen();
 
@@ -112,7 +113,7 @@ public class MainMenuView extends VBox {
         layout.setStyle("-fx-padding: 10");
         layout.getChildren().add(new Label(ResourceManager.getString("keys_list")));
         Scene scene = new Scene(layout, 600, 600);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         keysStage.setTitle(ResourceManager.getString("keys_list_title"));
         keysStage.setScene(scene);
         keysStage.showAndWait();

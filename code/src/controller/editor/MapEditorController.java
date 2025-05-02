@@ -146,7 +146,7 @@ public class MapEditorController {
         layout.setStyle("-fx-padding: 10; -fx-alignment: center;");
 
         Scene scene = new Scene(layout, 300, 400);
-        scene.getStylesheets().add(this.stage.getScene().getStylesheets().getFirst());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         newWindow.setScene(scene);
         newWindow.setTitle(ResourceManager.getString("handleEnemyPlacement_window_title"));
         newWindow.showAndWait();

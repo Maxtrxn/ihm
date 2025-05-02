@@ -9,6 +9,7 @@ import java.util.ResourceBundle;
 
 import org.json.JSONObject;
 
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
 
 public class ResourceManager {
@@ -31,6 +32,22 @@ public class ResourceManager {
     public static final JSONObject PLATFORMS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "platforms.json");
 
     public static final String DEFAULT_TEXTURE = TEXTURES_FOLDER + "default.png";
+
+
+
+
+    private static String currStyleSheetName = "steampunk.css";
+
+    public static void setCurrStyleSheet(String styleSheetName){
+        currStyleSheetName = styleSheetName;
+    }
+
+    public static void setCurrStyleSheetToScene(Scene scene){
+        scene.getStylesheets().clear();
+        scene.getStylesheets().add(STYLESHEET_FOLDER + currStyleSheetName);
+    }
+
+
 
 
     private static Locale currentLocale;

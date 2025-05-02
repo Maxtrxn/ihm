@@ -20,6 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
+import src.controller.MainMenuController;
 import src.controller.game.GameController;
 import src.model.editor.GameEditorModel;
 import src.view.editor.EditorMenuBarView;
@@ -192,7 +193,7 @@ public class EditorMenuBarController {
     }
 
     public void handleFileQuit(){
-        Platform.exit();
+        new MainMenuController(this.stage);
     }
 
     
@@ -329,8 +330,8 @@ public class EditorMenuBarController {
         window.showAndWait();
 
         if(cssFileName[0] != null){
-            this.stage.getScene().getStylesheets().clear();
-            this.stage.getScene().getStylesheets().add(getClass().getResource("/css/" + cssFileName[0]).toString());
+            ResourceManager.setCurrStyleSheet(cssFileName[0]);
+            ResourceManager.setCurrStyleSheetToScene(this.stage.getScene());
         }
     }
 }

@@ -19,7 +19,7 @@ public class GameEditorView extends BorderPane{
         this.stage = stage;
         
         Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
-        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        ResourceManager.setCurrStyleSheetToScene(scene);
         stage.setScene(scene); 
         stage.setResizable(true);
     }
