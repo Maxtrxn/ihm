@@ -42,6 +42,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
@@ -366,12 +367,15 @@ public class MapEditorView{
             temp.setFitHeight(levelObject.getHeight());
             temp.setLayoutX(levelObject.getX());
             temp.setLayoutY(levelObject.getY());
+            Circle leftCornerPoint = new Circle(levelObject.getX(), levelObject.getY(), 5, Color.RED);
 
 
             if(levelObject instanceof Platform){
                 this.mainLayer.getChildren().add(temp);
+                this.mainLayer.getChildren().add(leftCornerPoint);
             }else if(levelObject instanceof Decoration){
                 this.behindLayer.getChildren().add(temp);
+                this.behindLayer.getChildren().add(leftCornerPoint);
             }else if(levelObject instanceof Enemy){
                 //Si c'est un enemy on affiche en plus les limites de sa patrouille
                 Enemy tempEnemy = ((Enemy)levelObject);
@@ -380,6 +384,7 @@ public class MapEditorView{
                 ligne.setStroke(Color.RED);
                 ligne.setStrokeWidth(3);  
                 this.mainLayer.getChildren().addAll(temp, ligne);
+                this.mainLayer.getChildren().add(leftCornerPoint);
             }
         }
     }
