@@ -1,5 +1,6 @@
 {
     "levelWidth": 3072,
+    "musicFileName": "musiqueVille.wav",
     "spawnPoint": {
         "name": "Spawnpoint",
         "x": 0,

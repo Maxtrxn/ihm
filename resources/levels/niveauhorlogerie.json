@@ -1,5 +1,5 @@
-{
-    "levelWidth": 4480,
+{    "levelWidth": 4480,
+    "musicFileName": "musiqueHorlogerie.wav",
     "spawnPoint": {
         "name": "Spawnpoint",
         "x": 0,
