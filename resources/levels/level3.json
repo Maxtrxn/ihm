@@ -29,7 +29,8 @@
       { "name": "brique", "x":  200, "y": 376 },
       { "name": "brique", "x": 1000, "y": 476 },
       { "name": "brique", "x": 1000, "y": 376 },
-      { "name": "brique", "x": 1200, "y": 276 }
+      { "name": "brique", "x": 1200, "y": 276 },
+      { "name": "brique", "x": 800, "y": 528 }
     ],
     "enemies": [],
     "decorations": [
@@ -40,7 +41,7 @@
       }
     ],
     "backgroundImageFileName": "background_level3.png",
-    "levelWidth": 600,
+    "levelWidth": 1200,
     "levelHeight": 600
   }
   
