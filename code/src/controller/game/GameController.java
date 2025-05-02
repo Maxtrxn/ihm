@@ -36,6 +36,7 @@ public class GameController {
 
     // Input flags
     private boolean left, right, up, down, jumping, jetpack;
+    private boolean spaceshipMode;
 
     private Player                   player;
     private List<Platform>           platforms;
@@ -92,6 +93,7 @@ public class GameController {
         this.platforms   = level.getPlatforms();
         this.enemies     = level.getEnemies();
         this.decorations = level.getDecorations();
+        this.spaceshipMode = level.isSpaceshipMode();
 
         // 2) Réinitialisation des vies et de l’invincibilité
         lives      = MAX_LIVES;
@@ -121,7 +123,7 @@ public class GameController {
     public void handleInput() {
         Scene scene = view.getScene();
         scene.setOnKeyPressed(e -> {
-            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+            boolean isShip = spaceshipMode;
 
             if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.Q)  left  = true;
             if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) right = true;
@@ -141,7 +143,7 @@ public class GameController {
             }
         });
         scene.setOnKeyReleased(e -> {
-            boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+            boolean isShip = spaceshipMode;
 
             if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.Q)  left  = false;
             if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) right = false;
@@ -197,7 +199,7 @@ public class GameController {
             }
         }
 
-        boolean isShip = level.getPlatforms().isEmpty() && level.getEnemies().isEmpty();
+        boolean isShip = spaceshipMode;
 
         // Enter boss fight
         boolean bossAlive = enemies.stream().anyMatch(e -> e instanceof Boss);
@@ -536,7 +538,7 @@ private void render(boolean isShip) {
         player.getWidth(), player.getHeight(),
         player.isWalking(), player.isFacingRight(),
         isJumping,
-        isShip,
+        spaceshipMode,
         // 2) Décorations
         decoImgs, posDeco, decoNames,
         // 3) Plateformes
