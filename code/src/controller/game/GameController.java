@@ -306,9 +306,38 @@ public class GameController {
         player.move(dx, dy);
     }
 
-    /** Platformer movement: gravity, jump, collisions. */
+    /**
+     * Déplacement en mode plateforme :
+     * 1) collision horizontale « mur »
+     * 2) gravité / saut / jetpack
+     * 3) collision verticale « sol/plafond » + fragilePlatform
+     */
     private void updatePlatform(double dx, double deltaSec) {
-        double oldY = player.getY();
+        // Réinitialise le flag walking si pas de déplacement horizontal
+        if (dx == 0) {
+            player.stopWalking();
+        }
+
+        // 1) collision horizontale
+        if (dx != 0) {
+            // Déplace en X et conserve walking = true
+            player.move(dx, 0);
+
+            // Si intersection, colle le joueur contre le mur
+            for (Platform p : platforms) {
+                if (player.intersects(p)) {
+                    if (dx > 0) {
+                        // collision à droite
+                        player.setX(p.getX() - player.getWidth());
+                    } else {
+                        // collision à gauche
+                        player.setX(p.getX() + p.getWidth());
+                    }
+                }
+            }
+        }
+
+        // 2) gravité / saut / jetpack
         if (jumping && player.canJump() && !jetpack) {
             player.setVelocityY(-603.0);
             player.setOnGround(false);
@@ -316,18 +345,28 @@ public class GameController {
             jumping = false;
         }
         if (jetpack && player.isJetpackActive()) {
+            // ascension continue tant que le jetpack est actif
             player.setVelocityY(-300.0);
         } else {
+            // sinon on applique la gravité
             player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
-        player.move(dx, player.velocityY * deltaSec);
+
+        // 3) collision verticale
+        double oldY = player.getY();
+        // on modifie Y directement pour ne pas écraser walking
+        player.setY(oldY + player.velocityY * deltaSec);
+
+        // appel de votre handler d'atterrissage + fragilePlatform
         handlePlatformCollisions(oldY);
 
-        // Fall off bottom = lose life
+        // chute sous le niveau → perte de vie
         if (player.getY() > level.getLevelHeight()) {
             loseLife();
         }
     }
+
+
 
     /** Handles collisions with platforms (including fragile). */
     private void handlePlatformCollisions(double oldY) {
