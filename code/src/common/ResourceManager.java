@@ -20,7 +20,11 @@ public class ResourceManager {
     public static final String DECORATIONS_FOLDER = TEXTURES_FOLDER + "decorations/";
     public static final String ENEMIES_FOLDER = TEXTURES_FOLDER + "enemies/";
     public static final String BACKGROUNDS_FOLDER = TEXTURES_FOLDER + "backgrounds/";
-    
+
+
+    public static int resolutionWidth = 1280;
+    public static int resolutionHeight = 720;
+
 
     public static final JSONObject DECORATIONS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "decorations.json");
     public static final JSONObject ENEMIES_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "enemies.json");

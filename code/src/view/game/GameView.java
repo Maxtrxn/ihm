@@ -21,6 +21,7 @@ import src.common.ResourceManager;
 import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
+import src.common.ResourceManager;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -93,14 +94,13 @@ public class GameView {
     public GameView(GameController controller, Stage primaryStage) {
         this.controller = controller;
         root = new Pane();
-        canvas = new Canvas(WIDTH, HEIGHT);
+        canvas = new Canvas(ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
         root.getChildren().add(canvas);
-        scene = new Scene(root, WIDTH, HEIGHT);
+        scene = new Scene(root, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
-        primaryStage.setMaximized(true);
 
         this.gc = canvas.getGraphicsContext2D();
         canvas.setCache(true);

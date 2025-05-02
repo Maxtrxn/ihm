@@ -26,11 +26,11 @@ public class SpaceshipTest extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Canvas canvas = new Canvas(800, 600);
+        Canvas canvas = new Canvas(ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         StackPane root = new StackPane(canvas);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
 
         // Gestion des touches
         scene.setOnKeyPressed(e -> {

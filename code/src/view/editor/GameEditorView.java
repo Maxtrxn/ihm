@@ -5,7 +5,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 
-
+import src.common.ResourceManager;
 
 
 public class GameEditorView extends BorderPane{
@@ -18,10 +18,10 @@ public class GameEditorView extends BorderPane{
         this.controller = controller;
         this.stage = stage;
         
-        Scene scene = new Scene(this);
+        Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         stage.setScene(scene); 
-        stage.setMaximized(true);
+        stage.setResizable(true);
     }
 
     public GameEditorController getController() {return this.controller;}

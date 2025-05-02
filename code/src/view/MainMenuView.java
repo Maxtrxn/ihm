@@ -8,24 +8,27 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
 import src.controller.MainMenuController;
 import javafx.scene.control.Label;
-import java.util.Locale;
 
 public class MainMenuView extends VBox {
-    private final int SCENE_WIDTH = 800, SCENE_HEIGHT = 600; 
     MainMenuController controller;
 
     public MainMenuView(MainMenuController controller, Stage primaryStage){
         super(10);
         this.setAlignment(Pos.CENTER);
+        this.getStyleClass().add("main-region");
 
 
-        Scene scene = new Scene(this, SCENE_WIDTH, SCENE_HEIGHT);
+        Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
 
 
         this.controller = controller;
@@ -35,6 +38,23 @@ public class MainMenuView extends VBox {
 
         Button editor = new Button(ResourceManager.getString("start_editor"));
         editor.setOnAction(e -> {this.controller.startEditor(primaryStage);});
+
+
+
+        // --- CONFIGURATIONS ---
+        Label configLabel = new Label("—————————— " + ResourceManager.getString("configTitle") + " ——————————");
+        configLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
+
+        Button showKeysButton = new Button(ResourceManager.getString("show_keys_title"));
+        showKeysButton.setOnAction(e -> showKeysWindow());
+
+
+        Label resolutionLabel = new Label(ResourceManager.getString("resolution_title"));
+        ComboBox<String> resolutionCombo = new ComboBox<>();
+        resolutionCombo.getItems().addAll("1920x1080", "1280x720");
+        resolutionCombo.setValue(ResourceManager.resolutionWidth + "x" + ResourceManager.resolutionHeight); 
+        resolutionCombo.setOnAction(e -> {this.controller.handleResolutionChange(resolutionCombo.getValue());});
+
 
         Label languageLabel = new Label(ResourceManager.getString("select_language"));
         ComboBox<String> languageSelection = new ComboBox<>();
@@ -47,13 +67,26 @@ public class MainMenuView extends VBox {
             languageSelection.setValue("English");
         }
         
-
         languageSelection.setOnAction(event -> { this.controller.handleLanguageChange(languageSelection.getValue());});
 
+        VBox configsVBox = new VBox(15);
+        configsVBox.setAlignment(Pos.CENTER);
+        configsVBox.setStyle("-fx-padding: 20");
+
+        configsVBox.getChildren().addAll(
+                configLabel,
+                showKeysButton,
+                resolutionLabel,
+                resolutionCombo,
+                languageLabel,
+                languageSelection
+        );
 
 
 
-        Label authorTitle = new Label(ResourceManager.getString("authorTitle"));
+
+        // --- AUTEURS ---
+        Label authorTitle = new Label("—————————— " + ResourceManager.getString("authorTitle") + " ——————————");
         Label nom1 = new Label("Matthieu PETIT");
         Label nom2 = new Label("Zack HÉBERT");
         Label nom3 = new Label("Erwann BRICET");
@@ -65,8 +98,23 @@ public class MainMenuView extends VBox {
 
 
 
-        this.getChildren().addAll(game, editor, languageLabel, languageSelection, authorVBox);
+        this.getChildren().addAll(game, editor, configsVBox, authorVBox);
 
 
+    }
+
+
+    private void showKeysWindow() {
+        Stage keysStage = new Stage();
+        keysStage.initModality(Modality.APPLICATION_MODAL);
+        VBox layout = new VBox(10);
+        layout.getStyleClass().add("main-region");
+        layout.setStyle("-fx-padding: 10");
+        layout.getChildren().add(new Label(ResourceManager.getString("keys_list")));
+        Scene scene = new Scene(layout, 600, 600);
+        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        keysStage.setTitle(ResourceManager.getString("keys_list_title"));
+        keysStage.setScene(scene);
+        keysStage.showAndWait();
     }
 }

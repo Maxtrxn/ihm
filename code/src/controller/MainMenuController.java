@@ -38,10 +38,19 @@ public class MainMenuController {
                     ResourceManager.setLocale(Locale.ENGLISH);
                     break;
             }
-            //Stage tempStage = new Stage();
             this.view = new MainMenuView(this, this.stage);
-            //tempStage.showAndWait();
-            
-            //refreshTexts();
+    }
+
+
+    public void handleResolutionChange(String selectedResolution){
+        if(selectedResolution.equals("1920x1080")){
+            ResourceManager.resolutionWidth = 1920;
+            ResourceManager.resolutionHeight = 1080;
+        }else if(selectedResolution.equals("1280x720")){
+            ResourceManager.resolutionWidth = 1280;
+            ResourceManager.resolutionHeight = 720;
+        }
+
+        this.view = new MainMenuView(this, this.stage);
     } 
 }
