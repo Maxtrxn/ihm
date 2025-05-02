@@ -9,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
@@ -38,7 +39,8 @@ public class MapEditorController {
         this.model.addPropertyChangeListener("changeSelectedLevelObjectName", e -> {
             model.setClickSelectedLevelObject(null);
             view.updateClickSelectedLevelObject(null);
-            this.view.updateSelectedLevelObjectImage((String)e.getNewValue());
+
+            handleUpdateSelectedImage((String)e.getNewValue());
         });
 
     }
@@ -152,5 +154,49 @@ public class MapEditorController {
         newWindow.showAndWait();
     }
 
+
+    public void handleUpdateSelectedImage(String levelObjectName){
+        if(levelObjectName == null){
+            this.view.updateSelectedLevelObjectImage(null, -1);
+            return;
+        }
+
+        String pathToLevelObjectTexture = null;
+        double scaleFactor = 1.0;
+        int nbFrame = 1;
+        int correspondingPaneIndex = -1;
+        if(ResourceManager.PLATFORMS_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.PLATFORMS_FOLDER + ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            correspondingPaneIndex = 2;
+            scaleFactor = ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
+            if(ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).has("frames")){
+                nbFrame = ResourceManager.PLATFORMS_JSON.getJSONObject(levelObjectName).getInt("frames");
+            }
+        }else if(ResourceManager.DECORATIONS_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.DECORATIONS_FOLDER + ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            correspondingPaneIndex = 1;
+            scaleFactor = ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
+            if(ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).has("frames")){
+                nbFrame = ResourceManager.DECORATIONS_JSON.getJSONObject(levelObjectName).getInt("frames");
+            }
+        }
+        else if(ResourceManager.ENEMIES_JSON.has(levelObjectName)){
+            pathToLevelObjectTexture = ResourceManager.ENEMIES_FOLDER + ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getString("textureFileName");
+            correspondingPaneIndex = 2;
+            scaleFactor = ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getDouble("scaleFactor");
+            if(ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).has("frames")){
+                nbFrame = ResourceManager.ENEMIES_JSON.getJSONObject(levelObjectName).getInt("frames");
+            }
+        }
+        ImageView imgView = new ImageView(new Image("file:" + pathToLevelObjectTexture));
+        imgView.setOpacity(0.5);
+        imgView.setFitHeight(imgView.getImage().getHeight() * scaleFactor);
+        imgView.setFitWidth(imgView.getImage().getWidth() * scaleFactor);
+
+        Rectangle clip = new Rectangle(imgView.getImage().getWidth()/nbFrame, imgView.getImage().getHeight());
+        imgView.setClip(clip);
+
+        this.view.updateSelectedLevelObjectImage(imgView, correspondingPaneIndex);
+    }
 
 }
