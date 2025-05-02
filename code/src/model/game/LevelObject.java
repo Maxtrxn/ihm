@@ -11,6 +11,7 @@ public abstract class LevelObject {
     protected double x, y, width, height;
     protected Image texture;
     protected String name;
+    protected int nbFrame;
 
     protected LevelObject(double x, double y, String name, JSONObject levelObjectsJson, String pathToLevelObjectFolder) {
         this.x = x;
@@ -25,6 +26,12 @@ public abstract class LevelObject {
         }else{
             this.texture = new Image("file:" + pathToLevelObjectFolder + levelObjectJson.getString("textureFileName"));
             scaleFactor = levelObjectJson.getDouble("scaleFactor");
+            if (levelObjectJson.has("frames")){
+                nbFrame = levelObjectJson.getInt("frames");
+            }else{
+                nbFrame = 1;
+            }
+            
         }
 
         this.width = texture.getWidth() * scaleFactor;
@@ -37,6 +44,7 @@ public abstract class LevelObject {
     public double getHeight() { return height; }
     public Image getTexture() { return texture;}
     public String getName() { return name; }
+    public int getNbFrame(){return this.nbFrame;}
 
     public JSONObject toJSONObject(){
         JSONObject obj = new JSONObject();

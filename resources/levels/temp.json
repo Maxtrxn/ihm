@@ -2,37 +2,48 @@
     "levelWidth": 6400,
     "spawnPoint": {
         "name": "Spawnpoint",
-        "x": 464,
+        "x": 16,
         "y": 608
     },
     "enemies": [],
-    "decorations": [],
+    "decorations": [
+        {
+            "name": "pendule1",
+            "x": 528,
+            "y": 368
+        },
+        {
+            "name": "pendule1",
+            "x": 832,
+            "y": 304
+        }
+    ],
     "backgroundImageFileName": "default.png",
     "levelHeight": 640,
     "platforms": [
         {
-            "name": "fragile",
-            "x": 128,
-            "y": 528
-        },
-        {
-            "name": "fragile",
-            "x": 48,
+            "name": "sol_brique",
+            "x": 0,
             "y": 624
         },
         {
-            "name": "fragile",
+            "name": "sol_brique",
             "x": 160,
             "y": 624
         },
         {
-            "name": "fragile",
-            "x": 336,
+            "name": "sol_brique",
+            "x": 320,
             "y": 624
         },
         {
-            "name": "murret",
-            "x": 432,
+            "name": "sol_brique",
+            "x": 480,
+            "y": 624
+        },
+        {
+            "name": "sol_brique",
+            "x": 640,
             "y": 624
         }
     ]

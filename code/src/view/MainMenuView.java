@@ -27,7 +27,6 @@ public class MainMenuView extends VBox {
 
         Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         ResourceManager.setCurrStyleSheetToScene(scene);
-        //scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
         primaryStage.centerOnScreen();
 
