@@ -257,10 +257,11 @@ public class Level {
             levelJSON.put("bossZone", bossZoneJSON);
         }
 
-
-        JSONObject spawnPointJSON = this.spawnPoint.toJSONObject();
-        levelJSON.put("spawnPoint", spawnPointJSON);
-
+        if (this.spawnPoint != null){
+            JSONObject spawnPointJSON = this.spawnPoint.toJSONObject();
+            levelJSON.put("spawnPoint", spawnPointJSON);
+        }
+        
 
         return levelJSON;
     }
