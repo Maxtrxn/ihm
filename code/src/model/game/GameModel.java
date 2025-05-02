@@ -33,7 +33,7 @@ public class GameModel{
 
 
         // Liste des noms de niveaux JSON
-        List<String> levelNames = List.of("spaceshiplevel", "niveauhorlogerie", "level2", "level3", "level4", "level5", "horlogerie");
+        List<String> levelNames = List.of("villesteampunk", "niveauhorlogerie", "niveaudecharge", "niveaudirigeable");
         levelSuppliers = new ArrayList<>();
 
         // Instancie Level(player, name) pour chaque JSON
@@ -41,7 +41,7 @@ public class GameModel{
             levelSuppliers.add(p -> new Level(p, name));
         }
         // Insère le niveau vaisseau (spaceship.json) après le premier
-        levelSuppliers.add(1, p -> new Level(p, "spaceship"));
+        //levelSuppliers.add(1, p -> new Level(p, "spaceship"));
 
         loadCurrentLevel();
     }
