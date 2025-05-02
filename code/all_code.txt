@@ -113,7 +113,11 @@ public class ResourceManager {
     public static final String DECORATIONS_FOLDER = TEXTURES_FOLDER + "decorations/";
     public static final String ENEMIES_FOLDER = TEXTURES_FOLDER + "enemies/";
     public static final String BACKGROUNDS_FOLDER = TEXTURES_FOLDER + "backgrounds/";
-    
+
+
+    public static int resolutionWidth = 1280;
+    public static int resolutionHeight = 720;
+
 
     public static final JSONObject DECORATIONS_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "decorations.json");
     public static final JSONObject ENEMIES_JSON = JsonReader.getJsonObjectContent(ResourceManager.RESOURCE_FOLDER + "enemies.json");
@@ -1058,9 +1062,38 @@ public class GameController {
         player.move(dx, dy);
     }
 
-    /** Platformer movement: gravity, jump, collisions. */
+    /**
+     * Déplacement en mode plateforme :
+     * 1) collision horizontale « mur »
+     * 2) gravité / saut / jetpack
+     * 3) collision verticale « sol/plafond » + fragilePlatform
+     */
     private void updatePlatform(double dx, double deltaSec) {
-        double oldY = player.getY();
+        // Réinitialise le flag walking si pas de déplacement horizontal
+        if (dx == 0) {
+            player.stopWalking();
+        }
+
+        // 1) collision horizontale
+        if (dx != 0) {
+            // Déplace en X et conserve walking = true
+            player.move(dx, 0);
+
+            // Si intersection, colle le joueur contre le mur
+            for (Platform p : platforms) {
+                if (player.intersects(p)) {
+                    if (dx > 0) {
+                        // collision à droite
+                        player.setX(p.getX() - player.getWidth());
+                    } else {
+                        // collision à gauche
+                        player.setX(p.getX() + p.getWidth());
+                    }
+                }
+            }
+        }
+
+        // 2) gravité / saut / jetpack
         if (jumping && player.canJump() && !jetpack) {
             player.setVelocityY(-603.0);
             player.setOnGround(false);
@@ -1068,18 +1101,28 @@ public class GameController {
             jumping = false;
         }
         if (jetpack && player.isJetpackActive()) {
+            // ascension continue tant que le jetpack est actif
             player.setVelocityY(-300.0);
         } else {
+            // sinon on applique la gravité
             player.setVelocityY(player.velocityY + GRAVITY * deltaSec);
         }
-        player.move(dx, player.velocityY * deltaSec);
+
+        // 3) collision verticale
+        double oldY = player.getY();
+        // on modifie Y directement pour ne pas écraser walking
+        player.setY(oldY + player.velocityY * deltaSec);
+
+        // appel de votre handler d'atterrissage + fragilePlatform
         handlePlatformCollisions(oldY);
 
-        // Fall off bottom = lose life
+        // chute sous le niveau → perte de vie
         if (player.getY() > level.getLevelHeight()) {
             loseLife();
         }
     }
+
+
 
     /** Handles collisions with platforms (including fragile). */
     private void handlePlatformCollisions(double oldY) {
@@ -1305,11 +1348,20 @@ public class MainMenuController {
                     ResourceManager.setLocale(Locale.ENGLISH);
                     break;
             }
-            //Stage tempStage = new Stage();
             this.view = new MainMenuView(this, this.stage);
-            //tempStage.showAndWait();
-            
-            //refreshTexts();
+    }
+
+
+    public void handleResolutionChange(String selectedResolution){
+        if(selectedResolution.equals("1920x1080")){
+            ResourceManager.resolutionWidth = 1920;
+            ResourceManager.resolutionHeight = 1080;
+        }else if(selectedResolution.equals("1280x720")){
+            ResourceManager.resolutionWidth = 1280;
+            ResourceManager.resolutionHeight = 720;
+        }
+
+        this.view = new MainMenuView(this, this.stage);
     } 
 }
 fin fichier ./src/controller/MainMenuController.java
@@ -1753,7 +1805,7 @@ public class GameModel{
 
 
         // Liste des noms de niveaux JSON
-        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5");
+        List<String> levelNames = List.of("level1", "level2", "level3", "level4", "level5", "horlogerie");
         levelSuppliers = new ArrayList<>();
 
         // Instancie Level(player, name) pour chaque JSON
@@ -2078,10 +2130,11 @@ public class Level {
             levelJSON.put("bossZone", bossZoneJSON);
         }
 
-
-        JSONObject spawnPointJSON = this.spawnPoint.toJSONObject();
-        levelJSON.put("spawnPoint", spawnPointJSON);
-
+        if (this.spawnPoint != null){
+            JSONObject spawnPointJSON = this.spawnPoint.toJSONObject();
+            levelJSON.put("spawnPoint", spawnPointJSON);
+        }
+        
 
         return levelJSON;
     }
@@ -2097,6 +2150,8 @@ package src.model.game;
 
 import javafx.scene.image.Image;
 import src.common.ResourceManager;
+
+import java.nio.channels.Pipe.SourceChannel;
 
 import org.json.JSONObject;
 
@@ -2454,11 +2509,11 @@ public class SpaceshipTest extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        Canvas canvas = new Canvas(800, 600);
+        Canvas canvas = new Canvas(ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         StackPane root = new StackPane(canvas);
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
 
         // Gestion des touches
         scene.setOnKeyPressed(e -> {
@@ -2777,7 +2832,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 
-
+import src.common.ResourceManager;
 
 
 public class GameEditorView extends BorderPane{
@@ -2790,10 +2845,10 @@ public class GameEditorView extends BorderPane{
         this.controller = controller;
         this.stage = stage;
         
-        Scene scene = new Scene(this);
+        Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         stage.setScene(scene); 
-        stage.setMaximized(true);
+        stage.setResizable(true);
     }
 
     public GameEditorController getController() {return this.controller;}
@@ -3222,6 +3277,7 @@ import src.common.ResourceManager;
 import src.controller.game.GameController;
 import src.model.game.Boss;
 import src.model.game.Enemy;
+import src.common.ResourceManager;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -3294,14 +3350,13 @@ public class GameView {
     public GameView(GameController controller, Stage primaryStage) {
         this.controller = controller;
         root = new Pane();
-        canvas = new Canvas(WIDTH, HEIGHT);
+        canvas = new Canvas(ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         canvas.widthProperty().bind(root.widthProperty());
         canvas.heightProperty().bind(root.heightProperty());
         root.getChildren().add(canvas);
-        scene = new Scene(root, WIDTH, HEIGHT);
+        scene = new Scene(root, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         primaryStage.setScene(scene);
         primaryStage.setResizable(true);
-        primaryStage.setMaximized(true);
 
         this.gc = canvas.getGraphicsContext2D();
         canvas.setCache(true);
@@ -3607,24 +3662,27 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import src.common.ResourceManager;
 import src.controller.MainMenuController;
 import javafx.scene.control.Label;
-import java.util.Locale;
 
 public class MainMenuView extends VBox {
-    private final int SCENE_WIDTH = 800, SCENE_HEIGHT = 600; 
     MainMenuController controller;
 
     public MainMenuView(MainMenuController controller, Stage primaryStage){
         super(10);
         this.setAlignment(Pos.CENTER);
+        this.getStyleClass().add("main-region");
 
 
-        Scene scene = new Scene(this, SCENE_WIDTH, SCENE_HEIGHT);
+        Scene scene = new Scene(this, ResourceManager.resolutionWidth, ResourceManager.resolutionHeight);
         scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
         primaryStage.setScene(scene);
+        primaryStage.centerOnScreen();
 
 
         this.controller = controller;
@@ -3634,6 +3692,23 @@ public class MainMenuView extends VBox {
 
         Button editor = new Button(ResourceManager.getString("start_editor"));
         editor.setOnAction(e -> {this.controller.startEditor(primaryStage);});
+
+
+
+        // --- CONFIGURATIONS ---
+        Label configLabel = new Label("—————————— " + ResourceManager.getString("configTitle") + " ——————————");
+        configLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
+
+        Button showKeysButton = new Button(ResourceManager.getString("show_keys_title"));
+        showKeysButton.setOnAction(e -> showKeysWindow());
+
+
+        Label resolutionLabel = new Label(ResourceManager.getString("resolution_title"));
+        ComboBox<String> resolutionCombo = new ComboBox<>();
+        resolutionCombo.getItems().addAll("1920x1080", "1280x720");
+        resolutionCombo.setValue(ResourceManager.resolutionWidth + "x" + ResourceManager.resolutionHeight); 
+        resolutionCombo.setOnAction(e -> {this.controller.handleResolutionChange(resolutionCombo.getValue());});
+
 
         Label languageLabel = new Label(ResourceManager.getString("select_language"));
         ComboBox<String> languageSelection = new ComboBox<>();
@@ -3646,12 +3721,55 @@ public class MainMenuView extends VBox {
             languageSelection.setValue("English");
         }
         
-
         languageSelection.setOnAction(event -> { this.controller.handleLanguageChange(languageSelection.getValue());});
 
-        this.getChildren().addAll(game, editor, languageLabel, languageSelection);
+        VBox configsVBox = new VBox(15);
+        configsVBox.setAlignment(Pos.CENTER);
+        configsVBox.setStyle("-fx-padding: 20");
+
+        configsVBox.getChildren().addAll(
+                configLabel,
+                showKeysButton,
+                resolutionLabel,
+                resolutionCombo,
+                languageLabel,
+                languageSelection
+        );
 
 
+
+
+        // --- AUTEURS ---
+        Label authorTitle = new Label("—————————— " + ResourceManager.getString("authorTitle") + " ——————————");
+        Label nom1 = new Label("Matthieu PETIT");
+        Label nom2 = new Label("Zack HÉBERT");
+        Label nom3 = new Label("Erwann BRICET");
+
+        // Mise en page verticale
+        VBox authorVBox = new VBox(10); // 10 pixels d'espacement
+        authorVBox.setAlignment(Pos.CENTER);
+        authorVBox.getChildren().addAll(authorTitle, nom1, nom2, nom3);
+
+
+
+        this.getChildren().addAll(game, editor, configsVBox, authorVBox);
+
+
+    }
+
+
+    private void showKeysWindow() {
+        Stage keysStage = new Stage();
+        keysStage.initModality(Modality.APPLICATION_MODAL);
+        VBox layout = new VBox(10);
+        layout.getStyleClass().add("main-region");
+        layout.setStyle("-fx-padding: 10");
+        layout.getChildren().add(new Label(ResourceManager.getString("keys_list")));
+        Scene scene = new Scene(layout, 600, 600);
+        scene.getStylesheets().add(getClass().getResource("/css/steampunk.css").toString());
+        keysStage.setTitle(ResourceManager.getString("keys_list_title"));
+        keysStage.setScene(scene);
+        keysStage.showAndWait();
     }
 }
 fin fichier ./src/view/MainMenuView.java
