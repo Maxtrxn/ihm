@@ -21,6 +21,7 @@ public class ResourceManager {
     public static final String DECORATIONS_FOLDER = TEXTURES_FOLDER + "decorations/";
     public static final String ENEMIES_FOLDER = TEXTURES_FOLDER + "enemies/";
     public static final String BACKGROUNDS_FOLDER = TEXTURES_FOLDER + "backgrounds/";
+    public static final String PROJECTILES_FOLDER = TEXTURES_FOLDER + "misc/";
 
 
     public static int resolutionWidth = 1280;
